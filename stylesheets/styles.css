@@ -99,7 +99,7 @@ img.bookfront { position: relative;
   width: 30%; height: auto;
   opacity: 0; 
   transition-property: opacity; 
-  transition-duration: 0.5s; 
+  transition-duration: 1s; 
 
 }
 img.bookfront:hover { opacity: 1;     
@@ -108,8 +108,8 @@ img.bookfront:hover { opacity: 1;
 img.bookback { 
   position: absolute; 
   width: 8%; height: auto;
-  -webkit-filter: sepia(90%); 
-  filter: sepia(90%); 
+  -webkit-filter:  grayscale(100%);
+  filter: grayscale(100%);
 
 }
 
