@@ -104,9 +104,10 @@ img.bookfront { position: relative;
 img.bookfront:hover { opacity: 1;     
   width: 30%; height: 30%;
 }
-img.bookback { position: absolute; 
+img.bookback { 
+  position: absolute; 
   -webkit-filter: sepia(90%); 
-  hue-rotate(180deg) saturate(300%); 
+  filter: sepia(90%); 
   width: 30%; height: 30%;
 }
 
