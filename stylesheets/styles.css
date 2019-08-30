@@ -99,10 +99,10 @@ img.bookfront { position: relative;
   opacity: 0; 
   transition-property: opacity; 
   transition-duration: 0.5s; 
-  width: 40%; height: 40%;
+  width: 30%; height: 30%;
 }
 img.bookfront:hover { opacity: 1;     
-  width: 40%; height: 40%;
+  width: 30%; height: 30%;
 }
 img.bookback { position: absolute; 
   -webkit-filter: sepia(90%); 
