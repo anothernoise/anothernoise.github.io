@@ -96,19 +96,21 @@ img {
 }
 
 img.bookfront { position: relative; 
+  width: 30%; height: auto;
   opacity: 0; 
   transition-property: opacity; 
   transition-duration: 0.5s; 
-  width: 30%; height: auto;
+
 }
 img.bookfront:hover { opacity: 1;     
   width: 30%; height: auto;
 }
 img.bookback { 
   position: absolute; 
+  width: 20%; height: auto;
   -webkit-filter: sepia(90%); 
   filter: sepia(90%); 
-  width: 30%; height: auto;
+
 }
 
 header {
