@@ -107,7 +107,7 @@ img.bookfront:hover { opacity: 1;
 }
 img.bookback { 
   position: absolute; 
-  width: 5%; height: auto;
+  width: 10%; height: auto;
   -webkit-filter: sepia(90%); 
   filter: sepia(90%); 
 
