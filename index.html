@@ -15,97 +15,148 @@
 
   <body>
     <div class="wrapper">
-      <header>
-        <h3>Dmitry Shirokov <br>
-        <small>Data Architect | Engineer | Analyst | BI & DWH <small> </h3> 
-        <p>
-          <img src="./images/profile_bw.jpg" style="width: 70%; height: 70%">
-        </p>
-        <p>
-        10+ years of  experience designing data-driven solutions including 
-        building complex data pipelines and integration,
-        implementing Data Lakes and Data Warehouses,
-        creating analytic frameworks,
-        building data analytics pilots and Proof-of-Concept's.
-        
-      </p>
-      <p>
-        Master's Degree in Information Systems
-        from the <a href="https://eng.mephi.ru/">MEPhI </a>, Russia.  
-        </p>
- 
-        <p>
-        <a href="https://linkedin.com/in/dmansh">LinkedIn</a>
-       <br>
-        <a href="https://github.com/anothernoise">GitHub</a>
-      <br>
-        <a href="https://www.slideshare.net/DmitryShirokov">Slides</a>
-      <br>
-        <a href="https://medium.com/@anothernoise">Blog</a>
-      </p>
-
-        Notes:
-        <p class="view">
-          <a href="http://anothernoise.github.io/spark_memsql_prj.html">_</a>
-        </p>
-     
+      <header class="profile-card">
+        <img src="./images/profile_bw.jpg" class="profile-photo" alt="Portrait of Dmitry Shirokov">
+        <div class="profile-text">
+          <p class="eyebrow">Solution & Data Architect</p>
+          <h1>Dmitry Shirokov</h1>
+          <p class="tagline">Designing resilient, analytics-ready platforms for Health & Life Sciences.</p>
+          <p class="lede">I help organizations modernize their data foundations, build trust in regulated data, and accelerate insights across clinical, research, and product teams.</p>
+          <ul class="quick-stats">
+            <li><strong>10+ yrs</strong> architecting cloud-native data platforms</li>
+            <li><strong>Multi-omics</strong> pipelines, metadata & governance</li>
+            <li><strong>Clinical & payor</strong> analytics, interoperability</li>
+          </ul>
+          <div class="links">
+            <a href="https://linkedin.com/in/dmansh">LinkedIn</a>
+            <a href="https://github.com/anothernoise">GitHub</a>
+            <a href="https://www.slideshare.net/DmitryShirokov">Slides</a>
+            <a href="https://medium.com/@anothernoise">Blog</a>
+          </div>
+          <p class="education">Master's Degree in Information Systems from the <a href="https://eng.mephi.ru/">MEPhI</a>, Russia.</p>
+        </div>
       </header>
 
-<section>
-<h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages">
-  <span class="octicon octicon-link"></span></a> 
-</h3>
+      <section class="content">
+        <div class="section-header">
+          <p class="eyebrow">Focus</p>
+          <h2>Health, Life Sciences & Multi-Omics Data Architecture</h2>
+          <p class="lede">Building secure, interoperable data ecosystems that shorten the path from raw signals to actionable insight.</p>
+        </div>
 
+        <div class="cards two-col">
+          <article class="card">
+            <h3>Health & Life Sciences Platforms</h3>
+            <p>HIPAA-aligned architectures spanning clinical workflows, RWD, and payer data with robust lineage and access controls.</p>
+            <ul class="pill-list">
+              <li>FHIR / HL7 integration</li>
+              <li>PHI/PII safeguarding</li>
+              <li>Data quality & observability</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Multi-Omics & Research Data</h3>
+            <p>End-to-end pipelines for genomics, proteomics, and imaging data with harmonized metadata models and reproducible processing.</p>
+            <ul class="pill-list">
+              <li>Variant pipelines & QC</li>
+              <li>Metadata-driven orchestration</li>
+              <li>Notebook-to-productization paths</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Cloud-First Solution Architecture</h3>
+            <p>Composable data mesh and lakehouse designs that enable domain teams without sacrificing governance.</p>
+            <ul class="pill-list">
+              <li>Snowflake / Databricks / BigQuery</li>
+              <li>Lakehouse governance</li>
+              <li>Cost-aware scaling & FinOps</li>
+            </ul>
+          </article>
+          <article class="card">
+            <h3>Decision Intelligence</h3>
+            <p>Analytics products that pair trusted data with clear narratives—dashboards, semantic layers, and AI-assisted insights.</p>
+            <ul class="pill-list">
+              <li>dbt & semantic modeling</li>
+              <li>Executive-ready storytelling</li>
+              <li>BI modernization</li>
+            </ul>
+          </article>
+        </div>
 
-<pre>
-<code>
-  val data = pipeline()
-      .ingest()
-      .cleanup()
-      .enrich()
-      .publish()
-</code>
-</pre>
+        <div class="section-header">
+          <p class="eyebrow">Blueprint</p>
+          <h2>What a typical engagement looks like</h2>
+        </div>
+        <ol class="journey">
+          <li>
+            <strong>Assess & align.</strong> Map regulatory constraints, critical data domains, and decision pathways.
+          </li>
+          <li>
+            <strong>Design.</strong> Blueprint target-state architecture, SLAs, and data contracts across domains.
+          </li>
+          <li>
+            <strong>Build.</strong> Stand up ingestion, curation, and analytics layers with observability by default.
+          </li>
+          <li>
+            <strong>Operationalize.</strong> Transition to product teams with runbooks, playbooks, and governance.
+          </li>
+        </ol>
 
+        <div class="section-header">
+          <p class="eyebrow">Highlights</p>
+          <h2>Recent work</h2>
+        </div>
+        <ul class="highlight-list">
+          <li>Modernized a healthcare analytics stack with streaming FHIR ingestion, unified patient 360 modeling, and governed self-service BI.</li>
+          <li>Built a multi-omics research platform combining sequencing data, clinical registries, and imaging assets with harmonized metadata and lineage.</li>
+          <li>Delivered a Snowflake accelerator package for rapid data product onboarding with security controls, cost baselines, and observability patterns.</li>
+        </ul>
 
-<h4>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages">
-  <span class="octicon octicon-link"></span></a>Books 
-</h4>
+        <div class="code-panel">
+          <div class="code-meta">
+            <p class="eyebrow">Approach</p>
+            <h3>Data product pipeline</h3>
+          </div>
+<pre><code>
+val product = pipeline()
+  .ingest("domain-context")
+  .validate(schema, contracts)
+  .curate(with="metadata")
+  .serve(via = ["warehouse", "api", "bi"])
+</code></pre>
+        </div>
 
+        <div class="section-header">
+          <p class="eyebrow">Books & Learning</p>
+          <h2>Writing & contributions</h2>
+        </div>
+        <div class="book-grid">
+          <a class="book" href="https://www.amazon.ca/Tableau-2019-x-Cookbook-end-end/dp/1789533384/">
+            <img class="bookback"  src="./images/tableau_book.jpeg" alt="Tableau cookbook">
+            <img class="bookfront" src="./images/tableau_book.jpeg" alt="Tableau cookbook">
+            <p>Tableau 2019.x Cookbook</p>
+          </a>
+          <a class="book" href="https://www.amazon.ca/Tableau-2019-x-Cookbook-end-end/dp/1789533384/">
+            <img class="bookback"  src="./images/snowflake-cover.png" alt="Snowflake Jumpstart">
+            <img class="bookfront" src="./images/snowflake-cover.png" alt="Snowflake Jumpstart">
+            <p>Snowflake Jumpstart</p>
+          </a>
+        </div>
 
-<p>
-        <a href="https://www.amazon.ca/Tableau-2019-x-Cookbook-end-end/dp/1789533384/">
-          <img class="bookback"  src="./images/tableau_book.jpeg" alt="Tableau cookbook"  >
-          <img class="bookfront" src="./images/tableau_book.jpeg" alt="Tableau cookbook"  >
-        </a>
-        <a href="https://www.amazon.ca/Tableau-2019-x-Cookbook-end-end/dp/1789533384/">
-          <img class="bookback"  src="./images/snowflake-cover.png" alt="Snowflake Jumpstart" >
-          <img class="bookfront" src="./images/snowflake-cover.png" alt="Snowflake Jumpstart" >
-        </a>
+        <div class="section-header">
+          <p class="eyebrow">Talks</p>
+          <h2>Data Pipeline Framework</h2>
+        </div>
+        <div class="presentation">
+          <iframe src="//www.slideshare.net/slideshow/embed_code/key/1lvOqS5equXX1Q" width="600" height="320" frameborder="1" marginwidth="1" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:1px; max-width: 100%;" allowfullscreen> </iframe>
+          <div class="presentation-caption">
+            <strong><a href="//www.slideshare.net/DmitryShirokov/data-pipeline-framework" title="Data Pipeline Framework" target="_blank">Data Pipeline Framework</a></strong> from <strong><a href="https://www.slideshare.net/DmitryShirokov" target="_blank">Dmitry Shirokov</a></strong>
+          </div>
+        </div>
+      </section>
 
-<p>
-
-
-<h4>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages">
-  <span class="octicon octicon-link"></span></a>Presentations
-</h4>
-<p>
-<iframe src="//www.slideshare.net/slideshow/embed_code/key/1lvOqS5equXX1Q" width="600" height="320" frameborder="1" marginwidth="1" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:1px; max-width: 100%;" allowfullscreen> </iframe> <div style="margin-bottom:2px"> <strong> <a href="//www.slideshare.net/DmitryShirokov/data-pipeline-framework" title="Data Pipeline Framework" target="_blank">Data Pipeline Framework</a> </strong> from <strong><a href="https://www.slideshare.net/DmitryShirokov" target="_blank">Dmitry Shirokov</a></strong> </div>
-
-</p>
-
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>_</h3>
-
-
-
-
-</section>
       <footer>
-        <p><small> </small></p>
+        <p><small>Notes: <a href="http://anothernoise.github.io/spark_memsql_prj.html">Spark + MemSQL project sketch</a></small></p>
       </footer>
     </div>
     <script src="javascripts/scale.fix.js"></script>
