@@ -1,165 +1,608 @@
 <!doctype html>
-<html>
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Dmitry Shirokov</title>
+    <title>Dmitry Shirokov | Data & AI Advisor</title>
 
-    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="stylesheets/styles.css?v=2.1.0">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <script type="module" src="javascripts/theme.js"></script>
+    <script type="module" src="javascripts/tabs.js"></script>
+    <script type="module" src="javascripts/dialog.js"></script>
+    <script type="module" src="javascripts/switcher.js"></script>
+    <script type="module" src="javascripts/background.js"></script>
+
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
   </head>
 
   <body>
+    <canvas id="bg-canvas" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;" aria-hidden="true"></canvas>
     <div class="wrapper">
+      <div class="theme-toggle-container">
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/>
+          </svg>
+          <span>Toggle Theme</span>
+        </button>
+      </div>
+
       <header class="profile-card">
-        <img src="./images/profile_bw.jpg" class="profile-photo" alt="Portrait of Dmitry Shirokov">
+        <img src="./images/profile_bw.jpg" class="profile-photo" alt="Portrait of Dmitry Shirokov" fetchpriority="high" decoding="async">
         <div class="profile-text">
-          <p class="eyebrow">Solution & Data Architect</p>
+          <p class="eyebrow">Data & AI Advisory</p>
           <h1>Dmitry Shirokov</h1>
-          <p class="tagline">Designing resilient, analytics-ready platforms for Health & Life Sciences.</p>
-          <p class="lede">I help organizations modernize their data foundations, build trust in regulated data, and accelerate insights across clinical, research, and product teams.</p>
+          <p class="tagline">Solutions Architect in Data and AI</p>
+          <p class="lede">I help companies turn data and AI investments into measurable outcomes—designing secure data platforms, operationalizing machine learning pipelines, and delivering agentic AI systems that work reliably in production.</p>
           <ul class="quick-stats">
-            <li><strong>10+ yrs</strong> architecting cloud-native data platforms</li>
-            <li><strong>Multi-omics</strong> pipelines, metadata & governance</li>
-            <li><strong>Clinical & payor</strong> analytics, interoperability</li>
+            <li><strong>10+ yrs</strong> advisory & solutions engineering</li>
+            <li><strong>Cloud migration</strong> and modernization AWS | GCP | Azure</li>
+            <li><strong>Lakehouse Governance</strong> Snowflake, Databricks & BigQuery</li>
           </ul>
           <div class="links">
-            <a href="https://linkedin.com/in/dmansh">LinkedIn</a>
-            <a href="https://github.com/anothernoise">GitHub</a>
-            <a href="https://www.slideshare.net/DmitryShirokov">Slides</a>
-            <a href="https://medium.com/@anothernoise">Blog</a>
+            <a href="https://linkedin.com/in/dmansh" target="_blank" rel="noopener">LinkedIn</a>
+            <a href="https://github.com/anothernoise" target="_blank" rel="noopener">GitHub</a>
+            <!-- <a href="https://www.slideshare.net/DmitryShirokov" target="_blank" rel="noopener">Slides</a> -->
+            <a href="https://medium.com/@anothernoise" target="_blank" rel="noopener">Blog</a>
+            <a href="#" id="open-contact-btn" class="cta-btn">Schedule Briefing</a>
           </div>
-          <p class="education">Master's Degree in Information Systems from the <a href="https://eng.mephi.ru/">MEPhI</a>, Russia.</p>
         </div>
       </header>
 
       <section class="content">
-        <div class="section-header">
-          <p class="eyebrow">Focus</p>
-          <h2>Health, Life Sciences & Multi-Omics Data Architecture</h2>
-          <p class="lede">Building secure, interoperable data ecosystems that shorten the path from raw signals to actionable insight.</p>
+        <div class="filterable-section" data-active-filter="data" id="filter-practice">
+        <div class="section-header scroll-reveal">
+          <p class="eyebrow">Practice Areas</p>
+          <h2>Consulting Practice Areas</h2>
+          <p class="lede">Deploying domain-specific architectures that satisfy strict scale, compliance, and decision-making requirements.</p>
+        </div>
+        <div class="switcher-row">
+          <div class="segment-switcher" role="group" aria-label="Filter practice areas by dimension">
+            <button class="seg-btn active" data-seg="data" aria-pressed="true"><span class="seg-icon">◈</span> Data</button>
+            <button class="seg-btn" data-seg="ai" aria-pressed="false"><span class="seg-icon">✦</span> AI</button>
+            <span class="seg-pill" aria-hidden="true"></span>
+          </div>
         </div>
 
-        <div class="cards two-col">
-          <article class="card">
-            <h3>Health & Life Sciences Platforms</h3>
-            <p>HIPAA-aligned architectures spanning clinical workflows, RWD, and payer data with robust lineage and access controls.</p>
-            <ul class="pill-list">
-              <li>FHIR / HL7 integration</li>
-              <li>PHI/PII safeguarding</li>
-              <li>Data quality & observability</li>
-            </ul>
+        <div class="cards three-col">
+          <article class="card scroll-reveal">
+            <h3>Healthcare & Biotech</h3>
+            <p class="lede">HIPAA-compliant, multi-omics architectures bringing trust and reproducibility to clinical and genomic research data.</p>
+            
+            <div class="direction-block">
+              <span class="direction-badge data-badge">Data</span>
+              <ul class="direction-list">
+                <li><strong>PHI/PII Safeguarding:</strong> Secure, HIPAA-aligned ingestion and access controls.</li>
+                <li><strong>Multi-Omics Pipelines:</strong> Genomics, proteomics, and clinical registries.</li>
+                <li><strong>Interoperability:</strong> FHIR / HL7 standard metadata integrations.</li>
+              </ul>
+            </div>
+            
+            <div class="direction-block">
+              <span class="direction-badge ai-badge">AI</span>
+              <ul class="direction-list">
+                <li><strong>Variant Analytics:</strong> Scaling variant QC and genomic ML models.</li>
+                <li><strong>Model Productization:</strong> Moving research notebooks to orchestrated workflows.</li>
+                <li><strong>Decision Support:</strong> Analytics pipelines for clinical outcomes research.</li>
+              </ul>
+            </div>
           </article>
-          <article class="card">
-            <h3>Multi-Omics & Research Data</h3>
-            <p>End-to-end pipelines for genomics, proteomics, and imaging data with harmonized metadata models and reproducible processing.</p>
-            <ul class="pill-list">
-              <li>Variant pipelines & QC</li>
-              <li>Metadata-driven orchestration</li>
-              <li>Notebook-to-productization paths</li>
-            </ul>
+          
+          <article class="card scroll-reveal">
+            <h3>Fintech & Banks</h3>
+            <p class="lede">High-throughput, audit-ready data ecosystems built for low latency, secure mesh governance, and compliance auditing.</p>
+            
+            <div class="direction-block">
+              <span class="direction-badge data-badge">Data</span>
+              <ul class="direction-list">
+                <li><strong>Lakehouse Governance:</strong> Snowflake, Databricks, and BigQuery frameworks.</li>
+                <li><strong>Data Mesh:</strong> Composable domain data products with robust SLAs.</li>
+                <li><strong>Data Assets &amp; Contracts:</strong> Governed data product cataloging, schema contracts, and SLA-backed access agreements across domains.</li>
+              </ul>
+            </div>
+            
+            <div class="direction-block">
+              <span class="direction-badge ai-badge">AI</span>
+              <ul class="direction-list">
+                <li><strong>Compliance Anomaly Models:</strong> AI auditing pipelines detecting unusual data flows.</li>
+                <li><strong>Fraud Detection Prep:</strong> Real-time streaming inputs for fraud classification models.</li>
+                <li><strong>Cost & FinOps Models:</strong> AI-driven cost projection and query optimizations.</li>
+              </ul>
+            </div>
           </article>
-          <article class="card">
-            <h3>Cloud-First Solution Architecture</h3>
-            <p>Composable data mesh and lakehouse designs that enable domain teams without sacrificing governance.</p>
-            <ul class="pill-list">
-              <li>Snowflake / Databricks / BigQuery</li>
-              <li>Lakehouse governance</li>
-              <li>Cost-aware scaling & FinOps</li>
-            </ul>
+
+          <article class="card scroll-reveal">
+            <h3>Retail & E-Commerce</h3>
+            <p class="lede">Unified customer intelligence and supply chain scaling pipelines connecting raw interaction signals to business metrics.</p>
+            
+            <div class="direction-block">
+              <span class="direction-badge data-badge">Data</span>
+              <ul class="direction-list">
+                <li><strong>Customer 360 Pipelines:</strong> Merging clickstreams, transactions, and CRM sources.</li>
+                <li><strong>Semantic Modeling:</strong> Governed dbt models driving semantic analytics.</li>
+                <li><strong>Inventory Systems:</strong> Low-latency streaming metrics for supply chain tracking.</li>
+              </ul>
+            </div>
+            
+            <div class="direction-block">
+              <span class="direction-badge ai-badge">AI</span>
+              <ul class="direction-list">
+                <li><strong>Decision Intelligence:</strong> AI-assisted insights and executive dashboard narratives.</li>
+                <li><strong>Recommendation Models:</strong> Scaled feature stores and pipeline integrations.</li>
+                <li><strong>Predictive Analytics:</strong> Churn and LTV prediction datasets for marketing.</li>
+              </ul>
+            </div>
           </article>
-          <article class="card">
-            <h3>Decision Intelligence</h3>
-            <p>Analytics products that pair trusted data with clear narratives—dashboards, semantic layers, and AI-assisted insights.</p>
-            <ul class="pill-list">
-              <li>dbt & semantic modeling</li>
-              <li>Executive-ready storytelling</li>
-              <li>BI modernization</li>
-            </ul>
+        </div>
+        </div><!-- /#filter-practice -->
+
+        <div class="filterable-section" data-active-filter="data" id="filter-services">
+        <div class="section-header scroll-reveal">
+          <p class="eyebrow">Services</p>
+          <h2>Core Advisory & Architecture Services</h2>
+          <p class="lede">End-to-end guidance from initial regulatory data mapping to deployed, production-grade cloud environments.</p>
+        </div>
+        <div class="switcher-row">
+          <div class="segment-switcher" role="group" aria-label="Filter services by dimension">
+            <button class="seg-btn active" data-seg="data" aria-pressed="true"><span class="seg-icon">◈</span> Data</button>
+            <button class="seg-btn" data-seg="ai" aria-pressed="false"><span class="seg-icon">✦</span> AI</button>
+            <span class="seg-pill" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <div class="cards three-col">
+          <article class="card scroll-reveal">
+            <h3>Strategic Data & AI Advisory</h3>
+            <p class="lede">Designing modern organizational frameworks that bridge engineering feasibility with regulatory and compliance targets.</p>
+            <div class="direction-block">
+              <span class="direction-badge data-badge">Data</span>
+              <ul class="direction-list">
+                <li><strong>HIPAA & SOC2 Blueprints:</strong> Architectural designs mapping regulatory boundaries.</li>
+                <li><strong>Data Governance:</strong> Constructing domain-level data ownership and SLA models.</li>
+              </ul>
+            </div>
+            <div class="direction-block">
+              <span class="direction-badge ai-badge">AI</span>
+              <ul class="direction-list">
+                <li><strong>ML Readiness:</strong> Evaluating legacy data structures for model training capabilities.</li>
+                <li><strong>AI Risk Assessment:</strong> Establishing lineage for auditability and compliance.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="card scroll-reveal">
+            <h3>Cloud Solutions Architecture</h3>
+            <p class="lede">Building high-throughput, composable cloud engines that scale computation costs predictably.</p>
+            <div class="direction-block">
+              <span class="direction-badge data-badge">Data</span>
+              <ul class="direction-list">
+                <li><strong>Lakehouse Deployment:</strong> Scaling Snowflake, Databricks, and BigQuery.</li>
+                <li><strong>Ingestion Engines:</strong> Low-latency clickstreams, FHIR registries, and database CDC.</li>
+              </ul>
+            </div>
+            <div class="direction-block">
+              <span class="direction-badge ai-badge">AI</span>
+              <ul class="direction-list">
+                <li><strong>Feature Store Design:</strong> Centralizing feature definitions for training and inference.</li>
+                <li><strong>Dynamic Compute Scaling:</strong> FinOps strategies for model compute environments.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="card scroll-reveal">
+            <h3>Operationalization & MLOps</h3>
+            <p class="lede">Automating deployment pipelines to ensure reproducibility, data quality, and semantic truth.</p>
+            <div class="direction-block">
+              <span class="direction-badge data-badge">Data</span>
+              <ul class="direction-list">
+                <li><strong>dbt & Semantic Modeling:</strong> Restructuring models to serve unified metrics.</li>
+                <li><strong>Quality Observability:</strong> Deploying anomaly checkers and data quality alerts.</li>
+              </ul>
+            </div>
+            <div class="direction-block">
+              <span class="direction-badge ai-badge">AI</span>
+              <ul class="direction-list">
+                <li><strong>Notebook-to-Production:</strong> Packaging research notebooks into automated DAG pipelines.</li>
+                <li><strong>LLM Observability:</strong> Evaluation metrics and auditing layers for generative models.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="card scroll-reveal">
+            <h3>Cloud Migration & Modernization</h3>
+            <p class="lede">Structured hyperscaler migrations—AWS, Azure, and GCP—using MAP and partner frameworks to de-risk lift-and-shift, re-platforming, and full re-architecture engagements.</p>
+            <div class="direction-block">
+              <span class="direction-badge data-badge">Migration</span>
+              <ul class="direction-list">
+                <li><strong>AWS MAP:</strong> Migration Acceleration Program readiness assessments, wave planning, and MGN/DMS tooling for large-scale fleet migrations.</li>
+                <li><strong>Azure Migrate & Modernize:</strong> Landing-zone blueprints, Azure Migrate hub discovery, and Velostrata-based workload transfers.</li>
+                <li><strong>GCP MAP:</strong> Migrations for Enterprise discovery, MCMA tooling, and BigQuery Migration Service for analytics workload lift.</li>
+              </ul>
+            </div>
+            <div class="direction-block">
+              <span class="direction-badge ai-badge">FinOps</span>
+              <ul class="direction-list">
+                <li><strong>Landing Zone Design:</strong> Account/subscription/project foundations, IAM, networking guardrails, and security baselines across AWS Control Tower, Azure Landing Zones, and GCP Landing Zone.</li>
+                <li><strong>FinOps & Cost Governance:</strong> Rightsizing dashboards, committed-use and reserved-instance planning, and cloud billing anomaly detection post-migration.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="card scroll-reveal">
+            <h3>Data &amp; AI Strategy &amp; Governance</h3>
+            <p class="lede">Defining the organizational frameworks, roadmaps, and ownership models that turn raw data and AI ambitions into measurable, governed business outcomes.</p>
+            <div class="direction-block">
+              <span class="direction-badge data-badge">Strategy</span>
+              <ul class="direction-list">
+                <li><strong>Data Strategy:</strong> Maturity assessments, multi-year data platform roadmaps, and data product strategy aligned to business domains.</li>
+                <li><strong>AI Strategy:</strong> LLM adoption frameworks, AI readiness evaluations, responsible AI policies, and build-vs-buy analysis for generative and predictive use cases.</li>
+                <li><strong>Executive Alignment:</strong> Board-level narratives, KPI frameworks, and investment cases bridging engineering feasibility with C-suite priorities.</li>
+              </ul>
+            </div>
+            <div class="direction-block">
+              <span class="direction-badge ai-badge">Governance</span>
+              <ul class="direction-list">
+                <li><strong>Data Governance:</strong> Metadata cataloging (Collibra, Atlan, Unity Catalog), lineage tracking, data stewardship models, and access policy enforcement.</li>
+                <li><strong>AI Governance:</strong> Model risk management, bias auditing, explainability requirements, and auditability frameworks for regulated industries.</li>
+                <li><strong>Regulatory Alignment:</strong> HIPAA, SOC 2, GDPR, and EU AI Act compliance mapping integrated into platform and pipeline design.</li>
+              </ul>
+            </div>
+          </article>
+          <article class="card scroll-reveal">
+            <h3>AI Agents &amp; Agentic Systems</h3>
+            <p class="lede">Designing and delivering autonomous multi-agent architectures that execute complex workflows, reason over enterprise data, and integrate safely into production systems.</p>
+            <div class="direction-block">
+              <span class="direction-badge data-badge">Architecture</span>
+              <ul class="direction-list">
+                <li><strong>Agent Design:</strong> Composing task-specific agents with defined tool boundaries, memory, and guardrails aligned to business workflows.</li>
+                <li><strong>Orchestration:</strong> Multi-agent coordination patterns—sequential, parallel, and supervisor-routed—using frameworks like LangGraph, CrewAI, and Vertex AI Agent Builder.</li>
+                <li><strong>Data Integration:</strong> Connecting agents to enterprise datastores, APIs, and vector indexes with retrieval-augmented generation (RAG) pipelines.</li>
+              </ul>
+            </div>
+            <div class="direction-block">
+              <span class="direction-badge ai-badge">AI</span>
+              <ul class="direction-list">
+                <li><strong>Operationalization:</strong> Deploying agents with evaluation harnesses, human-in-the-loop checkpoints, and observability layers for production trust.</li>
+                <li><strong>Safety &amp; Governance:</strong> Prompt hardening, tool-call auditing, and policy enforcement to meet enterprise security and compliance requirements.</li>
+              </ul>
+            </div>
           </article>
         </div>
 
-        <div class="section-header">
+        </div><!-- /#filter-services -->
+
+        <div class="section-header scroll-reveal">
           <p class="eyebrow">Blueprint</p>
-          <h2>What a typical engagement looks like</h2>
+          <h2>How a typical engagement runs</h2>
         </div>
-        <ol class="journey">
+        <ol class="journey scroll-reveal">
           <li>
-            <strong>Assess & align.</strong> Map regulatory constraints, critical data domains, and decision pathways.
+            <span class="journey-meta"><span class="journey-phase">Discover</span></span>
+            <strong>Discovery &amp; alignment.</strong> Map stakeholders, regulatory constraints (HIPAA, SOC 2, GDPR), data domains, and cloud estate.
           </li>
           <li>
-            <strong>Design.</strong> Blueprint target-state architecture, SLAs, and data contracts across domains.
+            <span class="journey-meta"><span class="journey-phase">Assess</span></span>
+            <strong>Data &amp; AI readiness.</strong> Score data maturity, platform gaps, and AI feasibility—governance posture, infrastructure, and agentic prerequisites.
           </li>
           <li>
-            <strong>Build.</strong> Stand up ingestion, curation, and analytics layers with observability by default.
+            <span class="journey-meta"><span class="journey-phase">Design</span></span>
+            <strong>Architecture &amp; roadmap.</strong> Blueprint target-state platform, AI/ML pipelines, and agent layer. Define contracts, SLAs, cost model, and phased milestones.
           </li>
           <li>
-            <strong>Operationalize.</strong> Transition to product teams with runbooks, playbooks, and governance.
+            <span class="journey-meta"><span class="journey-phase">Build</span></span>
+            <strong>Build &amp; accelerate.</strong> Stand up ingestion, curation, and analytics layers. Apply Lakehouse, streaming, and RAG patterns with observability by default.
+          </li>
+          <li>
+            <span class="journey-meta"><span class="journey-phase">Ship AI</span></span>
+            <strong>AI &amp; agent delivery.</strong> Ship predictive models, LLM workflows, or multi-agent systems with eval harnesses, HITL controls, and safety guardrails.
+          </li>
+          <li>
+            <span class="journey-meta"><span class="journey-phase">Hand off</span></span>
+            <strong>Productize &amp; hand off.</strong> Deliver runbooks, governance playbooks, and monitoring dashboards. Embed knowledge transfer for team independence.
           </li>
         </ol>
 
-        <div class="section-header">
+        <div class="section-header scroll-reveal">
           <p class="eyebrow">Highlights</p>
           <h2>Recent work</h2>
         </div>
-        <ul class="highlight-list">
+        <ul class="highlight-list scroll-reveal">
           <li>Modernized a healthcare analytics stack with streaming FHIR ingestion, unified patient 360 modeling, and governed self-service BI.</li>
           <li>Built a multi-omics research platform combining sequencing data, clinical registries, and imaging assets with harmonized metadata and lineage.</li>
           <li>Delivered a Snowflake accelerator package for rapid data product onboarding with security controls, cost baselines, and observability patterns.</li>
+          <li>Led an AWS MAP engagement migrating 200+ on-premises workloads to AWS—wave planning, MGN-based server replication, DMS database transfers, and post-migration FinOps optimization yielding a 30% reduction in cloud spend.</li>
         </ul>
 
-        <div class="code-panel">
-          <div class="code-meta">
-            <p class="eyebrow">Approach</p>
-            <h3>Data product pipeline</h3>
+        <details class="collapsible">
+          <summary class="collapsible-header">
+            <span class="collapsible-title">Patterns in practice</span>
+            <svg class="collapsible-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </summary>
+          <div class="code-panel">
+            <div class="code-meta" style="padding-top:0;border-bottom:1px solid rgba(255,255,255,0.06);">
+              <div class="tab-buttons">
+              <button class="tab-btn active" data-tab="agent">AI Agent</button>
+              <button class="tab-btn" data-tab="dbt">dbt</button>
+              <button class="tab-btn" data-tab="sql">SQL</button>
+              <button class="tab-btn" data-tab="spark">Spark</button>
+              <button class="tab-btn" data-tab="aws-cdk">AWS CDK</button>
+            </div>
           </div>
-<pre><code>
-val product = pipeline()
-  .ingest("domain-context")
-  .validate(schema, contracts)
-  .curate(with="metadata")
-  .serve(via = ["warehouse", "api", "bi"])
-</code></pre>
-        </div>
+          <div class="code-container">
+            <pre id="agent-code" class="tab-content active"><code class="language-python"># Multi-agent RAG pipeline — LangGraph + LangChain
+from langgraph.graph import StateGraph
+from langchain_core.tools import tool
 
-        <div class="section-header">
-          <p class="eyebrow">Books & Learning</p>
-          <h2>Writing & contributions</h2>
-        </div>
-        <div class="book-grid">
-          <a class="book" href="https://www.amazon.ca/Tableau-2019-x-Cookbook-end-end/dp/1789533384/">
-            <img class="bookback"  src="./images/tableau_book.jpeg" alt="Tableau cookbook">
-            <img class="bookfront" src="./images/tableau_book.jpeg" alt="Tableau cookbook">
-            <p>Tableau 2019.x Cookbook</p>
-          </a>
-          <a class="book" href="https://www.amazon.ca/Tableau-2019-x-Cookbook-end-end/dp/1789533384/">
-            <img class="bookback"  src="./images/snowflake-cover.png" alt="Snowflake Jumpstart">
-            <img class="bookfront" src="./images/snowflake-cover.png" alt="Snowflake Jumpstart">
-            <p>Snowflake Jumpstart</p>
-          </a>
-        </div>
+@tool
+def query_clinical_data(patient_id: str) -> dict:
+    """Retrieve FHIR-compliant patient record from lakehouse."""
+    return lakehouse.query(f"SELECT * FROM fhir.patient WHERE id='{patient_id}'")
 
-        <div class="section-header">
+@tool
+def run_risk_model(record: dict) -> float:
+    """Score readmission risk via deployed ML endpoint."""
+    return ml_endpoint.predict(record)["risk_score"]
+
+graph = StateGraph(AgentState)
+graph.add_node("retrieve",  query_clinical_data)
+graph.add_node("score",     run_risk_model)
+graph.add_node("summarize", llm_summarizer)   # LLM synthesis step
+graph.add_edge("retrieve", "score")
+graph.add_edge("score",    "summarize")
+agent = graph.compile(checkpointer=memory, interrupt_before=["summarize"])</code></pre>
+            <pre id="dbt-code" class="tab-content"><code class="language-sql">-- models/marts/clinical/fct_trial_enrollment.sql
+-- Pattern: incremental merge + contract + multi-ref join
+
+{{
+  config(
+    materialized         = 'incremental',
+    unique_key           = ['trial_id', 'patient_key', 'enrollment_date'],
+    incremental_strategy = 'merge',
+    on_schema_change     = 'sync_all_columns',
+    cluster_by           = ['enrollment_date'],
+    contract             = { 'enforced': true },
+    meta = {
+      'owner'        : 'clinical-analytics',
+      'domain'       : 'trials',
+      'contains_phi' : true,
+      'sla'          : '99.9%'
+    }
+  )
+}}
+
+with patients as (
+  select * from {{ ref('dim_patient') }}
+),
+trials as (
+  select * from {{ ref('dim_clinical_trial') }}
+),
+enrollments as (
+  select * from {{ ref('stg_ctms__enrollments') }}
+  {% if is_incremental() %}
+    -- only process new records on incremental runs
+    where enrolled_at > (select max(enrollment_date) from {{ this }})
+  {% endif %}
+),
+final as ()
+  select
+    {{ dbt_utils.generate_surrogate_key(['e.trial_id','e.patient_id']) }}
+                                      as enrollment_sk,
+    e.trial_id,
+    p.patient_key,
+    t.protocol_number,
+    e.site_id,
+    e.enrolled_at::date               as enrollment_date,
+    e.arm_code,
+    e.consent_version,
+    e.dropped_at is not null          as is_dropped,
+    {{ current_timestamp() }}         as dbt_updated_at
+  from enrollments  e
+  join patients     p using (patient_id)
+  join trials       t using (trial_id)
+  where e.status != 'SCREEN_FAIL'
+)
+select * from final</code></pre>
+            <pre id="sql-code" class="tab-content"><code class="language-sql">-- Data Vault 2.0 — Patient / Encounter domain
+-- Hub + Satellite + Link pattern (Snowflake / BigQuery)
+
+-- ── HUB_PATIENT: one row per unique business key ──────────────────
+create or replace table dv.HUB_PATIENT as
+select
+  sha2(mrn, 256)       as patient_hk,     -- surrogate hash key
+  mrn                  as patient_bk,     -- business key (MRN)
+  'EHR_EPIC'           as record_source,
+  current_timestamp()  as load_dts
+from staging.raw_patient
+qualify row_number() over (partition by mrn order by load_dts) = 1;
+
+
+-- ── SAT_PATIENT_DEMOGRAPHICS: attributes with delta detection ─────
+create or replace table dv.SAT_PATIENT_DEMOGRAPHICS as
+select
+  sha2(mrn, 256)                                   as patient_hk,
+  sha2(concat_ws('|', gender, dob, race,
+                 ethnicity, postal_code), 256)      as hashdiff,
+  gender, dob, race, ethnicity, postal_code,
+  'EHR_EPIC'                                       as record_source,
+  current_timestamp()                              as load_dts
+from staging.raw_patient
+qualify hashdiff
+     != lag(hashdiff) over (
+          partition by patient_hk order by load_dts
+        );
+
+
+-- ── LNK_PATIENT_ENCOUNTER: foreign-key relationship ──────────────
+create or replace table dv.LNK_PATIENT_ENCOUNTER as
+select
+  sha2(concat_ws('|', mrn, encounter_id), 256)  as pat_enc_hk,
+  sha2(mrn, 256)                                as patient_hk,
+  sha2(encounter_id, 256)                       as encounter_hk,
+  'EHR_EPIC'                                   as record_source,
+  current_timestamp()                          as load_dts
+from staging.raw_encounter
+qualify row_number() over (
+  partition by mrn, encounter_id order by load_dts
+) = 1;</code></pre>
+            <pre id="spark-code" class="tab-content"><code class="language-scala">// Structured Streaming — FHIR observation ingest (Scala / Spark)
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.streaming.Trigger
+
+val schema = spark.read
+  .option("multiline", "true")
+  .json("s3://landing/fhir-sample/")
+  .schema
+
+val rawStream = spark.readStream
+  .format("kafka")
+  .option("kafka.bootstrap.servers", kafkaBrokers)
+  .option("subscribe", "fhir.Observation")
+  .load()
+  .select(from_json(col("value").cast("string"), schema).as("obs"))
+  .select("obs.*")
+
+val enriched = rawStream
+  .withColumn("ingested_at", current_timestamp())
+  .withColumn("phi_masked",  sha2(col("subject.reference"), 256))
+  .drop("subject")
+
+enriched.writeStream
+  .format("delta")
+  .outputMode("append")
+  .option("checkpointLocation", "s3://checkpoints/fhir-obs/")
+  .trigger(Trigger.ProcessingTime("30 seconds"))
+  .toTable("gold.fhir_observations")</code></pre>
+            <pre id="aws-cdk-code" class="tab-content"><code class="language-typescript">// AWS CDK — HIPAA-aligned Lambda stack for patient data processing
+import * as cdk  from 'aws-cdk-lib';
+import * as lambda    from 'aws-cdk-lib/aws-lambda';
+import * as events    from 'aws-cdk-lib/aws-events';
+import * as targets   from 'aws-cdk-lib/aws-events-targets';
+import * as sqs       from 'aws-cdk-lib/aws-sqs';
+import * as kms       from 'aws-cdk-lib/aws-kms';
+
+export class PatientDataStack extends cdk.Stack {
+  constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    // KMS key for PHI encryption at rest
+    const phiKey = new kms.Key(this, 'PhiKey', {
+      enableKeyRotation: true,
+      description:       'CMK for patient PHI fields',
+    });
+
+    // Dead-letter queue for failed processing events
+    const dlq = new sqs.Queue(this, 'PatientDlq', {
+      encryptionMasterKey: phiKey,
+      retentionPeriod:     cdk.Duration.days(14),
+    });
+
+    // Lambda — processes FHIR Observation events, masks PHI, writes to S3
+    const processFn = new lambda.Function(this, 'ProcessPatientData', {
+      runtime:     lambda.Runtime.PYTHON_3_12,
+      handler:     'handler.process',
+      code:        lambda.Code.fromAsset('lambda/patient_processor'),
+      environment: { PHI_KEY_ARN: phiKey.keyArn, TARGET_BUCKET: 'phi-processed' },
+      deadLetterQueue: dlq,
+      tracing:     lambda.Tracing.ACTIVE,   // X-Ray enabled
+    });
+    phiKey.grantEncryptDecrypt(processFn);
+
+    // EventBridge rule — trigger on FHIR Observation PUTs
+    new events.Rule(this, 'FhirObsRule', {
+      eventPattern: { source: ['fhir.gateway'], detailType: ['Observation'] },
+      targets: [new targets.LambdaFunction(processFn)],
+    });
+  }
+}</code></pre>
+          </div>
+        </details>
+
+        <details class="collapsible">
+          <summary class="collapsible-header">
+            <span>
+              <span class="eyebrow" style="display:block;margin-bottom:4px">Publications</span>
+              <span class="collapsible-title">Previous contributions</span>
+            </span>
+            <svg class="collapsible-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </summary>
+          <div class="book-grid" style="padding-top:24px">
+            <a class="book" href="https://www.amazon.ca/Tableau-2019-x-Cookbook-end-end/dp/1789533384/" target="_blank" rel="noopener">
+              <div class="book-cover-container">
+                <img class="bookback" src="./images/tableau_book.jpeg" alt="Tableau cookbook back">
+                <img class="bookfront" src="./images/tableau_book.jpeg" alt="Tableau cookbook front">
+              </div>
+              <p>Tableau 2019.x Cookbook</p>
+            </a>
+            <a class="book" href="https://www.amazon.ca/Jumpstart-Snowflake-Step-Step-Analytics/dp/1484253272/" target="_blank" rel="noopener">
+              <div class="book-cover-container">
+                <img class="bookback" src="./images/snowflake-cover.png" alt="Snowflake Jumpstart back">
+                <img class="bookfront" src="./images/snowflake-cover.png" alt="Snowflake Jumpstart front">
+              </div>
+              <p>Snowflake Jumpstart</p>
+            </a>
+          </div>
+        </details>
+
+        <!--
+        <div class="section-header scroll-reveal">
           <p class="eyebrow">Talks</p>
           <h2>Data Pipeline Framework</h2>
         </div>
-        <div class="presentation">
-          <iframe src="//www.slideshare.net/slideshow/embed_code/key/1lvOqS5equXX1Q" width="600" height="320" frameborder="1" marginwidth="1" marginheight="0" scrolling="no" style="border:1px solid #CCC; border-width:1px; margin-bottom:1px; max-width: 100%;" allowfullscreen> </iframe>
+        <div class="presentation scroll-reveal">
+          <iframe src="//www.slideshare.net/slideshow/embed_code/key/1lvOqS5equXX1Q" height="320" style="border:1px solid #CCC; border-width:1px; margin-bottom:1px; max-width: 100%;" allowfullscreen aria-label="Slideshare Presentation on Data Pipeline Framework"> </iframe>
           <div class="presentation-caption">
-            <strong><a href="//www.slideshare.net/DmitryShirokov/data-pipeline-framework" title="Data Pipeline Framework" target="_blank">Data Pipeline Framework</a></strong> from <strong><a href="https://www.slideshare.net/DmitryShirokov" target="_blank">Dmitry Shirokov</a></strong>
+            <strong><a href="//www.slideshare.net/DmitryShirokov/data-pipeline-framework" title="Data Pipeline Framework" target="_blank" rel="noopener">Data Pipeline Framework</a></strong> from <strong><a href="https://www.slideshare.net/DmitryShirokov" target="_blank" rel="noopener">Dmitry Shirokov</a></strong>
           </div>
         </div>
+        -->
       </section>
 
       <footer>
-        <p><small>Notes: <a href="http://anothernoise.github.io/spark_memsql_prj.html">Spark + MemSQL project sketch</a></small></p>
       </footer>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
 
+    <!-- Consultation Request Dialog Modal -->
+    <dialog id="contact-dialog" class="contact-modal">
+      <div class="modal-header">
+        <h3>Request Consulting Briefing</h3>
+        <button id="close-contact-btn" class="close-modal-btn" aria-label="Close dialog">&times;</button>
+      </div>
+      <form method="dialog" class="contact-form">
+        <div class="form-group">
+          <label for="contact-name">Name / Organization</label>
+          <input type="text" id="contact-name" name="name" required placeholder="Dmitry Shirokov">
+        </div>
+        <div class="form-group">
+          <label for="contact-email">Corporate Email</label>
+          <input type="email" id="contact-email" name="email" required placeholder="contact@example.com">
+        </div>
+        <div class="form-group">
+          <label for="contact-message">Advisory / Architecture Requirements</label>
+          <textarea id="contact-message" name="message" rows="4" required placeholder="Describe your target timeline, compliance needs, cloud setup, or data/AI pipeline strategy..."></textarea>
+        </div>
+        <button type="submit" class="submit-btn">Submit Request</button>
+      </form>
+    </dialog>
+
+    <script src="javascripts/scale.fix.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/scala.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/typescript.min.js"></script>
+    <script>
+      // Highlight all code blocks including hidden tab panels
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('pre.tab-content code').forEach(el => hljs.highlightElement(el));
+      });
+    </script>
   </body>
 </html>

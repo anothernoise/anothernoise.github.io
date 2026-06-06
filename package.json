@@ -1,0 +1,11 @@
+{
+  "name": "anothernoise-portfolio",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test javascripts/test_runner.js",
+    "dev": "python3 -m http.server 8000"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
