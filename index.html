@@ -56,8 +56,101 @@
             <a href="./blog/">Blog</a>
             <a href="#" id="open-contact-btn" class="cta-btn">Schedule Briefing</a>
           </div>
+
+          <div class="featured-projects">
+            <p class="eyebrow" style="margin-top:1.8rem;margin-bottom:0.9rem;">Featured Projects</p>
+            <div class="featured-projects-grid">
+              <a href="https://archgram.io" target="_blank" rel="noopener" class="featured-project-card">
+                <div class="fp-icon">
+                  <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
+                    <polygon points="16,3 30,27 2,27" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>
+                    <polygon points="16,10 25,25 7,25" fill="currentColor" opacity="0.18"/>
+                  </svg>
+                </div>
+                <div class="fp-body">
+                  <span class="fp-name">archgram.io</span>
+                  <span class="fp-desc">AI-native architecture diagramming. Describe in plain English, get production-ready diagrams — Mermaid, C4, and beyond.</span>
+                </div>
+                <span class="fp-arrow">→</span>
+              </a>
+              <a href="https://dnawave.bio" target="_blank" rel="noopener" class="featured-project-card">
+                <div class="fp-icon">
+                  <svg viewBox="0 0 32 32" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 4 C10 10, 22 10, 22 16 S10 22 10 28" stroke-linecap="round"/>
+                    <path d="M22 4 C22 10, 10 10, 10 16 S22 22 22 28" stroke-linecap="round"/>
+                    <line x1="8" y1="10" x2="24" y2="10"/><line x1="8" y1="22" x2="24" y2="22"/>
+                  </svg>
+                </div>
+                <div class="fp-body">
+                  <span class="fp-name">dnawave.bio</span>
+                  <span class="fp-desc">AI agents for multi-omics research. Accelerating genomics, proteomics, and clinical data workflows for life sciences teams.</span>
+                </div>
+                <span class="fp-arrow">→</span>
+              </a>
+            </div>
+          </div>
+
         </div>
       </header>
+
+      <style>
+        .featured-projects-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+        .featured-project-card {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          background: var(--bg-card);
+          border: 1px solid var(--border-color);
+          border-radius: 10px;
+          padding: 0.9rem 1.1rem;
+          text-decoration: none;
+          color: inherit;
+          transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+        }
+        .featured-project-card:hover {
+          border-color: var(--accent-primary);
+          box-shadow: 0 4px 18px rgba(184,134,11,0.12);
+          transform: translateY(-2px);
+        }
+        .fp-icon {
+          flex-shrink: 0;
+          width: 44px; height: 44px;
+          background: var(--bg-secondary);
+          border-radius: 8px;
+          display: flex; align-items: center; justify-content: center;
+          color: var(--accent-primary);
+        }
+        .fp-body {
+          flex: 1;
+          display: flex; flex-direction: column; gap: 0.2rem;
+          min-width: 0;
+        }
+        .fp-name {
+          font-weight: 700;
+          font-size: 0.97rem;
+          color: var(--text-primary);
+        }
+        .fp-desc {
+          font-size: 0.8rem;
+          color: var(--text-muted);
+          line-height: 1.45;
+        }
+        .fp-arrow {
+          flex-shrink: 0;
+          color: var(--accent-primary);
+          font-size: 1.1rem;
+          opacity: 0.6;
+          transition: opacity 0.2s, transform 0.2s;
+        }
+        .featured-project-card:hover .fp-arrow {
+          opacity: 1;
+          transform: translateX(3px);
+        }
+      </style>
 
       <section class="content">
         <div class="filterable-section" data-active-filter="data" id="filter-practice">

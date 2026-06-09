@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG on GCP: From First Corpus to Production — A Practitioner's Guide</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1e3a5f',
+        primaryTextColor: '#c9d4e0',
+        primaryBorderColor: '#2d5a8e',
+        lineColor: '#4a7aaa',
+        secondaryColor: '#0d1f35',
+        tertiaryColor: '#0a1628',
+        background: '#090d1b',
+        mainBkg: '#0d1f35',
+        nodeBorder: '#2d5a8e',
+        clusterBkg: '#0a1628',
+        titleColor: '#d4a540',
+        edgeLabelBackground: '#0d1f35',
+        stateBkg: '#0d1f35',
+        labelBackgroundColor: '#0d1f35',
+        actorBkg: '#0d1f35',
+        signalColor: '#4a7aaa',
+        noteBkgColor: '#0a1628'
+      }
+    });
+  </script>
+
+  <style>
+    .blog-article { max-width: 820px; }
+
+    .article-header {
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 2rem;
+    }
+
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+    }
+
+    .article-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+    .article-content h2 {
+      margin-top: 2.8rem;
+      margin-bottom: 0.9rem;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.4rem;
+    }
+
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+
+    .article-content code {
+      background: var(--bg-secondary);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      color: var(--accent-primary);
+    }
+
+    .article-content pre {
+      background: rgba(15, 23, 42, 0.92);
+      padding: 1.4rem 1.6rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border-left: 3px solid var(--accent-primary);
+    }
+
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 2rem;
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+
+    .back-link:hover { text-decoration: underline; }
+
+    .callout {
+      background: var(--accent-secondary);
+      border-left: 4px solid var(--accent-primary);
+      padding: 1rem 1.5rem;
+      margin: 1.8rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .callout p { margin: 0; font-size: 0.95rem; }
+
+    .callout.warning { border-left-color: hsl(0, 72%, 51%); background: rgba(239, 68, 68, 0.06); }
+    .callout.tip { border-left-color: hsl(142, 70%, 45%); background: rgba(34, 197, 94, 0.06); }
+
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+    .diagram-wrap {
+      background: rgba(9, 13, 27, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem 1rem;
+      margin: 1.8rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+
+    .spectrum-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .spectrum-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+
+    .spectrum-card h4 { margin: 0 0 0.3rem 0; font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+
+    .spectrum-card .when { font-size: 0.75rem; color: var(--accent-primary); font-weight: 600; margin-bottom: 0.7rem; display: block; }
+
+    .spectrum-card p { margin: 0; font-size: 0.84rem; line-height: 1.55; }
+
+    @media (max-width: 600px) { .spectrum-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/>
+        </svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+
+    <a href="./" class="back-link">← Back to Blog</a>
+
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>RAG on GCP: From First Corpus to Production — A Practitioner's Guide</h1>
+        <div class="article-meta">
+          <span>📅 July 15, 2025</span>
+          <span>📖 16 min read</span>
+          <span>🏷️ AI/ML</span>
+          <span>☁️ GCP</span>
+          <span>🔧 Architecture</span>
+        </div>
+      </header>
+
+      <div class="article-content">
+
+        <p>Retrieval-Augmented Generation sounds simple on paper: give the LLM some context alongside the question, and it stops making things up. In practice, a RAG system that works in a demo and a RAG system that works in production are separated by a list of painful surprises that nobody writes tutorials about. This article is mostly about the surprises.</p>
+
+        <p>Google Cloud has three distinct RAG paths, a growing set of components to assemble them from, and a pricing model that can silently double your inference bill if you're not watching your context window. We'll cover the full picture: what each GCP service is actually for, how to build a production pipeline, the chunking and embedding decisions that determine retrieval quality, the operational problems you'll hit at scale, and how the GCP approach compares to AWS and Azure.</p>
+
+        <h2>The GCP RAG Spectrum</h2>
+
+        <p>Before touching any code, understand that Google Cloud doesn't have one RAG service — it has three, sitting at different points on the control-vs-complexity tradeoff:</p>
+
+        <div class="spectrum-grid">
+          <div class="spectrum-card">
+            <h4>Vertex AI Search</h4>
+            <span class="when">When: enterprise document search</span>
+            <p>Fully managed search and grounding. You give it documents (or point it at a data store), and it handles chunking, embedding, indexing, and search. Minimal configuration, opaque internals. Best for internal knowledge bases, customer-facing search, and grounding Gemini in unstructured documents when you don't want to manage any infrastructure.</p>
+          </div>
+          <div class="spectrum-card">
+            <h4>Vertex AI RAG Engine</h4>
+            <span class="when">When: custom pipeline, managed infra</span>
+            <p>The "sweet spot" service. You create a corpus, import documents from GCS or Drive, and the engine handles chunking, embedding with <code>text-embedding-005</code>, and stores vectors in a managed Spanner-based database. At query time, it retrieves relevant chunks and injects them into a Gemini prompt. More control than Vertex Search, less operational burden than DIY.</p>
+          </div>
+          <div class="spectrum-card">
+            <h4>DIY with Vector Search / AlloyDB</h4>
+            <span class="when">When: maximum control + scale</span>
+            <p>You manage everything: Cloud Storage → embedding pipeline (Dataflow / Cloud Run) → vector database (Vertex AI Vector Search or AlloyDB with pgvector) → retrieval + prompt assembly → Gemini API. Most flexible, most operational burden, cheapest at scale for high-throughput applications. Necessary when you need SQL-based retrieval, hybrid search, or your own embedding models.</p>
+          </div>
+        </div>
+
+        <p>The right choice depends mostly on how custom your retrieval needs to be. If your documents are PDFs, Word files, and web pages and your queries are natural-language questions, Vertex AI RAG Engine covers 80% of use cases with a fraction of the engineering cost. If you need to combine vector similarity with relational filters ("find documents about Q3 revenue, but only from the Finance department, created after 2024-01-01"), DIY with AlloyDB AI gives you SQL <code>WHERE</code> clauses alongside pgvector similarity queries — something the managed services can't do.</p>
+
+        <h2>Architecture: What a Production RAG Pipeline Looks Like</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart TD
+    subgraph Ingestion["Ingestion Pipeline (offline)"]
+        GCS["Cloud Storage\nPDFs, DOCX, HTML, CSVs"]
+        PubSub["Pub/Sub trigger\n(new file → process)"]
+        CRun["Cloud Run / Dataflow\nParse + chunk + embed"]
+        EmbAPI["Vertex AI Embeddings\ntext-embedding-005\n768 or 3072 dims"]
+        VDB["Vector Store\n(RAG Engine Spanner\nor AlloyDB pgvector\nor Vector Search)"]
+        GCS --> PubSub --> CRun --> EmbAPI --> VDB
+    end
+
+    subgraph Query["Query Pipeline (online)"]
+        User["User query"]
+        QEmbed["Embed query\n(same model as ingestion)"]
+        Retrieve["Vector similarity search\ntop-k chunks (k=5–10)"]
+        Rerank["Optional reranker\n(Vertex Rank API)"]
+        PromptBuild["Prompt assembly\nSystem + context chunks + query"]
+        Gemini["Gemini 1.5 Pro / Flash\nGeneration"]
+        Resp["Response + citations"]
+        User --> QEmbed --> Retrieve --> Rerank --> PromptBuild --> Gemini --> Resp
+    end
+
+    subgraph Observability["Observability"]
+        CloudLog["Cloud Logging\nlatency, token counts"]
+        Metrics["Cloud Monitoring\nP50/P95 end-to-end latency"]
+        Eval["Vertex AI Evaluation\nfaithfulness, answer relevance"]
+    end
+
+    VDB --> Retrieve
+    Gemini -.-> CloudLog
+    CloudLog --> Metrics
+    Resp -.-> Eval
+          </pre>
+          <p class="diagram-caption">Production RAG on GCP has two distinct pipelines: an offline ingestion pipeline that runs when documents change, and an online query pipeline that must stay under 2s P50. They share only the vector store and the embedding model — changes to either require re-indexing the corpus.</p>
+        </div>
+
+        <p>The most important architectural decision: <strong>use the same embedding model for ingestion and retrieval</strong>. This sounds obvious but causes silent failures in practice. Switching from <code>textembedding-gecko-003</code> to <code>text-embedding-005</code> without re-embedding your entire corpus produces nonsense retrieval results — the vector spaces are not interchangeable. Pin your embedding model version explicitly and run corpus re-indexing as a breaking-change migration.</p>
+
+        <h2>Vertex AI RAG Engine: Internals and Tradeoffs</h2>
+
+        <p>RAG Engine launched GA in 2024 and received significant updates through 2025, including multi-corpus support, retrieval filter API, and Serverless mode. The managed database backing it is Spanner — Google's globally distributed ACID database repurposed as a vector store. You don't see this; you work with the RAG Engine API. But the Spanner choice explains why RAG Engine is expensive relative to AlloyDB pgvector for high-insert-throughput workloads (Spanner pricing is per operation, not just per storage).</p>
+
+        <h3>Creating a Corpus and Importing Documents</h3>
+
+        <pre><code class="language-python">import vertexai
+from vertexai.preview import rag
+
+vertexai.init(project="my-project", location="us-central1")
+
+# Create corpus
+corpus = rag.create_corpus(
+    display_name="product-docs-v2",
+    embedding_model_config=rag.EmbeddingModelConfig(
+        publisher_model="publishers/google/models/text-embedding-005"
+    ),
+)
+
+# Import from GCS — RAG Engine handles chunking automatically
+rag.import_files(
+    corpus_name=corpus.name,
+    paths=["gs://my-bucket/docs/"],
+    chunk_size=512,         # tokens per chunk
+    chunk_overlap=100,      # overlap for context continuity
+)
+print(f"Corpus created: {corpus.name}")</code></pre>
+
+        <p>A single corpus handles documents well, but a single massive corpus handles them poorly. If your organization has a 50,000-document knowledge base spanning Finance, Engineering, Legal, and HR, putting everything in one corpus means retrieval must search across semantically different domains simultaneously. The result is that a finance query retrieves HR documents ranked higher than finance documents because they happen to share vocabulary. <strong>Segment into multiple specialized corpora</strong> — one per domain, team, or subject area — and route queries to the appropriate corpus at the application layer.</p>
+
+        <div class="callout warning">
+          <p><strong>The context window cost cliff:</strong> Gemini 1.5 Pro charges $3.50/M input tokens for prompts under 128k tokens, and $7.00/M for prompts over 128k. A RAG pipeline that retrieves 10 chunks of 512 tokens each adds 5,120 tokens of context. That's fine. A pipeline that retrieves whole documents or uses a large-k search adds 50,000+ tokens, which can push every request over the 128k threshold and silently double your inference cost. Set a hard context budget: retrieve top-k chunks where k × chunk_size stays well under 30,000 tokens.</p>
+        </div>
+
+        <h2>Chunking: The Decision That Determines Everything</h2>
+
+        <p>Chunking is the most impactful decision in any RAG pipeline and the one most often made wrong. A 2025 Vectara study across 25 chunking configurations and 48 embedding models found that chunking strategy influences retrieval quality as much as or more than the embedding model itself. Getting chunking right matters more than chasing the latest embedding benchmark.</p>
+
+        <h3>The Four Strategies Worth Knowing</h3>
+
+        <ul>
+          <li><strong>Fixed-size (512 tokens, 10–20% overlap):</strong> The default and usually fine. Recursive splitting on paragraph/sentence boundaries before falling back to character count. Avoid fixed-size without overlap — adjacent chunks lose cross-boundary context. This is the baseline; start here.</li>
+          <li><strong>Semantic chunking:</strong> Split when the embedding similarity between consecutive sentences drops below a threshold. Chunks align with topic boundaries rather than token counts. Better for documents with diverse topics in one file; slower and more expensive (one embedding API call per sentence during ingestion).</li>
+          <li><strong>Document-structure-aware chunking:</strong> Use the document's own structure (headings, sections, list items) as chunk boundaries. Tables become individual chunks. Works well for structured documents like API docs, policy manuals, and technical specifications. Requires a proper parser (Vertex AI Document AI, LlamaParse, or Docling).</li>
+          <li><strong>Hierarchical chunking:</strong> Store both a summary chunk (large, for retrieval context) and fine-grained sub-chunks (small, for precise answer extraction). Query against summaries for broad retrieval, then refine with sub-chunks. The "Parent Document Retriever" pattern in LangChain implements this. Best for long documents with complex internal structure.</li>
+        </ul>
+
+        <p>For most GCP RAG projects: use fixed-size 512 tokens with 20% overlap for RAG Engine (since it controls chunking internally anyway, just set the parameters), and document-structure-aware chunking for any DIY pipeline processing technical docs, contracts, or reports with clear section headers.</p>
+
+        <h2>AlloyDB AI: SQL-Native Vector Search</h2>
+
+        <p>If your use case needs hybrid retrieval — filtering by metadata alongside vector similarity — AlloyDB AI with pgvector and Google's ScaNN index is the most capable GCP-native option. AlloyDB's <code>embedding()</code> function calls Vertex AI's text embedding model in-database, eliminating the need for a separate embedding pipeline:</p>
+
+        <pre><code class="language-sql">-- Ingest: store document chunks with auto-generated embeddings
+INSERT INTO document_chunks (doc_id, chunk_text, chunk_embedding, department, created_at)
+VALUES (
+    'doc-001',
+    'Q3 revenue increased 18% YoY driven by enterprise segment growth...',
+    embedding('text-embedding-005', 'Q3 revenue increased 18% YoY...'),
+    'Finance',
+    NOW()
+);
+
+-- Hybrid retrieval: vector similarity + metadata filters
+SELECT doc_id, chunk_text, 1 - (chunk_embedding <=> embedding('text-embedding-005', $1)) AS score
+FROM document_chunks
+WHERE department = 'Finance'
+  AND created_at >= '2024-01-01'
+ORDER BY score DESC
+LIMIT 5;</code></pre>
+
+        <p>AlloyDB's ScaNN index (available since AlloyDB AI in 2024) runs vector queries up to 10x faster than standard PostgreSQL IVFFlat index on the same hardware. The <code>&lt;=&gt;</code> operator is the cosine distance; smaller is more similar, so <code>1 - distance</code> gives a 0-to-1 similarity score.</p>
+
+        <p>The trade-off: AlloyDB is priced like a database ($0.30+/vCPU-hour), not like a managed vector service. For a team storing 1 million document chunks, AlloyDB runs ~$450/month minimum (2 vCPU, 16 GB). Vertex AI RAG Engine Serverless mode for the same corpus might cost $80/month in storage plus retrieval calls. AlloyDB wins at high-throughput hybrid workloads; RAG Engine wins at simple vector-only retrieval with moderate volume.</p>
+
+        <h2>Common Production Problems</h2>
+
+        <h3>1. Retrieval Relevance Collapse at Scale</h3>
+
+        <p>A RAG system that works perfectly on your 500-document test corpus often degrades badly when you ingest the full 50,000-document production corpus. The reason: embedding space density. More documents means more near-neighbors for any given query vector, and top-k retrieval starts returning semantically adjacent but contextually irrelevant chunks.</p>
+
+        <p><strong>Fix:</strong> Add a reranking step. Vertex AI's Rank API (semantic reranker) takes the top-50 retrieved candidates and reranks them using a cross-encoder model — much more accurate at relevance scoring than approximate nearest-neighbor distance alone. The cost is one Rank API call per query (~$0.001); the latency addition is ~100ms. Almost always worth it for corpora over 10,000 documents.</p>
+
+        <h3>2. Hallucination From Over-Retrieval</h3>
+
+        <p>Counterintuitively, retrieving more chunks often produces worse answers. With 20 chunks in the prompt, the model struggles to distinguish which chunks are actually relevant and starts synthesizing across contradictory sources. Production hallucination rates above 10% are often caused by too many retrieved chunks, not too few.</p>
+
+        <p><strong>Fix:</strong> Start with k=5 and measure faithfulness with Vertex AI Evaluation's <code>faithfulness</code> metric (which checks if every claim in the answer is supported by a retrieved chunk). Increase k only if you're seeing "I don't have information about..." refusals, not if you're seeing confident wrong answers.</p>
+
+        <h3>3. Cold Start Latency on Cloud Run</h3>
+
+        <p>A Cloud Run-hosted RAG service that scales to zero will have cold starts of 2–8 seconds — long enough that users assume the service is broken. RAG query pipelines load the embedding model client on startup, which adds to this.</p>
+
+        <p><strong>Fix:</strong> Set Cloud Run minimum instances to 1 for any user-facing RAG service. At $0.000048/vCPU-second idle, one always-warm instance costs ~$3/month. Worth it. For batch or async RAG (summarization pipelines, document processing), scale-to-zero is fine.</p>
+
+        <h3>4. Embedding Model Version Drift</h3>
+
+        <p>Google periodically updates embedding models (gecko-003 → text-embedding-004 → text-embedding-005). Each update produces a different vector space. Any corpus embedded with an old model returns bad results if queried with a new model.</p>
+
+        <p><strong>Fix:</strong> Treat embedding model version as a versioned dependency in your infrastructure as code (Terraform variable). When you upgrade the model, trigger a full corpus re-embedding as part of the deployment. Track corpus embedding version in AlloyDB/RAG Engine metadata. Never upgrade the query embedding model without upgrading the ingestion pipeline simultaneously.</p>
+
+        <h3>5. The 200k Token Context Cliff (Gemini-Specific)</h3>
+
+        <p>Gemini 1.5 Pro has a 2M context window, which sounds like unlimited RAG context. The reality: pricing doubles at 128k tokens ($3.50 → $7.00/M input tokens). Applications that naively pass entire documents rather than chunks, or that accumulate conversation history alongside retrieved context, can silently cross this threshold and double the inference bill without any visible error.</p>
+
+        <p><strong>Fix:</strong> Instrument token counting explicitly. Use <code>model.count_tokens()</code> before every Gemini call in staging and alert when prompt size approaches 100k tokens. Set a hard prompt budget in your RAG assembly code.</p>
+
+        <h2>TCO Comparison: Three Approaches on GCP</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Approach</th>
+                <th>Monthly infra cost<br>(10k docs, 5k queries/day)</th>
+                <th>Setup time</th>
+                <th>Flexibility</th>
+                <th>Best for</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Vertex AI Search</strong></td>
+                <td>~$300–600 (data store + query volume)</td>
+                <td>Hours</td>
+                <td>Low</td>
+                <td>Enterprise document search, no custom logic</td>
+              </tr>
+              <tr>
+                <td><strong>Vertex AI RAG Engine</strong></td>
+                <td>~$80–200 (Serverless storage + API calls)</td>
+                <td>1–3 days</td>
+                <td>Medium</td>
+                <td>Custom chunking/embedding, moderate query volume</td>
+              </tr>
+              <tr>
+                <td><strong>AlloyDB AI + DIY</strong></td>
+                <td>~$450–800 (AlloyDB min config + Cloud Run)</td>
+                <td>1–3 weeks</td>
+                <td>Maximum</td>
+                <td>Hybrid SQL+vector, high volume, custom embedding models</td>
+              </tr>
+              <tr>
+                <td><strong>Vector Search + DIY</strong></td>
+                <td>~$150–400 (Vector Search + Cloud Run)</td>
+                <td>1–2 weeks</td>
+                <td>High</td>
+                <td>High-scale pure-vector retrieval, &gt;100k docs</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>All approaches share Gemini inference costs, which often dominate at scale: Gemini 1.5 Flash at $0.075/M input tokens is the economical choice for high-volume RAG; Pro at $3.50/M is for complex reasoning tasks where Flash's quality isn't sufficient. A 5,000 query/day RAG service using Flash with 10k input tokens per query costs ~$1.13/day in inference — very manageable. The same volume on Pro costs ~$52/day. Model selection is the largest cost lever.</p>
+
+        <h2>Agentic RAG: The Next Step</h2>
+
+        <p>Classic RAG is one retrieval step. The system retrieves, then generates. This fails on multi-hop questions ("What was the revenue growth in the division that launched the most products in 2024?") that require chaining multiple retrievals based on intermediate answers.</p>
+
+        <p>Agentic RAG adds a reasoning step: the model decides what to retrieve, retrieves it, decides if it needs more, retrieves again, and then generates. Google's Agent Development Kit (ADK) provides the framework for this on GCP, with Vertex AI RAG Engine or AlloyDB as the retrieval backends. The ADK agent runs on Cloud Run or Vertex AI Agent Engine, with Vertex AI Evaluation measuring end-to-end task completion rather than single-turn faithfulness.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant A as Gemini Agent (ADK)
+    participant C as Corpus / AlloyDB
+    participant G as Gemini LLM
+
+    U->>A: "What drove revenue growth in the top-performing division last quarter?"
+
+    A->>G: Plan: what do I need to retrieve?
+    G-->>A: Step 1 - retrieve top-performing division
+
+    A->>C: vector search("top-performing division Q3 revenue")
+    C-->>A: Finance division +18% YoY
+
+    A->>G: Now retrieve drivers for Finance division growth
+    G-->>A: Step 2 - retrieve Finance growth drivers
+
+    A->>C: vector search("Finance division revenue drivers 2024")
+    C-->>A: Enterprise segment, new product launches, APAC expansion
+
+    A->>G: Synthesize final answer with citations
+    G-->>A: Grounded response with source references
+
+    A-->>U: Answer + citations [doc-042, doc-117, doc-203]
+          </pre>
+          <p class="diagram-caption">Agentic RAG uses the LLM as a retrieval planner, not just a generator. Each retrieval step is conditioned on the results of the previous one, enabling multi-hop reasoning over large document corpora that single-retrieval RAG cannot handle.</p>
+        </div>
+
+        <h2>Quick Alternative Comparison</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>GCP (RAG Engine + Gemini)</th>
+                <th>AWS (Bedrock Knowledge Bases)</th>
+                <th>Azure (AI Search + OpenAI)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Managed vector store</td>
+                <td>Spanner-backed (RAG Engine) or AlloyDB</td>
+                <td>OpenSearch Serverless or Aurora pgvector</td>
+                <td>Azure AI Search (hybrid search built-in)</td>
+              </tr>
+              <tr>
+                <td>Hybrid search (vector + keyword)</td>
+                <td>AlloyDB DIY; RAG Engine: vector-only</td>
+                <td>OpenSearch hybrid out of box</td>
+                <td>Azure AI Search: best-in-class hybrid</td>
+              </tr>
+              <tr>
+                <td>LLM integration</td>
+                <td>Native Gemini grounding</td>
+                <td>Claude, Titan, Llama via Bedrock</td>
+                <td>Azure OpenAI (GPT-4o, o1)</td>
+              </tr>
+              <tr>
+                <td>Multi-corpus / namespacing</td>
+                <td>Yes — multiple RAG Engine corpora</td>
+                <td>Yes — multiple knowledge bases</td>
+                <td>Yes — index namespaces</td>
+              </tr>
+              <tr>
+                <td>Context window</td>
+                <td>2M tokens (Gemini 1.5)</td>
+                <td>200k (Claude 3.5)</td>
+                <td>128k (GPT-4o)</td>
+              </tr>
+              <tr>
+                <td>Managed reranking</td>
+                <td>Vertex AI Rank API</td>
+                <td>Not native (use Cohere)</td>
+                <td>Azure AI Search semantic ranker</td>
+              </tr>
+              <tr>
+                <td>Best strength</td>
+                <td>Gemini context window + Google Search grounding</td>
+                <td>Multi-model flexibility, no LLM lock-in</td>
+                <td>Hybrid search quality, Azure ecosystem</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Azure AI Search has the most mature hybrid retrieval (BM25 + vector with semantic reranker) and is the right choice if you're in the Microsoft ecosystem. AWS Bedrock Knowledge Bases wins on LLM flexibility — you can swap between Claude, Titan, and Llama without changing your RAG pipeline. GCP wins on context window and when you're already using Google Workspace data sources (Drive, Gmail, Docs) that integrate natively with Vertex AI Search.</p>
+
+        <h2>A Practical Starting Point</h2>
+
+        <p>If you're starting a new RAG project on GCP in 2025, this is the stack I'd reach for before considering alternatives:</p>
+
+        <ol>
+          <li><strong>Vertex AI RAG Engine Serverless</strong> for the vector store — no AlloyDB provisioning cost, free tier available for development.</li>
+          <li><strong>text-embedding-005</strong> (768 dimensions) — Google's best general-purpose embedding model as of mid-2025. Pin the exact version in Terraform.</li>
+          <li><strong>Fixed-size chunking at 512 tokens, 20% overlap</strong> — the benchmark-validated default. Switch to semantic chunking only after measuring retrieval quality on your specific documents.</li>
+          <li><strong>Vertex AI Rank API</strong> for reranking — add this after initial retrieval, before prompting Gemini. One API call, huge quality improvement.</li>
+          <li><strong>Gemini 1.5 Flash</strong> for query response — cheaper and faster than Pro, sufficient quality for most RAG use cases. Use Pro only for complex multi-hop reasoning.</li>
+          <li><strong>Cloud Run with min-instances=1</strong> for the query service. Scale-to-zero for anything that isn't user-facing.</li>
+          <li><strong>Vertex AI Evaluation</strong> running nightly on a golden question set — measure faithfulness and answer relevance weekly, not just at launch.</li>
+        </ol>
+
+        <div class="callout tip">
+          <p><strong>The one thing to track before anything else:</strong> measure your end-to-end latency P95 and your hallucination rate on week one. These two metrics, checked weekly, will catch every meaningful regression before your users do. Everything else — reranking, chunking strategy, model upgrades — should be evaluated by whether it moves those two numbers in the right direction.</p>
+        </div>
+
+        <p>RAG on GCP isn't complicated in principle. It's complicated in the details: embedding model versions, context budgets, corpus segmentation, cold starts, and reranking. The managed services handle the infrastructure complexity well. The rest is engineering discipline: pin your versions, measure retrieval quality, set context budgets, and don't confuse "works in a demo" with "works in production at 5,000 queries per day."</p>
+
+      </div>
+    </article>
+
+    <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted);">
+      <p><small>&copy; 2025 Dmitry Shirokov. <a href="../" style="color: var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="diagram-controls.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('pre:not(.mermaid) code').forEach(el => hljs.highlightElement(el));
+    });
+  </script>
+</body>
+</html>
