@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GraphRAG: When Your Vector Database Doesn't Know the Whole Story</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>GraphRAG: When Your Vector Database Doesn't Know the Whole Story</h1>
+        <div class="article-meta">
+          <span>📅 March 10, 2025</span>
+          <span>📖 13 min read</span>
+          <span>🤖 AI Agents</span>
+          <span>🏗️ Architecture</span>
+          <span>🔧 Data Engineering</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Classic RAG has a dirty secret: it's great at retrieving locally relevant chunks, but it has no idea how things connect. Ask "what's the relationship between Company X's CEO and its recent regulatory problems?" and a naive vector search will return the most semantically similar passages — probably one document about the CEO and another about the regulatory issues — but it won't understand that these two things are causally linked through a third entity, a board decision made six months ago that's buried in a 200-page filing.</p>
+
+        <p>GraphRAG, popularized by Microsoft's 2024 research (and their open-source <code>graphrag</code> library), addresses this by building a knowledge graph from your corpus during ingestion — and using that graph structure both to answer global, thematic questions and to enrich chunk retrieval with explicit entity relationships. It's not magic, but for certain query types it's dramatically better than pure vector search.</p>
+
+        <h2>What Vanilla RAG Gets Wrong</h2>
+
+        <p>Standard RAG retrieves the top-k most similar chunks to a query embedding and hands them to an LLM. This works well when:</p>
+        <ul>
+          <li>The answer is localized — it lives in a single passage</li>
+          <li>The question is factual and specific ("what is the refund policy?")</li>
+          <li>The corpus is small enough that top-k captures most relevant content</li>
+        </ul>
+
+        <p>It falls apart when:</p>
+        <ul>
+          <li>The answer requires synthesizing information across many documents</li>
+          <li>The question is thematic ("what are the main concerns stakeholders have about this project?")</li>
+          <li>Entity relationships matter ("which suppliers are connected to both Company A and Company B?")</li>
+          <li>The corpus is large and diverse, so the relevant chunks are spread thin</li>
+        </ul>
+
+        <p>This isn't a limitation of embeddings per se — it's a limitation of the retrieval paradigm. Embeddings measure semantic similarity; they don't encode structure or causal relationships. A graph does.</p>
+
+        <h2>Microsoft GraphRAG: The Architecture</h2>
+
+        <p>Microsoft's GraphRAG pipeline has two distinct phases: an expensive offline indexing phase and a query phase that uses the resulting graph. The indexing is where the heavy lifting happens.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart TD
+    subgraph Indexing["Offline Indexing (expensive, run once)"]
+        Docs["Raw Documents\n(PDF, text, HTML)"] --> Chunk["Text Chunking\n(~300-600 tokens)"]
+        Chunk --> Extract["Entity & Relationship\nExtraction via LLM\n(GPT-4 / Claude)"]
+        Extract --> Graph["Knowledge Graph\n(NetworkX / Cosmos DB)"]
+        Graph --> Community["Community Detection\n(Leiden Algorithm)"]
+        Community --> Summary["Community Summaries\n(LLM-generated per cluster)"]
+        Summary --> CommEmbed["Community Summary\nEmbeddings"]
+    end
+
+    subgraph Query["Query Phase"]
+        Q["User Query"] --> Mode{Query Mode}
+        Mode -->|Global| GS["Global Search:\nLLM reads community summaries\nfor thematic questions"]
+        Mode -->|Local| LS["Local Search:\nVector search on entities\n+ graph neighborhood traversal"]
+        GS --> Answer["LLM Answer\nwith citations"]
+        LS --> Answer
+    end
+
+    CommEmbed --> LS
+    Graph --> LS
+          </pre>
+          <p class="diagram-caption">GraphRAG separates indexing from querying. Indexing is expensive (calls LLM for every chunk to extract entities). Querying uses global search (community summaries for thematic Q&A) or local search (entity graph + chunks for specific questions).</p>
+        </div>
+
+        <h3>The Two Query Modes</h3>
+
+        <p><strong>Global search</strong> is designed for thematic, cross-cutting questions: "What are the main themes in this corpus?", "Summarize the key risks across all documents." It works by: (1) finding community summaries relevant to the query, (2) asking the LLM to generate a partial answer from each relevant community, and (3) aggregating partial answers into a final response via map-reduce. This handles questions that require global corpus understanding — something vector search fundamentally cannot do.</p>
+
+        <p><strong>Local search</strong> is for specific entity-centric questions: "Tell me about Acme Corp's involvement in the merger talks." It works by: (1) finding the query entity in the graph via embedding similarity, (2) traversing the graph neighborhood (entities, relationships, covariate data), (3) combining the graph context with raw text chunks from those documents. It's smarter than pure vector retrieval because it adds the structured relationship context from the graph.</p>
+
+        <h2>Running Microsoft GraphRAG in Practice</h2>
+
+        <pre><code class="language-bash"># Install
+pip install graphrag
+
+# Initialize project
+mkdir my-graphrag-project && cd my-graphrag-project
+python -m graphrag init --root .
+
+# Put your documents in ./input/
+# Configure settings.yaml with your LLM (OpenAI, Azure OpenAI, or local)
+
+# Run indexing (the expensive part)
+python -m graphrag index --root .
+
+# Query
+python -m graphrag query \
+  --root . \
+  --method global \
+  --query "What are the main themes in this corpus?"
+
+python -m graphrag query \
+  --root . \
+  --method local \
+  --query "Tell me about the relationship between entity X and entity Y"</code></pre>
+
+        <p>The settings.yaml is where you configure the LLM model, chunk size, entity extraction prompts, and community detection parameters. The defaults work but tuning the entity extraction prompt for your domain makes a meaningful difference in graph quality.</p>
+
+        <h3>Real Indexing Costs</h3>
+
+        <div class="callout warning">
+          <p><strong>GraphRAG indexing is expensive.</strong> Every chunk requires an LLM call for entity extraction, plus additional calls for community summarization. For a 1,000-document corpus: expect ~$20–100 in API costs depending on document length and GPT-4 pricing. For 100,000 documents: you're looking at $2,000–10,000 just for indexing. This is not a one-time search engine build — it's a commitment. Budget accordingly, and re-index only when the corpus changes significantly.</p>
+        </div>
+
+        <h2>The Leiden Algorithm: Why Community Detection Matters</h2>
+
+        <p>Community detection is what enables global search. After building the entity relationship graph, GraphRAG runs the <strong>Leiden algorithm</strong> (a refinement of Louvain) to partition the graph into hierarchical communities. These communities are then summarized with an LLM, producing a two-level index: leaf-level chunks + community-level summaries.</p>
+
+        <p>Why Leiden instead of simpler clustering? Leiden optimizes for modularity (how dense connections are within a community vs across communities) while fixing the resolution limit problem in Louvain. For knowledge graphs where entity clusters don't have uniform size, this matters — Leiden will find both small tight clusters (e.g., a specific acquisition deal involving 3 companies) and large thematic communities (e.g., all regulatory issues across the corpus).</p>
+
+        <h2>GraphRAG vs Hybrid RAG vs Vanilla RAG</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Query Type</th><th>Vanilla RAG</th><th>Hybrid RAG (BM25 + vector)</th><th>GraphRAG (local)</th><th>GraphRAG (global)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Specific factual question</td><td>✅ Good</td><td>✅ Good</td><td>✅ Good</td><td>❌ Overkill</td></tr>
+              <tr><td>Entity relationships</td><td>⚠️ Poor</td><td>⚠️ Poor</td><td>✅ Excellent</td><td>➖ OK</td></tr>
+              <tr><td>Thematic / "what are all the risks"</td><td>❌ Poor</td><td>❌ Poor</td><td>⚠️ Limited</td><td>✅ Excellent</td></tr>
+              <tr><td>Multi-hop reasoning</td><td>❌ Poor</td><td>❌ Poor</td><td>✅ Good</td><td>➖ OK</td></tr>
+              <tr><td>Indexing cost</td><td>💚 Low</td><td>💚 Low</td><td>🔴 High</td><td>🔴 High</td></tr>
+              <tr><td>Query latency</td><td>💚 Fast</td><td>💚 Fast</td><td>🟡 Medium</td><td>🔴 Slow (map-reduce)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>When GraphRAG Is Worth the Complexity</h2>
+
+        <p>Not every RAG application needs a knowledge graph. GraphRAG is worth the cost and complexity when:</p>
+        <ul>
+          <li><strong>Analyst-style Q&A on document corpora:</strong> Legal discovery, financial analysis, research synthesis — questions that require connecting dots across hundreds of documents</li>
+          <li><strong>Thematic summarization at scale:</strong> "What do our support tickets say about product X?" across 50,000 tickets is a global search query; GraphRAG handles it; vanilla RAG doesn't</li>
+          <li><strong>Entity-centric knowledge bases:</strong> Corporate knowledge management, scientific literature review, competitive intelligence — where entities (companies, people, concepts) and their relationships ARE the value</li>
+        </ul>
+
+        <p>It's probably overkill when your corpus is a product FAQ, a single policy document, or any use case where questions are specific and answers are localized. For those, vanilla RAG with good chunking and a reranker is 90% of the value at 5% of the cost.</p>
+
+        <h2>Hybrid GraphRAG: Best of Both Worlds</h2>
+
+        <p>The production pattern I've seen work well is a <strong>router layer</strong> in front of both retrieval modes. A fast LLM call classifies the incoming query as global or local, then routes accordingly. Most user questions are local — specific, entity-centric, factual. A small fraction are global — thematic, corpus-spanning. Routing correctly avoids the latency and cost of global search on questions that don't need it.</p>
+
+        <pre><code class="language-python">from graphrag.query.cli import run_global_search, run_local_search
+
+async def hybrid_graphrag_query(query: str, root_dir: str) -> str:
+    # Fast classification using a smaller model
+    query_type = await classify_query(query)  # returns "global" or "local"
+
+    if query_type == "global":
+        return await run_global_search(
+            root_dir=root_dir,
+            query=query,
+            community_level=2,
+            response_type="multiple paragraphs"
+        )
+    else:
+        return await run_local_search(
+            root_dir=root_dir,
+            query=query,
+            community_level=2,
+            response_type="single paragraph"
+        )</code></pre>
+
+        <p>GraphRAG is one of the few genuine architectural advances in RAG from the past two years, not just a prompt engineering tweak. The indexing cost is real and the latency on global queries is painful, but for the right use cases — analyst tools, knowledge management, research synthesis — it makes previously impossible queries tractable. Worth understanding even if you don't use it today.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2025 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spark Performance Tuning: From "It's Slow" to Actually Knowing Why</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Spark Performance Tuning: From "It's Slow" to Actually Knowing Why</h1>
+        <div class="article-meta">
+          <span>📅 February 10, 2024</span>
+          <span>📖 15 min read</span>
+          <span>🏷️ Data Engineering</span>
+          <span>🔧 Architecture</span>
+          <span>☁️ Cloud</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>"The Spark job is slow" is one of the least actionable problem statements in data engineering. Slow compared to what? Which stage? Is it CPU-bound, I/O-bound, shuffle-bound, or skew-bound? Is it Spark's fault, or is it the cluster configuration, the storage layer, or the query plan? Without understanding Spark's execution model, performance tuning is just superstition — restarting the cluster and hoping.</p>
+
+        <p>This article builds the mental model you need to actually diagnose Spark performance problems: the execution model (stages, tasks, shuffles), partitioning (the root cause of most problems), the join strategies (when Spark picks the wrong one and why), Adaptive Query Execution (AQE) in Spark 3.x, memory configuration, and what Photon on Databricks actually accelerates.</p>
+
+        <h2>The Execution Model: Jobs, Stages, and Tasks</h2>
+
+        <p>When you call an action (<code>count()</code>, <code>write()</code>, <code>collect()</code>), Spark creates a <strong>job</strong>. The job is divided into <strong>stages</strong> by shuffle boundaries. Within each stage, Spark creates one <strong>task</strong> per input partition, running tasks in parallel across executors. Each task processes one partition of data entirely on a single executor core.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph LR
+    subgraph Stage1["Stage 1 (read + filter + map)"]
+        T1["Task 1\nPartition 0"]
+        T2["Task 2\nPartition 1"]
+        T3["Task 3\nPartition 2"]
+        T4["Task N\nPartition N"]
+    end
+
+    Shuffle["SHUFFLE\n(network exchange\nby key)"]
+
+    subgraph Stage2["Stage 2 (aggregate + write)"]
+        T5["Task 1\nReduced partition 0"]
+        T6["Task 2\nReduced partition 1"]
+        T7["Task M\nReduced partition M"]
+    end
+
+    Stage1 --> Shuffle --> Stage2
+
+    style Shuffle fill:#3a1a1a,stroke:#e55,color:#faa
+          </pre>
+          <p class="diagram-caption">A shuffle boundary forces all tasks in Stage 1 to complete before Stage 2 can start — it's a global synchronization barrier. Data is written to disk by Stage 1 tasks, transferred over the network, and read by Stage 2 tasks. This is why shuffles are expensive: they involve disk I/O, network transfer, and a full pipeline stall.</p>
+        </div>
+
+        <p>The Spark UI's Stage tab is your primary diagnostic tool. Look for: stages with dramatically different task durations (data skew), stages with high shuffle read/write bytes (shuffle bottleneck), and stages where most tasks finish quickly but a few take 10x longer (straggler tasks, often caused by skew or GC pressure).</p>
+
+        <h2>Partitioning: The Root Cause of Most Performance Problems</h2>
+
+        <p>Spark parallelism is determined by partition count. Too few partitions → underutilized cluster, each task processes too much data, OOM errors. Too many partitions → overhead dominates (scheduling, metadata, small file problem on write), tasks finish in milliseconds but the scheduler can't keep up.</p>
+
+        <p>The right partition size: 128–256 MB of data per partition for most workloads. Calculate target partition count as: <code>total_data_bytes / 134217728</code> (128 MB). For a 100 GB dataset, target 800 partitions.</p>
+
+        <h3>Repartition vs Coalesce</h3>
+        <p><code>repartition(N)</code> triggers a full shuffle — all data moves across the network. Use when increasing partitions or when you need a specific key-based distribution. <code>coalesce(N)</code> reduces partitions without a full shuffle by combining adjacent partitions on the same executor. Use only for reducing partitions (never for increasing), and only when current partitions are already well-balanced. The common mistake: using <code>coalesce(1)</code> to write a single output file triggers a full sort/collect on the driver — use <code>repartition(1)</code> or write with controlled parallelism instead.</p>
+
+        <h3>The Skew Problem</h3>
+        <p>Data skew is when a small number of keys hold a disproportionate fraction of the data. In a grouped aggregation on a skewed column, one task processes 80% of the data while 99 other tasks finish quickly. The job takes as long as that one slow task — and no amount of adding executors helps, because the work is serialized on one core.</p>
+
+        <pre><code class="language-python">from pyspark.sql import functions as F
+
+# Detect skew: check key distribution before a join
+df.groupBy("customer_id") \
+  .count() \
+  .orderBy(F.desc("count")) \
+  .show(20)
+
+# Salting technique: distribute a hot key across multiple partitions
+SALT_FACTOR = 20
+
+# Add salt to the large table
+large_df = large_df.withColumn(
+    "salted_key",
+    F.concat(F.col("customer_id"), F.lit("_"), (F.rand() * SALT_FACTOR).cast("int"))
+)
+
+# Explode the small table to match all salt values
+small_df = small_df.withColumn("salt", F.array([F.lit(i) for i in range(SALT_FACTOR)])) \
+                   .withColumn("salt", F.explode("salt")) \
+                   .withColumn("salted_key", F.concat(F.col("customer_id"), F.lit("_"), F.col("salt")))
+
+# Join on salted key — no single partition holds all of customer "AMAZON"
+result = large_df.join(small_df, on="salted_key", how="inner") \
+                 .drop("salted_key", "salt")</code></pre>
+
+        <h2>Join Strategies: When Spark Picks the Wrong One</h2>
+
+        <p>Spark's query planner chooses a join strategy based on table size estimates. Understanding the strategies helps you recognize when the planner makes the wrong choice (which it does when statistics are stale or unavailable).</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Strategy</th><th>When used</th><th>Mechanism</th><th>Performance</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Broadcast Hash Join</strong></td>
+                <td>Small table ≤ <code>autoBroadcastJoinThreshold</code> (10MB default)</td>
+                <td>Small table broadcast to every executor; large table scanned once, no shuffle</td>
+                <td>Fastest — no shuffle at all</td>
+              </tr>
+              <tr>
+                <td><strong>Sort-Merge Join</strong></td>
+                <td>Both tables large</td>
+                <td>Both sides shuffled by join key, sorted, then merged</td>
+                <td>Expensive (2 shuffles) but handles any size</td>
+              </tr>
+              <tr>
+                <td><strong>Shuffle Hash Join</strong></td>
+                <td>One table moderately small, build side fits in memory</td>
+                <td>Shuffle by key, build hash table from smaller side</td>
+                <td>Faster than SMJ if build side fits in executor memory</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <pre><code class="language-python">from pyspark.sql import functions as F
+
+# Force broadcast join when Spark underestimates table size
+result = large_orders_df.join(
+    F.broadcast(small_country_lookup),   # force broadcast
+    on="country_code",
+    how="left"
+)
+
+# Increase threshold to allow larger broadcasts (use with care)
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", 50 * 1024 * 1024)  # 50 MB
+
+# Collect statistics so Spark can make better decisions
+spark.sql("ANALYZE TABLE orders COMPUTE STATISTICS FOR ALL COLUMNS")</code></pre>
+
+        <h2>Adaptive Query Execution (AQE) — Spark 3.x</h2>
+
+        <p>AQE is Spark 3.x's answer to the static query plan problem. Traditional Spark plans queries before execution using estimated statistics, which are often wrong. AQE re-plans the query at shuffle boundaries using actual statistics gathered from completed stages.</p>
+
+        <p>AQE provides three automatic optimizations:</p>
+        <ul>
+          <li><strong>Coalescing shuffle partitions:</strong> If <code>spark.sql.shuffle.partitions=200</code> but the actual shuffle produces mostly empty partitions (common for filtered datasets), AQE coalesces them down automatically — reducing task overhead without manual tuning.</li>
+          <li><strong>Converting sort-merge join to broadcast join:</strong> If after the first stage Spark sees the build side is actually small enough to broadcast, it switches strategies. This is hugely valuable when filters dramatically reduce table size mid-query.</li>
+          <li><strong>Skew join optimization:</strong> AQE detects skewed partitions and splits them into sub-partitions, distributing the work across multiple tasks. This is the automatic version of the salting technique — and it works without any code changes.</li>
+        </ul>
+
+        <pre><code class="language-python"># Enable AQE (default in Spark 3.2+, but verify)
+spark.conf.set("spark.sql.adaptive.enabled", "true")
+spark.conf.set("spark.sql.adaptive.coalescePartitions.enabled", "true")
+spark.conf.set("spark.sql.adaptive.skewJoin.enabled", "true")
+
+# AQE skew thresholds (tune based on your data)
+spark.conf.set("spark.sql.adaptive.skewJoin.skewedPartitionFactor", "5")
+spark.conf.set("spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes", "256mb")</code></pre>
+
+        <h2>Memory Configuration</h2>
+
+        <p>Spark executor memory is divided into: <strong>execution memory</strong> (for shuffles, joins, aggregations), <strong>storage memory</strong> (for cached DataFrames), and <strong>user memory</strong> (for your Python/Scala objects). The unified memory manager (default since Spark 1.6) allows execution and storage to borrow from each other dynamically.</p>
+
+        <pre><code class="language-python"># Typical executor memory configuration
+# Total executor memory = executor.memory + executor.memoryOverhead
+# executor.memoryOverhead covers off-heap, Python worker, etc.
+
+spark_config = {
+    "spark.executor.memory":        "8g",    # JVM heap
+    "spark.executor.memoryOverhead": "2g",   # off-heap overhead (min 10% of heap)
+    "spark.executor.cores":         "4",     # tasks per executor
+    "spark.memory.fraction":        "0.6",   # fraction of heap for execution+storage
+    "spark.memory.storageFraction": "0.5",   # fraction of above for storage cache
+    # For Python (PySpark) workloads:
+    "spark.executor.pyspark.memory": "2g",   # Python worker memory (separate from JVM)
+}</code></pre>
+
+        <p>GC pressure is a common cause of straggler tasks. Signs: executor logs showing long GC pauses, tasks completing slowly with no obvious data reason, executor OOM errors. Fix: increase executor memory, reduce partition size (less data per task = smaller objects), use Kryo serialization instead of Java serialization, or switch to Databricks with Photon (C++ runtime has no JVM GC).</p>
+
+        <h2>Photon on Databricks: What It Actually Accelerates</h2>
+
+        <p>Photon is Databricks's native vectorized execution engine written in C++, operating at the Spark physical plan layer. It vectorizes columnar operations — scanning Parquet, filtering, hashing for joins and aggregations, and sorting. The result: 2–8x faster performance on SQL and DataFrame operations compared to vanilla Spark JVM code, with no GC overhead.</p>
+
+        <p>What Photon <strong>does</strong> accelerate: SQL queries on Parquet/Delta, aggregations (<code>groupBy</code>, <code>sum</code>, <code>count</code>), sort-merge joins, window functions, string operations. What it <strong>does not</strong> accelerate: Python UDFs (these run in a Python worker outside Photon), RDD operations, anything using Pandas UDFs that returns complex objects. The most common Photon anti-pattern: a DataFrame pipeline with three SQL operations (fast) followed by a Python UDF (falls back to JVM/Python, loses the Photon benefit for that stage).</p>
+
+        <div class="callout tip">
+          <p><strong>The single most impactful Spark tuning action:</strong> Run <code>df.explain(mode="cost")</code> and look for BroadcastHashJoin vs SortMergeJoin choices. Then check whether <code>ANALYZE TABLE ... COMPUTE STATISTICS</code> has been run on your Delta/Hive tables. Stale statistics that cause the planner to pick a sort-merge join where a broadcast join would work is the single most common source of unnecessary shuffles — and fixing it takes 30 seconds.</p>
+        </div>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

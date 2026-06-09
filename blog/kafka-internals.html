@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kafka Internals: Partitions, Replication, and Why Your Consumer Group Is Stuck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Kafka Internals: Partitions, Replication, and Why Your Consumer Group Is Stuck</h1>
+        <div class="article-meta">
+          <span>📅 February 5, 2023</span>
+          <span>📖 16 min read</span>
+          <span>🏷️ Data Engineering</span>
+          <span>🔧 Architecture</span>
+          <span>☁️ Cloud</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Apache Kafka is the nervous system of modern data architectures. Event streaming platforms built on Kafka handle everything from clickstream data at billions of events per day to financial transaction processing to real-time ML feature pipelines. Yet the vast majority of teams using Kafka treat it as a black box — messages go in, messages come out, and debugging happens by restarting things until they work.</p>
+
+        <p>Understanding Kafka's internals changes that. Once you know what a partition actually is, why the ISR matters, how consumer group rebalancing works, and what "exactly-once" really means under the hood, you can diagnose production problems in minutes instead of hours. This article covers the core Kafka architecture with enough depth to reason about production behavior.</p>
+
+        <h2>The Fundamental Abstraction: The Log</h2>
+
+        <p>Everything in Kafka is built on a single abstraction: the <strong>commit log</strong>. A Kafka topic partition is an immutable, ordered, append-only sequence of records stored on disk. Each record gets a sequential integer offset. Producers append to the end; consumers read forward from any offset they choose.</p>
+
+        <p>This design choice — an append-only log rather than a queue with delete-on-consume — is what makes Kafka different from traditional message queues (RabbitMQ, SQS). Records stay in the log for a configurable retention period (default 7 days or by size limit). Multiple independent consumer groups can each maintain their own offset pointer and replay from any position. A consumer group that falls behind doesn't lose messages — it just reads older records when it catches up. This "replay" capability is what makes Kafka suitable as an event store, not just a transport layer.</p>
+
+        <h2>Topics, Partitions, and Segments</h2>
+
+        <p>A <strong>topic</strong> is a logical category. A <strong>partition</strong> is the physical unit — an ordered log on a single broker's disk. Topics have one or more partitions; more partitions = more parallelism for both producers and consumers, up to the limit of broker disk I/O and network throughput.</p>
+
+        <p>Each partition is stored as a directory of <strong>segment files</strong> on the broker filesystem. The active segment receives new writes; older segments are read-only and eligible for retention-based deletion. Segment boundaries matter for compaction and cleanup operations — Kafka's log cleaner works at the segment level.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph Topic["orders-topic (3 partitions)"]
+        subgraph P0["Partition 0 (Leader: Broker 1)"]
+            S0["Segment 0\noffsets 0-999\n(sealed)"]
+            S1["Segment 1\noffsets 1000-1999\n(sealed)"]
+            S2["Segment 2\noffsets 2000+\n(active)"]
+        end
+        subgraph P1["Partition 1 (Leader: Broker 2)"]
+            S3["Segment 0\noffsets 0-1499"]
+            S4["Segment 1\noffsets 1500+\n(active)"]
+        end
+        subgraph P2["Partition 2 (Leader: Broker 3)"]
+            S5["Segment 0\noffsets 0+\n(active)"]
+        end
+    end
+
+    subgraph Replicas["Replica distribution (RF=2)"]
+        B1["Broker 1\nLeader P0, Follower P1"]
+        B2["Broker 2\nLeader P1, Follower P2"]
+        B3["Broker 3\nLeader P2, Follower P0"]
+    end
+          </pre>
+          <p class="diagram-caption">A topic with 3 partitions and replication factor 2. Each partition has one leader (handles reads and writes) and one follower (replicates from leader). Partition leaders are distributed across brokers to balance load. If Broker 1 goes down, the follower on Broker 3 is elected as the new P0 leader.</p>
+        </div>
+
+        <h2>Replication: ISR and the Replication Lag Problem</h2>
+
+        <p>Kafka replicates each partition across multiple brokers. The <strong>replication factor</strong> (typically 3 for production) determines how many copies exist. For each partition, one broker is the <strong>leader</strong> (handles all reads and writes) and the rest are <strong>followers</strong> (passively replicate from the leader).</p>
+
+        <p>The <strong>In-Sync Replica (ISR)</strong> list is the critical concept. A replica is "in sync" if it has replicated all messages within a configurable lag threshold (<code>replica.lag.time.max.ms</code>, default 30s). The ISR list starts with all replicas; a replica drops out if it falls too far behind. The leader only acknowledges a write to the producer once all ISR members have replicated it (when <code>acks=all</code>).</p>
+
+        <p>This is why <code>acks=all</code> + <code>min.insync.replicas=2</code> is the production durability configuration: a write is only acknowledged once at least 2 replicas have it on disk. If the leader crashes immediately after acknowledging, at least one other broker has the data and can be elected as the new leader.</p>
+
+        <pre><code class="language-python">from confluent_kafka import Producer
+
+producer = Producer({
+    'bootstrap.servers': 'broker1:9092,broker2:9092',
+    'acks':              'all',           # wait for all ISR replicas
+    'enable.idempotence': True,           # exactly-once at producer level
+    'retries':           10,
+    'retry.backoff.ms':  100,
+    'compression.type':  'lz4',           # good default for throughput
+    'linger.ms':         5,               # batch up to 5ms for throughput
+    'batch.size':        65536,           # 64KB batch size
+})
+
+def delivery_report(err, msg):
+    if err:
+        print(f'Delivery failed: {err}')
+    else:
+        print(f'Delivered to {msg.topic()}[{msg.partition()}] @ offset {msg.offset()}')
+
+producer.produce(
+    topic='orders',
+    key='customer-123',              # key determines partition assignment
+    value='{"order_id": "abc", ...}',
+    callback=delivery_report
+)
+producer.flush()  # wait for all in-flight messages to be delivered</code></pre>
+
+        <h3>Leader Election</h3>
+        <p>When a partition leader fails, Kafka's controller (now a Raft-based KRaft cluster in Kafka 3.x, previously ZooKeeper) elects a new leader from the ISR. The election is fast (&lt;30 seconds with well-tuned configs) but not instantaneous — during the window between leader failure and new leader election, the partition is unavailable. <code>unclean.leader.election.enable=false</code> (the default) prevents election of an out-of-sync replica, trading availability for consistency.</p>
+
+        <h2>Consumer Groups: Parallelism and the Rebalance Problem</h2>
+
+        <p>A <strong>consumer group</strong> is a set of consumers that cooperatively consume a topic. Kafka assigns partitions to consumers: each partition is consumed by exactly one consumer in the group at a time. With 12 partitions and 4 consumers, each consumer handles 3 partitions. This is the parallelism model — adding consumers increases throughput up to the number of partitions.</p>
+
+        <p>The most common production problem: <strong>consumer group rebalances</strong>. A rebalance is triggered whenever: a consumer joins or leaves the group, a consumer crashes or stops sending heartbeats, or a consumer exceeds <code>max.poll.interval.ms</code> (default 5 minutes — the maximum time between <code>poll()</code> calls). During a rebalance, <strong>all consumption stops</strong> until partitions are reassigned.</p>
+
+        <p>Consumer groups get "stuck" (stop making progress) for two common reasons:</p>
+        <ul>
+          <li><strong>Processing time exceeds max.poll.interval.ms:</strong> The consumer fetches a batch, processes records slowly (heavy DB writes, external API calls), and takes longer than 5 minutes. Kafka considers the consumer dead and triggers a rebalance. The consumer is removed, partitions are reassigned, and the offsets reset to the last committed position — processing the same records again, causing another timeout, causing another rebalance. Fix: reduce batch size (<code>max.poll.records</code>), increase <code>max.poll.interval.ms</code>, or move slow processing out of the poll loop.</li>
+          <li><strong>Offset commit lag:</strong> The consumer is processing records but not committing offsets. On restart, it replays from the last committed offset, reprocessing potentially thousands of records. Fix: commit offsets more frequently, or use <code>enable.auto.commit=false</code> with explicit manual commits after processing.</li>
+        </ul>
+
+        <pre><code class="language-python">from confluent_kafka import Consumer
+
+consumer = Consumer({
+    'bootstrap.servers':   'broker1:9092',
+    'group.id':            'order-processor-v2',
+    'auto.offset.reset':   'earliest',
+    'enable.auto.commit':  False,          # manual commit for control
+    'max.poll.interval.ms': 300000,        # 5 minutes
+    'session.timeout.ms':   10000,         # 10s heartbeat timeout
+    'heartbeat.interval.ms': 3000,
+})
+
+consumer.subscribe(['orders'])
+
+try:
+    while True:
+        msg = consumer.poll(timeout=1.0)
+        if msg is None:
+            continue
+        if msg.error():
+            print(f"Consumer error: {msg.error()}")
+            continue
+
+        process_order(msg.value())         # your processing logic
+
+        # Commit only after successful processing
+        consumer.commit(asynchronous=False)  # synchronous for safety
+finally:
+    consumer.close()</code></pre>
+
+        <h2>Exactly-Once Semantics</h2>
+
+        <p>Kafka's exactly-once semantics (EOS) is one of the most misunderstood features. There are three delivery guarantees:</p>
+        <ul>
+          <li><strong>At-most-once:</strong> Fire and forget. Messages may be lost. Never use for data pipelines.</li>
+          <li><strong>At-least-once:</strong> Retry until acknowledged. Messages may be duplicated. The default for most Kafka applications.</li>
+          <li><strong>Exactly-once:</strong> Each message is processed and produced exactly once, even across producer retries and consumer restarts. Requires idempotent producers + transactions.</li>
+        </ul>
+
+        <p>Idempotent producers (enabled with <code>enable.idempotence=true</code>) assign a sequence number to each batch. If a batch is retried (network failure, broker restart), the broker recognizes the duplicate sequence number and deduplicates — solving the at-least-once problem for producer retries.</p>
+
+        <p>Kafka transactions extend this to consume-process-produce pipelines: read from a source topic, transform, write to a sink topic — atomically. Either the read offset commit and the write both happen, or neither does. This is the EOS pattern used by Kafka Streams and Flink for stateful streaming pipelines.</p>
+
+        <h2>Log Compaction</h2>
+
+        <p>Standard Kafka topics retain messages by time or size and delete old segments. Log compaction is an alternative: keep only the <em>latest</em> message for each key. A compacted topic becomes an eventually-consistent key-value store — great for materializing changelogs, maintaining current state (CDC events, configuration tables), and keeping topics small without losing current values.</p>
+
+        <p>The log cleaner runs in the background, merging segment files and retaining only the latest record per key. The head of the log (most recent segment) is never compacted — only older segments. During active compaction, you may read both old and new values for the same key.</p>
+
+        <h2>Kafka on Cloud: MSK vs Confluent vs Azure Event Hubs</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Platform</th><th>What it is</th><th>Kafka-compatible?</th><th>Best for</th><th>Pricing model</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Amazon MSK</strong></td>
+                <td>Managed Apache Kafka on AWS</td>
+                <td>100% — native Kafka API</td>
+                <td>AWS teams wanting full Kafka compatibility</td>
+                <td>Per broker-hour + storage</td>
+              </tr>
+              <tr>
+                <td><strong>MSK Serverless</strong></td>
+                <td>Serverless Kafka on AWS</td>
+                <td>100% — native Kafka API</td>
+                <td>Variable workloads, no capacity planning</td>
+                <td>Per partition-hour + data throughput</td>
+              </tr>
+              <tr>
+                <td><strong>Confluent Cloud</strong></td>
+                <td>Fully managed Kafka + ecosystem</td>
+                <td>100% + extras (ksqlDB, connectors, Schema Registry)</td>
+                <td>Teams wanting managed connectors + schema management</td>
+                <td>Per CKU + data throughput</td>
+              </tr>
+              <tr>
+                <td><strong>Azure Event Hubs</strong></td>
+                <td>Azure managed event streaming with Kafka endpoint</td>
+                <td>Partial — Kafka protocol supported, not all features</td>
+                <td>Azure-native teams, existing Event Hubs investment</td>
+                <td>Per throughput unit + data volume</td>
+              </tr>
+              <tr>
+                <td><strong>GCP Pub/Sub</strong></td>
+                <td>Google's managed messaging (not Kafka)</td>
+                <td>No — different API, different semantics</td>
+                <td>GCP-native, simple pub/sub without Kafka complexity</td>
+                <td>Per message + data volume</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Azure Event Hubs' Kafka compatibility is good enough for producers and simple consumers but has gaps: no support for transactions, limited admin API compatibility, no log compaction. If you need full Kafka semantics on Azure, Confluent Cloud on Azure or self-managed Kafka on AKS is more reliable than Event Hubs.</p>
+
+        <h2>Partition Count: The Decision You Can't Easily Undo</h2>
+
+        <p>Increasing partition count on an existing topic requires a rebalance of all consumer groups and doesn't automatically redistribute existing data. Start with more partitions than you think you need. The general rule: number of partitions ≥ max expected consumer parallelism × 2. For high-throughput topics, 12–30 partitions is common. For low-throughput topics with ordering requirements, 1–3 partitions per logical key space.</p>
+
+        <div class="callout warning">
+          <p><strong>The ordering trap:</strong> Kafka only guarantees order within a single partition. If you need strict ordering for a set of events (all events for the same <code>user_id</code> must be processed in order), they must all go to the same partition — achieved by setting the message key to <code>user_id</code>. If you use random partitioning or change your key strategy, ordering guarantees break immediately.</p>
+        </div>
+
+        <p>Kafka's power comes from its simplicity at the core — an append-only log, a replication protocol, and offset management — combined with the flexibility to compose these primitives into exactly the streaming architecture you need. The problems that look mysterious (stuck consumers, rebalance storms, mysterious duplicates) almost always trace back to these fundamentals. Know the log, know the ISR, know the rebalance trigger conditions, and Kafka production operations become predictable.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2023 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

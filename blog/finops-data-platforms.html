@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinOps for Data Platforms: Real Cost Governance on Snowflake, Databricks, BigQuery, and Fabric</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>FinOps for Data Platforms: Real Cost Governance on Snowflake, Databricks, BigQuery, and Fabric</h1>
+        <div class="article-meta">
+          <span>📅 August 15, 2024</span>
+          <span>📖 14 min read</span>
+          <span>☁️ Cloud</span>
+          <span>🏷️ Data Engineering</span>
+          <span>🔧 Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Most organizations understand their cloud compute and storage costs reasonably well. Data platform costs are a different animal. A single misconfigured Snowflake warehouse running on auto-resume can cost more in a weekend than a month of planned workloads. A BigQuery query without a partition filter on a 50 TB table bills $250 per run. A Databricks job that should finish in 20 minutes but hits a skew problem runs for 6 hours — on a cluster that auto-scaled to 50 nodes.</p>
+
+        <p>Data platform FinOps is the practice of making these costs visible, attributable, and governable — before the bill arrives. Each major platform has a different cost model with different levers, different failure modes, and different tooling. This article covers the specifics: what drives costs on each platform, what the query-level monitoring looks like, and the governance patterns that actually change behavior.</p>
+
+        <h2>Snowflake: Credits, Warehouses, and the Idle Problem</h2>
+
+        <p>Snowflake charges in credits, not dollars directly — but credits have a dollar price based on your contract (typically $2–4 per credit on-demand, $1.50–2 with annual commitment). One credit = one hour of a single-node XS warehouse, or 1/16 of an hour of a 4XL warehouse. The math compounds fast: an unattended XL warehouse (8 credits/hr) left running over a long weekend costs 8 × 60 hours × $3/credit = $1,440.</p>
+
+        <h3>The Five Snowflake Cost Levers</h3>
+
+        <p><strong>1. Warehouse auto-suspend:</strong> Every warehouse should have <code>AUTO_SUSPEND = 60</code> (or less for development). The default is 600 seconds (10 minutes idle before suspend). On a multi-tenant warehouse with bursty usage, 600 seconds of idle time per query session adds up to enormous waste.</p>
+
+        <pre><code class="language-sql">-- Audit all warehouses missing short auto-suspend
+SELECT warehouse_name, auto_suspend, warehouse_size
+FROM information_schema.warehouses
+WHERE auto_suspend > 120 OR auto_suspend IS NULL
+ORDER BY warehouse_size DESC;
+
+-- Fix: set aggressive auto-suspend for all non-production warehouses
+ALTER WAREHOUSE analytics_dev SET AUTO_SUSPEND = 30;
+
+-- Set query timeout to prevent runaway queries
+ALTER WAREHOUSE analytics_prod SET STATEMENT_TIMEOUT_IN_SECONDS = 3600; -- 1 hour hard limit</code></pre>
+
+        <p><strong>2. Warehouse rightsizing:</strong> Snowflake warehouses double in cost with each size increase (S=1 credit/hr, M=2, L=4, XL=8, 2XL=16). Many teams run everything on XL "to be safe." In practice, most ad-hoc analyst queries run identically on M vs XL — they're limited by query complexity and data scan volume, not raw compute. Run queries on S first; only size up if the query exceeds memory or time limits.</p>
+
+        <p><strong>3. Query scanning:</strong> Snowflake's micro-partition pruning means well-clustered tables scan a fraction of total data. A query on a 10 TB table that hits only 50 GB in pruned partitions costs 200x less than a full scan. Monitor <code>bytes_scanned</code> vs <code>bytes_partitions_pruned</code> ratio in <code>QUERY_HISTORY</code>. Poor clustering = high scan cost.</p>
+
+        <p><strong>4. Credit attribution with Resource Monitors:</strong> Resource monitors cap credit consumption per warehouse per time period and alert (or suspend) when limits are hit. Assign each team their own warehouse with a monthly credit budget. This converts a shared bill into team-level accountability.</p>
+
+        <pre><code class="language-sql">-- Create a resource monitor for a team
+CREATE OR REPLACE RESOURCE MONITOR analytics_team_monitor
+    WITH CREDIT_QUOTA = 500           -- 500 credits per month
+    FREQUENCY = MONTHLY
+    START_TIMESTAMP = IMMEDIATELY
+    TRIGGERS
+        ON 75 PERCENT DO NOTIFY       -- email alert at 75%
+        ON 90 PERCENT DO NOTIFY
+        ON 100 PERCENT DO SUSPEND;    -- hard stop at 100%
+
+ALTER WAREHOUSE analytics_wh SET RESOURCE_MONITOR = analytics_team_monitor;</code></pre>
+
+        <p><strong>5. Query history forensics:</strong> The <code>SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY</code> view is your cost forensics database. Sort by <code>credits_used_cloud_services</code> to find expensive queries; filter by <code>partitions_scanned / partitions_total > 0.5</code> to find queries not using clustering; group by <code>user_name</code> to find credit-heavy users.</p>
+
+        <h2>Databricks: DBU Tiers and Cluster Lifecycle</h2>
+
+        <p>Databricks billing combines DBU (Databricks Unit) charges with the underlying cloud VM cost. DBU rate depends on cluster tier: Jobs Compute (cheapest, no interactive use) vs All-Purpose Compute (interactive notebooks, higher DBU rate). A job that could run on Jobs Compute at $0.10/DBU costs 3x more if someone schedules it on an All-Purpose cluster at $0.30/DBU.</p>
+
+        <h3>The Four Databricks Cost Killers</h3>
+
+        <ul>
+          <li><strong>All-purpose clusters left running:</strong> Interactive clusters have no auto-terminate by default in some configurations. A data scientist's cluster running overnight on 10 × m5.4xlarge instances costs ~$50–80/hour in combined DBU + EC2 charges. Set cluster policies that enforce <code>autotermination_minutes: 30</code> for all interactive clusters.</li>
+          <li><strong>Jobs on All-Purpose instead of Jobs Compute:</strong> Always create a dedicated job cluster for scheduled pipelines. The DBU rate difference (Jobs: $0.10–0.15/DBU vs All-Purpose: $0.30–0.40/DBU) is 2–3x. On a pipeline running 8 hours/day, that's 60–70% cost reduction for zero performance change.</li>
+          <li><strong>Over-provisioned clusters:</strong> Use Databricks' cluster autoscaling (<code>min_workers: 2, max_workers: 20</code>) instead of fixed clusters. A job that peaks at 20 workers for 10 minutes doesn't need 20 workers for its full 2-hour run.</li>
+          <li><strong>Spot/preemptible underuse:</strong> Spot instances (AWS) or preemptible VMs (GCP/Azure) cost 60–80% less than on-demand. For batch jobs with checkpointing, spot instance interruptions are handled gracefully. Use spot for worker nodes; keep the driver on on-demand to prevent total job failure on interruption.</li>
+        </ul>
+
+        <pre><code class="language-json">{
+  "cluster_name": "etl-pipeline-prod",
+  "spark_version": "14.3.x-scala2.12",
+  "node_type_id": "m5d.2xlarge",
+  "driver_node_type_id": "m5d.xlarge",
+  "autoscale": { "min_workers": 2, "max_workers": 16 },
+  "aws_attributes": {
+    "availability": "SPOT_WITH_FALLBACK",
+    "spot_bid_price_percent": 100,
+    "first_on_demand": 1
+  },
+  "autotermination_minutes": 20,
+  "cluster_log_conf": { "dbfs": { "destination": "dbfs:/cluster-logs" } }
+}</code></pre>
+
+        <h2>BigQuery: Slots, On-Demand, and the Partition Filter Rule</h2>
+
+        <p>BigQuery has two billing models: <strong>on-demand</strong> ($6.25/TB scanned) and <strong>capacity-based</strong> (slot reservations). On-demand is excellent for variable/unpredictable workloads; capacity is better for predictable high-volume workloads.</p>
+
+        <p>The single most impactful BigQuery cost control: <strong>always filter on partitioned columns</strong>. A 50 TB table partitioned by date, queried without a date filter, scans all 50 TB at $312.50 per run. With a date filter (<code>WHERE event_date >= '2024-01-01'</code>), the same query scans maybe 2 TB — $12.50. Enforce this at the table level with <code>require_partition_filter = TRUE</code>:</p>
+
+        <pre><code class="language-sql">-- Enforce partition filter at table creation
+CREATE TABLE analytics.events
+PARTITION BY DATE(event_timestamp)
+OPTIONS (require_partition_filter = TRUE)  -- queries without filter will ERROR
+AS SELECT ...;
+
+-- Find expensive queries using INFORMATION_SCHEMA
+SELECT
+    user_email,
+    query,
+    total_bytes_processed / POW(1024,4) AS tb_scanned,
+    (total_bytes_processed / POW(1024,4)) * 6.25 AS estimated_cost_usd,
+    creation_time
+FROM `region-us`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
+WHERE creation_time > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)
+  AND statement_type = 'SELECT'
+ORDER BY total_bytes_processed DESC
+LIMIT 50;</code></pre>
+
+        <p>BigQuery slot reservations (Editions: Standard, Enterprise, Enterprise+) provide committed capacity at 25–50% discount vs on-demand for teams running sustained workloads. The break-even point: if your team spends over ~$3,000/month on BigQuery on-demand compute, reservations start saving money.</p>
+
+        <h2>Microsoft Fabric: CU Smoothing and the Burst Trap</h2>
+
+        <p>Fabric's F SKU capacity model is the most opaque of the four platforms for cost governance. Unlike Snowflake (credits consumed) or BigQuery (bytes scanned), Fabric capacity is a flat monthly rate for a pool of Capacity Units (CUs) — but with a "smoothing" mechanism that allows short bursts above the provisioned capacity. What this means in practice:</p>
+
+        <ul>
+          <li>An F64 capacity provides 64 CUs continuously.</li>
+          <li>A short workload burst can use more than 64 CUs — Fabric smooths the overage over a 24-hour window.</li>
+          <li>If sustained workloads consistently exceed 64 CUs, new requests get throttled (queued) rather than auto-scaling to higher cost. You pay flat but get unpredictable latency.</li>
+          <li>There's no per-query billing visibility comparable to Snowflake's QUERY_HISTORY or BigQuery's INFORMATION_SCHEMA. The primary cost tool is Fabric Capacity Metrics App (a Power BI report that Fabric provides).</li>
+        </ul>
+
+        <div class="callout warning">
+          <p><strong>The Fabric cost trap:</strong> Fabric's flat monthly price feels predictable, but it creates a hidden trade-off: teams that add workloads gradually don't see a cost spike (the price is fixed), so there's no financial signal to investigate when the capacity is exhausted. Instead, queries slow down or get throttled. The governance challenge is workload isolation: make sure Power BI usage doesn't starve Spark ETL jobs, and vice versa, by assigning workloads to separate Fabric items with controlled concurrency settings.</p>
+        </div>
+
+        <h2>The FinOps Governance Stack</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph Visibility["1. Visibility (Week 1)"]
+        QH["Query-level cost attribution\n(QUERY_HISTORY, JOBS schema)"]
+        Tag["Team/project tagging\non all warehouses & clusters"]
+        Dashboard["Cost dashboard\n(weekly report to team leads)"]
+    end
+
+    subgraph Control["2. Control (Month 1)"]
+        Budget["Budget limits\n(Resource Monitors, Alerts)"]
+        Policy["Cluster policies\n(auto-suspend, max size)"]
+        PartFilter["Partition filter enforcement\n(table DDL, CI checks)"]
+    end
+
+    subgraph Optimize["3. Optimization (Quarter 1)"]
+        Commit["Committed use / reservations\n(savings 25-50%)"]
+        Cluster["Cluster rightsizing\n(spot, autoscale)"]
+        Cache["Result caching &\nmaterialized views"]
+    end
+
+    Visibility --> Control --> Optimize
+          </pre>
+          <p class="diagram-caption">FinOps for data platforms has three phases. Visibility comes first — you can't govern what you can't measure. Control follows with hard limits and policy enforcement. Optimization (reserved capacity, spot instances) comes last, after you understand the baseline spend profile.</p>
+        </div>
+
+        <p>The most effective data platform FinOps pattern I've seen in practice: weekly cost digest emails to team leads, showing their team's spend vs budget, top 5 most expensive queries, and the change from last week. No dashboards, no training required — just a weekly email. Teams that didn't know their queries were expensive start caring about query optimization within two weeks of receiving this email. Visibility changes behavior faster than any governance control.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

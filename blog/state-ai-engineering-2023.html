@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>State of AI Engineering 2023: LangChain Explosions, RAG Everywhere, and the Open-Source LLM Surprise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>State of AI Engineering 2023: LangChain Explosions, RAG Everywhere, and the Open-Source LLM Surprise</h1>
+        <div class="article-meta">
+          <span>📅 November 30, 2023</span>
+          <span>📖 14 min read</span>
+          <span>🤖 AI Agents</span>
+          <span>📊 Year Review</span>
+          <span>🏗️ Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>2023 was the year AI engineering went from "interesting research area" to "where we're hiring." Every tech company and most non-tech companies had an LLM strategy — or were urgently developing one. The tooling ecosystem exploded: LangChain went from a GitHub project to a company with $25M in funding; vector databases raised hundreds of millions; and the "AI engineer" role emerged as a distinct job title, sitting at the intersection of software engineering, ML, and product thinking.</p>
+
+        <p>It was also a year of productive chaos. New abstractions appeared and were immediately deprecated. Best practices formed and reformed. RAG was invented, popularized, critiqued, improved, and critiqued again — all within twelve months. The pace of change made it genuinely difficult to know which tools and patterns would survive. Looking back from the end of 2023, here's what actually mattered.</p>
+
+        <h2>GPT-4 Changes the Baseline</h2>
+
+        <p>March 14, 2023: GPT-4 launches. The capability jump from GPT-3.5 (the model powering ChatGPT at launch) was substantial — not in benchmark numbers alone, but in the qualitative sense that GPT-4 could follow complex multi-step instructions, write better code, reason through problems more consistently, and handle longer contexts. Claude 1 (from Anthropic) also launched in 2023 with different strengths: longer context window, less tendency to confabulate.</p>
+
+        <p>The practical effect for AI engineers: the "what can we actually build?" question became dramatically more permissive. GPT-3.5-level models required extensive prompt engineering and careful task decomposition to get reliable outputs. GPT-4 could handle more complex, open-ended tasks with less coaxing. The range of viable LLM applications expanded.</p>
+
+        <p>GPT-4's context window (initially 8K tokens, then 32K for GPT-4-32k) also changed the retrieval calculus. Larger context meant you could stuff more retrieved documents into a single prompt — less precision required in retrieval, more flexibility in what you could answer. The race to longer context windows was on.</p>
+
+        <h2>LangChain: The Framework That Ate AI Engineering</h2>
+
+        <p>LangChain was the most polarizing library in AI engineering in 2023. By June 2023, it was the fastest-growing open-source project in GitHub history by some measures. By November 2023, there was a significant "LangChain is over-engineered" backlash from engineers who had tried to maintain LangChain-based systems in production.</p>
+
+        <p>Both reactions were understandable. LangChain had abstracted the common patterns of LLM application development — retrieval chains, memory, tools, agents — in a way that made prototyping very fast. The abstractions were leaky, the API changed frequently, and debugging a complex LangChain chain was painful. But it had two genuine strengths: an enormous community generating tutorials and cookbook examples, and a large set of pre-built integrations with tools, vector databases, and document loaders.</p>
+
+        <p>The practical advice by end of 2023: use LangChain's integrations and individual utilities, but avoid deep coupling to its chain abstractions for production systems. Build the orchestration layer yourself; use LangChain for the connectors.</p>
+
+        <h2>RAG Becomes the Production Pattern</h2>
+
+        <p>Retrieval-Augmented Generation (RAG) was the most important architectural pattern that emerged and stabilized in 2023. The concept: instead of relying on the LLM's parametric knowledge (what it learned during training), augment each query with relevant documents retrieved at query time from a vector database or search index.</p>
+
+        <p>RAG solved the key problems with pure LLM applications in enterprise settings:</p>
+        <ul>
+          <li><strong>Knowledge cutoff:</strong> LLMs have a training cutoff; your internal documents are updated continuously. RAG bridges this by retrieving current documents.</li>
+          <li><strong>Hallucination mitigation:</strong> Grounding responses in specific retrieved documents reduces (not eliminates) fabrication.</li>
+          <li><strong>Source attribution:</strong> You can cite the specific document passages used to generate a response, which is essential for enterprise trust.</li>
+          <li><strong>Data privacy:</strong> Your sensitive internal data stays in your vector store; you only send the relevant retrieved chunks to the LLM API, not your entire corpus.</li>
+        </ul>
+
+        <pre><code class="language-python">from langchain.vectorstores import Chroma
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.chains import RetrievalQA
+from langchain.llms import OpenAI
+
+# Basic RAG setup (2023 style)
+embeddings = OpenAIEmbeddings()
+vectorstore = Chroma.from_documents(documents, embeddings)
+retriever = vectorstore.as_retriever(search_kwargs={"k": 4})
+
+qa_chain = RetrievalQA.from_chain_type(
+    llm=OpenAI(model_name="gpt-4"),
+    chain_type="stuff",
+    retriever=retriever,
+    return_source_documents=True
+)
+
+result = qa_chain({"query": "What is our refund policy?"})
+print(result["result"])
+print([doc.metadata["source"] for doc in result["source_documents"]])</code></pre>
+
+        <p>By the end of 2023, the "basic RAG" above was the minimum baseline. Teams that had deployed it were now dealing with the next level of problems: retrieval quality (top-k isn't enough for complex queries), chunk size optimization, query rewriting, hybrid search (dense + sparse), reranking. The pattern was solid; the production tuning remained hard.</p>
+
+        <h2>The Open-Source LLM Surprise: Llama 1 and 2</h2>
+
+        <p>February 2023: Meta releases Llama 1 (weights restricted to researchers). Leaked within days. The response from the AI engineering community was immediate: fine-tuning experiments, quantization (running 7B and 13B models on consumer GPUs), and a flood of derived models (Alpaca, Vicuna, WizardLM) appeared within weeks. Open-source LLM development, which had been essentially dormant compared to the closed-model labs, suddenly had a foundation to build on.</p>
+
+        <p>July 2023: Llama 2, with genuinely open weights for commercial use. At 70B parameters with RLHF fine-tuning, Llama 2 was competitive with GPT-3.5 on many benchmarks. For enterprises concerned about data privacy or API costs, self-hosted Llama 2 became a real option for many use cases.</p>
+
+        <p>The practical implications were significant for AI engineering:</p>
+        <ul>
+          <li>Fine-tuning on proprietary data was now accessible without sending data to OpenAI</li>
+          <li>Local inference became viable for latency-sensitive applications</li>
+          <li>The "best model is always OpenAI" assumption started cracking</li>
+          <li>A whole category of tooling (llama.cpp, Ollama, vLLM, text-generation-inference) emerged for efficient open-model inference</li>
+        </ul>
+
+        <h2>Function Calling / Tool Use Changes the Agent Story</h2>
+
+        <p>June 2023: OpenAI releases function calling in the API. Before this, getting an LLM to produce structured output that could trigger a tool was a prompt engineering exercise with unreliable results. Function calling provided a first-class mechanism: you describe available functions in the API call; the model returns a structured function call when it determines a function is needed; your code executes the function and passes results back to the model.</p>
+
+        <p>This unlocked reliable tool-using agents. Not the ReAct-style agents that had been possible before, which required careful prompting and often went in circles, but agents that could reliably invoke a database query, call an API, or run a calculation as a native model behavior rather than a prompt engineering trick.</p>
+
+        <p>By the end of 2023, function calling was the standard mechanism for LLM-tool integration. Anthropic's tool use API (for Claude) and Gemini's function declarations followed the same pattern. The pattern was converging.</p>
+
+        <h2>The Evaluation Problem Nobody Wanted to Talk About</h2>
+
+        <p>Building LLM applications is easy. Knowing if they're good is hard. 2023 was the year that "LLM evaluation" became a serious engineering problem rather than a research footnote. The challenge: unlike traditional ML models where you have ground-truth labels and measurable metrics, LLM output quality is often subjective, multi-dimensional, and expensive to label.</p>
+
+        <p>The emerging evaluation approaches in 2023:</p>
+        <ul>
+          <li><strong>LLM-as-judge:</strong> Use a more capable LLM (GPT-4) to evaluate the output of a less capable one. Scales well, reasonable correlation with human judgment for specific criteria.</li>
+          <li><strong>RAG-specific metrics:</strong> RAGAS (Retrieval Augmented Generation Assessment) introduced context precision, context recall, faithfulness, and answer relevancy as measurable dimensions.</li>
+          <li><strong>Human evaluation pipelines:</strong> Systematic A/B testing with human raters for high-stakes applications. Expensive and slow but remains the ground truth.</li>
+        </ul>
+
+        <p>The tooling was nascent (LangSmith launched in late 2023, Arize AI added LLM evaluation, Weights & Biases added LLM tracing) but the problem statement was clear: you cannot ship LLM applications responsibly without evaluation infrastructure. The teams that learned this lesson early in 2023 were better positioned for 2024.</p>
+
+        <p>2023 was the most exciting year in AI engineering that most of us have experienced. The field went from "follow the research papers" to "ship a production RAG system by Friday." The speed was disorienting. The number of things that changed between January and November was staggering. And we were just getting started.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>State of Data Engineering 2025: Agents Take the Wheel (Mostly)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>State of Data Engineering 2025: Agents Take the Wheel (Mostly)</h1>
+        <div class="article-meta">
+          <span>📅 December 29, 2025</span>
+          <span>📖 15 min read</span>
+          <span>🔧 Data Engineering</span>
+          <span>📊 Year Review</span>
+          <span>☁️ Cloud</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>2025 was the year we stopped arguing about whether AI agents would change data engineering and started dealing with the reality that they already had. Not in the "robot replaces engineer" way that the hot takes predicted — data engineering remains a deeply technical discipline that requires real architectural judgment. But in the quieter, more pervasive way that changes how you spend your day: agents writing first drafts of dbt models, agents running data quality checks and filing tickets automatically, agents answering "why did this pipeline fail" at 3am instead of paging the on-call engineer.</p>
+
+        <p>Simultaneously, the technical infrastructure story of 2025 was about standardization catching up to the innovation of 2022–2024. The Iceberg REST Catalog spec became a genuine interoperability standard. Spark 4.0 shipped with a simplified Python-first API. dbt Mesh gave large organizations a coherent multi-project architecture. The streaming lakehouse pattern, which was "advanced architecture" in 2023, became a default pattern at scale in 2025.</p>
+
+        <h2>Agent-Driven Data Engineering: What Actually Works</h2>
+
+        <p>The data engineering agent use cases that worked in production in 2025 weren't the dramatic ones. They were the tedious ones — the kind of work that's important but time-consuming and doesn't require the deep architectural judgment that defines senior data engineering work.</p>
+
+        <h3>dbt Model Generation</h3>
+
+        <p>Given a source schema and a business requirement ("create a daily active users model by country from the events table"), agents could reliably generate a dbt model with correct SQL, appropriate tests (not_null, unique, accepted_values), and documentation. The first draft was right ~70% of the time; the remaining 30% needed a human to review business logic nuances. Net result: models that took 2–3 hours to write, test, and document were taking 30–45 minutes.</p>
+
+        <h3>Pipeline Debugging</h3>
+
+        <p>The dbt Cloud, Databricks, and Airflow observability integrations with AI assistants matured enough that "why did this job fail?" had a useful agent-generated answer most of the time. The agent would look at the error, the DAG structure, recent schema changes, and upstream data quality — and produce a diagnosis that was correct in the common cases (schema mismatch, null values in a not-null column, upstream table missing) and a useful starting point in the complex cases.</p>
+
+        <h3>Data Quality Anomaly Investigation</h3>
+
+        <p>Monte Carlo, Acceldata, and the dbt-native data quality tools all shipped agent features that could investigate anomalies automatically: run the relevant dbt tests, check upstream pipeline run history, query the lineage graph, and produce a root-cause hypothesis. This removed 40–60% of the manual investigation work from on-call data engineers.</p>
+
+        <div class="callout warning">
+          <p><strong>What agents still can't do reliably in 2025:</strong> Architecture design for new data domains, performance optimization that requires understanding query execution plans, complex CDC (change data capture) pipeline design, and anything that requires understanding undocumented business rules that live in someone's head. The ceiling on agent autonomy is the quality of your documentation and data contracts — agents work with what's written down.</p>
+        </div>
+
+        <h2>Spark 4.0: The Python-First Era</h2>
+
+        <p>Apache Spark 4.0, released in early 2025, made the Scala/Java API a second-class citizen for new feature development and doubled down on PySpark as the primary interface. The DataFrame API improvements, structured streaming usability enhancements, and the new <code>connect</code> architecture (thin client connecting to a remote Spark server) changed how Spark was deployed and used:</p>
+
+        <ul>
+          <li><strong>Spark Connect GA:</strong> A language-agnostic protocol for sending Spark plans to a remote server. Means you can use PySpark, DuckDB, or pandas-on-Spark API interchangeably, with Spark doing the heavy lifting on the server side. Local development on a laptop connects to a remote cluster without a full Spark installation locally.</li>
+          <li><strong>Python UDFs with Pandas/Arrow:</strong> Vectorized UDFs using PyArrow are now first-class in Spark 4.0, with significantly better performance than the row-at-a-time Python UDFs that were the original PySpark UDF story.</li>
+          <li><strong>Improved SQL compatibility:</strong> Spark 4.0 SQL is substantially more ANSI-compliant, reducing the "works in Snowflake, breaks in Spark" frustration for teams that run SQL across multiple engines.</li>
+        </ul>
+
+        <h2>The Iceberg REST Catalog Standard</h2>
+
+        <p>The Apache Iceberg REST Catalog specification matured into something that actually enabled engine interoperability in 2025. Snowflake, Databricks, AWS Glue, Polaris (the Snowflake-donated open-source catalog), and several other vendors all implemented the REST Catalog spec. The result: a table registered in one catalog could be read by any engine that supported the spec, without vendor-specific configuration.</p>
+
+        <p>This was the closest data engineering had come to the "write once, read anywhere" vision of open table formats being fully realized. It wasn't frictionless — different implementations had different feature coverage, authorization models varied, and the performance of REST Catalog calls at scale was a real concern. But the direction was clear: catalogs were commoditizing, and the value was moving up the stack to the query engine and governance layers.</p>
+
+        <h2>dbt Mesh: Multi-Project Architecture for Large Organizations</h2>
+
+        <p>dbt Mesh, which dbt Labs had been building since 2023, became production-ready and widely adopted at larger organizations in 2025. The problem it solves: a single dbt project with 500+ models is ungovernable. Everything depends on everything; schema changes break downstream models; different teams have different deployment cadences but are blocked by a shared CI/CD pipeline.</p>
+
+        <p>dbt Mesh introduces cross-project references: Team A's project can depend on a <em>public</em> model in Team B's project via a formal contract interface. Team B can iterate on the internals of their models without breaking Team A, as long as the public interface (schema, column names, semantics) is preserved. This is essentially API versioning for data models.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph LR
+    subgraph Platform["Platform Team"]
+        Raw["raw_* staging models\n(public interface v1.2)"]
+    end
+
+    subgraph Commerce["Commerce Team"]
+        Orders["orders_daily\n(depends on raw_orders)"]
+        Revenue["revenue_metrics\n(public interface v2.0)"]
+    end
+
+    subgraph Finance["Finance Team"]
+        Reporting["monthly_reporting\n(depends on revenue_metrics v2.0)"]
+    end
+
+    Raw --> Orders
+    Orders --> Revenue
+    Revenue --> Reporting
+
+    style Platform fill:#1e3a5f,stroke:#2d5a8e
+    style Commerce fill:#0d1f35,stroke:#2d5a8e
+    style Finance fill:#0a1628,stroke:#2d5a8e
+          </pre>
+          <p class="diagram-caption">dbt Mesh: separate dbt projects with formal cross-project dependencies via public model interfaces. Platform team owns staging models; Commerce team owns their domain models; Finance team consumes the public revenue interface. Each team deploys independently.</p>
+        </div>
+
+        <h2>The Streaming Lakehouse Becomes Default at Scale</h2>
+
+        <p>In 2023, "streaming lakehouse" was an architectural pattern that advanced teams were experimenting with. By 2025, it was the default architecture for data platforms handling &gt;TB/day of incoming data. The pattern:</p>
+
+        <ol>
+          <li>Events stream into Kafka or Kinesis</li>
+          <li>Flink processes events and writes to Iceberg tables in S3/GCS/ADLS using MERGE semantics</li>
+          <li>dbt models transform the Iceberg landing tables via batch jobs (hourly or daily)</li>
+          <li>BI tools query the transformed tables; high-urgency use cases query the Iceberg landing tables directly</li>
+        </ol>
+
+        <p>What made this practical at scale in 2025 was Iceberg's improved small-file compaction, Flink's improved checkpointing reliability, and the managed services getting good enough that you didn't need a Flink expert to run this in production (Amazon Managed Service for Apache Flink, Confluent's Flink cloud service).</p>
+
+        <h2>What Data Engineering Looks Like in 2026</h2>
+
+        <p>Standing at the end of 2025, a few patterns seem structurally stable:</p>
+        <ul>
+          <li><strong>The data engineer's job is increasingly about architecture and governance, less about pipeline construction.</strong> Agents handle first-draft pipeline code; engineers design the system, set the standards, and review.</li>
+          <li><strong>The lakehouse is the default pattern.</strong> Pure cloud data warehouses still exist, but most new architectures land on open table formats in cloud storage with a compute engine (Spark, Trino, Snowflake Iceberg, DuckDB) on top.</li>
+          <li><strong>Interoperability is winning.</strong> The vendor lock-in game of 2018–2022 has largely been defeated by open formats and open catalogs. The new lock-in is at the governance/AI layer.</li>
+          <li><strong>Data contracts are real governance.</strong> Not everywhere, but the teams running data contracts in production have noticeably fewer incident bridges and data quality escalations.</li>
+        </ul>
+
+        <p>Five years ago, data engineering was building ETL pipelines in Spark and managing Hadoop clusters. Today it's designing governance models, implementing agent-assisted quality systems, and making architectural choices about which of 20 competing open standards to bet on. The tools got dramatically better; the judgment calls got harder. Wouldn't have it any other way.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2025 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

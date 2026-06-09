@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>State of Data Engineering 2023: The AI Earthquake and the Format Wars</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>State of Data Engineering 2023: The AI Earthquake and the Format Wars</h1>
+        <div class="article-meta">
+          <span>📅 December 31, 2023</span>
+          <span>📖 14 min read</span>
+          <span>🔧 Data Engineering</span>
+          <span>📊 Year Review</span>
+          <span>☁️ Cloud</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>2023 hit data engineering like a truck going two directions at once. On one side: the long-running story of cloud data warehouses, dbt, and the modern data stack continued to mature, with real consolidation happening in the tools landscape. On the other side: the ChatGPT aftershock arrived in full force, vector databases went from obscure academic tooling to a funded category with 15+ vendors, and every data team was suddenly expected to have an opinion on RAG architectures.</p>
+
+        <p>Meanwhile, the open table format war between Apache Iceberg and Delta Lake reached a critical moment — and the DuckDB revolution quietly changed how a generation of engineers thought about local-first analytics. It was a year of genuine technical progress obscured by enormous amounts of hype. Let's separate the two.</p>
+
+        <h2>The ChatGPT Aftershock Hits Data Engineering</h2>
+
+        <p>ChatGPT launched at the end of 2022, but the actual impact on data engineering practice hit in 2023. Three changes were immediate and real:</p>
+
+        <p><strong>1. Text-to-SQL became viable.</strong> Every BI vendor (Looker, Tableau, Power BI, Metabase) announced or shipped natural language query features in 2023. Some were LLM wrappers over their existing SQL engines; some were more sophisticated. The quality was inconsistent but improving. For the first time, non-technical users could sometimes get answers from a data warehouse without waiting for an analyst. The "will LLMs replace data analysts?" debate started in earnest.</p>
+
+        <p><strong>2. Vector databases exploded.</strong> The core use case driving vector DB adoption was RAG (Retrieval-Augmented Generation) — grounding LLM responses in enterprise knowledge. To build RAG systems, you needed to store and query text embeddings efficiently. Vector DBs (Pinecone, Weaviate, Qdrant, Milvus, Chroma) went from "niche ML tooling" to "everyone's evaluating something" in about 6 months. Pinecone raised $100M. Weaviate raised $50M. Qdrant (bootstrapped, open-source) grew to millions of downloads. pgvector went from obscure Postgres extension to a serious contender.</p>
+
+        <p><strong>3. Data pipelines for AI became a real workload type.</strong> Embedding generation, chunking strategies, semantic cache invalidation, model evaluation data management — these weren't things data engineers had to care about before 2023. By the end of 2023, many data teams owned the data infrastructure for their organization's LLM applications. The ML engineer and data engineer roles started blurring.</p>
+
+        <div class="callout">
+          <p><strong>The RAG data engineering problem:</strong> Building a vector store is easy. Keeping it fresh isn't. When source documents change, embeddings need to be regenerated for the changed chunks, deleted for removed content, and added for new content. This is an incremental data pipeline problem — exactly the kind of thing data engineers know how to solve. The fact that the payload is embeddings rather than revenue figures doesn't change the underlying pipeline challenge.</p>
+        </div>
+
+        <h2>Databricks Acquires MosaicML: The Shots Fired</h2>
+
+        <p>In June 2023, Databricks acquired MosaicML for $1.3 billion. MosaicML was known for efficient LLM training — their MPT models could be fine-tuned or pre-trained on commodity clusters at a fraction of the cost of typical GPT-scale training. The message was clear: Databricks was positioning as the platform where enterprises would train and deploy their own LLMs, not just use OpenAI's APIs.</p>
+
+        <p>This acquisition catalyzed the "build vs buy" conversation at large enterprises. If you could fine-tune a capable open model on your own data, on your own Databricks cluster, without sending data to a third-party API — that was compelling for regulated industries. The Databricks-Microsoft (Azure OpenAI) competition got real in the second half of 2023.</p>
+
+        <h2>Microsoft Fabric GA: Another Platform to Think About</h2>
+
+        <p>November 2023: Microsoft Fabric reached General Availability. Fabric is Microsoft's attempt at a unified analytics platform — combining Azure Data Factory, Azure Synapse, Power BI, and Purview into a single product with a shared data storage layer (OneLake, built on ADLS Gen2 + Delta format).</p>
+
+        <p>The reaction in the data engineering community was... cautious. Fabric's promise of a unified experience was appealing. But the reality of migrating existing Azure data stacks to Fabric was complex, the product had rough edges at GA, and the licensing model (Fabric SKUs replacing individual service billing) was confusing. The teams most enthusiastic about Fabric were those heavily invested in Power BI — for them, the integration was genuinely compelling.</p>
+
+        <h2>The Open Table Format War: Iceberg vs Delta Gets Hot</h2>
+
+        <p>The Iceberg vs Delta debate intensified in 2023, with real stakes:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Factor</th><th>Apache Iceberg</th><th>Delta Lake</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Backing</td><td>Apache (Apple, Netflix, Tabular origins)</td><td>Databricks (open-source, Linux Foundation)</td></tr>
+              <tr><td>Catalog support</td><td>REST, Glue, Hive, Nessie, Polaris</td><td>Primarily Databricks / Unity Catalog</td></tr>
+              <tr><td>Engine support</td><td>Spark, Flink, Trino, Dremio, Snowflake</td><td>Spark, Flink, Trino (via connector), Databricks</td></tr>
+              <tr><td>Multi-cloud neutrality</td><td>Strong</td><td>Better in 2023 with open-source moves</td></tr>
+              <tr><td>Merge performance</td><td>Improving (copy-on-write vs MOR)</td><td>Strong with Databricks Photon</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The practical outcome: if you're on Databricks, Delta is the natural choice and Unity Catalog works seamlessly with it. If you're on Snowflake, Trino, or a multi-engine setup, Iceberg is better supported. Teams trying to be "engine agnostic" mostly picked Iceberg. The format war didn't end in 2023 — but the consensus was forming that Iceberg had better open-ecosystem momentum.</p>
+
+        <h2>DuckDB: The Quiet Revolution</h2>
+
+        <p>If you had to pick one technology that "won" 2023 based on developer enthusiasm-to-cost ratio, it was DuckDB. DuckDB is an in-process OLAP database — it runs in your Python process, reads Parquet files from S3, and can process gigabytes of data locally without a cluster. <code>pip install duckdb</code>.</p>
+
+        <p>The implications were significant:</p>
+        <ul>
+          <li>Local development of data transformations became realistic on real data samples without cloud costs</li>
+          <li>dbt-duckdb enabled running dbt models locally against real-sized samples without Snowflake credits</li>
+          <li>MotherDuck (managed DuckDB in the cloud) raised $52M — the first serious "serverless analytics for small data" product</li>
+          <li>The "right-sizing" conversation started: do you really need a Snowflake warehouse for 50GB of data? DuckDB says no.</li>
+        </ul>
+
+        <h2>dbt Semantic Layer: MetricFlow Goes Mainstream</h2>
+
+        <p>dbt Labs acquired Transform (the MetricFlow company) in 2022, and 2023 was when the dbt Semantic Layer became real. The pitch: define your metrics once (revenue, DAU, conversion rate) in YAML, and any downstream tool (BI, notebooks, LLM queries) can query the correct definition without copy-pasting SQL. A semantic layer is the layer between the data model and the consumption layer — enforcing consistent business definitions regardless of which tool is asking.</p>
+
+        <p>In practice, the dbt Semantic Layer integration with BI tools was partial in 2023 — Tableau support was limited, most teams were still copy-pasting metric definitions across dashboards — but the architecture was sound and the trajectory was clear.</p>
+
+        <p>2023 was genuinely disorienting. The data engineering skills that were valuable in 2021 — Airflow DAGs, dbt models, Snowflake optimization — remained valuable, but a whole new layer of AI-adjacent skills became necessary simultaneously. The data engineers who thrived were those who could build vector pipelines alongside batch ETL, who understood embedding generation alongside SQL optimization, and who could explain RAG architectures to executives who had just watched a ChatGPT demo and wanted one immediately.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

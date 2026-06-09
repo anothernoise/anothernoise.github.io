@@ -27,7 +27,7 @@
       .timeline-year-btn .yr-chevron { margin-left: auto; transition: transform 0.22s ease; color: var(--text-muted); flex-shrink: 0; }
       .timeline-year-btn.collapsed .yr-chevron { transform: rotate(-90deg); }
       .timeline-year-badge { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 1px 6px; font-size: 0.68rem; font-weight: 600; color: var(--text-muted); }
-      .timeline-year-items { overflow: hidden; max-height: 800px; transition: max-height 0.3s ease, opacity 0.25s ease; opacity: 1; }
+      .timeline-year-items { overflow: hidden; max-height: 1200px; transition: max-height 0.3s ease, opacity 0.25s ease; opacity: 1; }
       .timeline-year-items.collapsed { max-height: 0; opacity: 0; }
       .timeline-item { position: relative; margin-bottom: 1.8rem; padding-left: 60px; cursor: pointer; }
       .timeline-dot { position: absolute; left: 10px; top: 4px; width: 20px; height: 20px; background: var(--bg-primary); border: 3px solid var(--accent-primary); border-radius: 50%; transition: all 0.3s ease; }
@@ -91,6 +91,7 @@
               <a href="#" class="tag" data-tag="gcp">GCP</a>
               <a href="#" class="tag" data-tag="llm-ops">LLM Ops</a>
               <a href="#" class="tag" data-tag="data-mesh">Data Mesh</a>
+              <a href="#" class="tag" data-tag="year-review">Year Review</a>
             </div>
           </div>
         </aside>
@@ -104,6 +105,7 @@
 
           <ul class="post-list">
 
+            <!-- 2026 -->
             <li class="post-item" data-tags="ai-agents,architecture">
               <a href="ai-agent-memory.html">
                 <h2 class="post-title">AI Agent Memory: The Infrastructure Layer Nobody Told You About</h2>
@@ -131,12 +133,31 @@
               </a>
             </li>
 
+            <!-- 2025 -->
+            <li class="post-item" data-tags="data-engineering,cloud,year-review">
+              <a href="state-data-engineering-2025.html">
+                <h2 class="post-title">State of Data Engineering 2025: Agents Take the Wheel (Mostly)</h2>
+                <div class="post-date">December 29, 2025</div>
+                <p class="post-excerpt">2025 in review: agent-driven pipelines move from demos to production, Spark 4.0 goes Python-first, the Iceberg REST Catalog spec becomes a genuine interoperability standard, dbt Mesh solves multi-project governance, and streaming lakehouse becomes the default at scale. Honest assessment of what changed and what didn't.</p>
+                <div class="post-meta"><span>📖 15 min read</span><span>🔧 Data Engineering</span><span>📊 Year Review</span></div>
+              </a>
+            </li>
+
             <li class="post-item" data-tags="fabric,data-engineering,architecture">
               <a href="fabric-vs-databricks.html">
                 <h2 class="post-title">Microsoft Fabric vs Databricks on Azure: The 2025 Decision Guide</h2>
                 <div class="post-date">December 10, 2025</div>
                 <p class="post-excerpt">Fabric is SaaS, Databricks is PaaS, and the pricing models are completely different animals. A practitioner's comparison covering real TCO numbers, Unity Catalog OneLake mirroring, governance models, ML toolchain gaps, Photon vs Fabric Spark, and a decision framework that actually leads to a recommendation.</p>
                 <div class="post-meta"><span>📖 18 min read</span><span>🏷️ MS Fabric</span><span>🔧 Data Engineering</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="ai-agents,architecture,year-review">
+              <a href="state-ai-engineering-2025.html">
+                <h2 class="post-title">State of AI Engineering 2025: Agents in Production, MCP Goes Universal, and the EU Starts Regulating</h2>
+                <div class="post-date">November 30, 2025</div>
+                <p class="post-excerpt">The year AI engineering stopped being about demos. Agents in production, MCP ecosystem arrives, reasoning models change what's possible, EU AI Act enforcement begins, and AI-native data engineering becomes a real thing. Annual retrospective on the field's transformation.</p>
+                <div class="post-meta"><span>📖 15 min read</span><span>🏷️ AI Agents</span><span>📊 Year Review</span></div>
               </a>
             </li>
 
@@ -167,6 +188,24 @@
               </a>
             </li>
 
+            <li class="post-item" data-tags="architecture,data-engineering,cloud">
+              <a href="unity-catalog.html">
+                <h2 class="post-title">Unity Catalog Deep Dive: Governance for the Lakehouse (and Beyond)</h2>
+                <div class="post-date">April 8, 2025</div>
+                <p class="post-excerpt">From three-level namespaces and ABAC column masking to Delta Sharing, AI assets, and the open-source UC release. A comprehensive guide to Unity Catalog's architecture, what row/column security actually looks like in SQL, automated lineage, and the real pain points of migrating from Hive metastore.</p>
+                <div class="post-meta"><span>📖 15 min read</span><span>🏗️ Architecture</span><span>🔧 Data Engineering</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="ai-agents,architecture,data-engineering">
+              <a href="graphrag.html">
+                <h2 class="post-title">GraphRAG: When Your Vector Database Doesn't Know the Whole Story</h2>
+                <div class="post-date">March 10, 2025</div>
+                <p class="post-excerpt">Classic RAG retrieves locally relevant chunks but misses cross-document relationships. Microsoft's GraphRAG builds a knowledge graph at ingestion — entity extraction, Leiden community detection, community summaries — enabling thematic global search and entity-centric local search that vector retrieval fundamentally cannot do.</p>
+                <div class="post-meta"><span>📖 13 min read</span><span>🏷️ AI Agents</span><span>🔧 Architecture</span></div>
+              </a>
+            </li>
+
             <li class="post-item" data-tags="architecture,cloud,fabric">
               <a href="ms-fabric-azure-migration.html">
                 <h2 class="post-title">Microsoft Fabric in the Azure Ecosystem: Migration, Integration, and the Databricks Question</h2>
@@ -185,12 +224,40 @@
               </a>
             </li>
 
+            <!-- 2024 -->
+            <li class="post-item" data-tags="data-engineering,cloud,year-review">
+              <a href="state-data-engineering-2024.html">
+                <h2 class="post-title">State of Data Engineering 2024: Open Catalogs, DuckDB Everywhere, and AI Infiltrates the Stack</h2>
+                <div class="post-date">December 31, 2024</div>
+                <p class="post-excerpt">2024 was the year open won: Unity Catalog open-sourced, Databricks acquired Tabular (Iceberg's creators), Delta UniForm arrived, DuckDB 1.0 graduated. Plus: AI-assisted SQL goes mainstream, streaming lakehouse matures, and the great data tooling consolidation happens (partially).</p>
+                <div class="post-meta"><span>📖 14 min read</span><span>🔧 Data Engineering</span><span>📊 Year Review</span></div>
+              </a>
+            </li>
+
             <li class="post-item" data-tags="cloud,ai-agents,architecture">
               <a href="snowflake-cortex.html">
                 <h2 class="post-title">Snowflake Cortex AI Deep Dive: LLMs Inside Your Data Warehouse</h2>
                 <div class="post-date">December 12, 2024</div>
                 <p class="post-excerpt">Cortex LLM functions, Cortex Search (managed RAG without infra), Cortex Analyst (text-to-SQL on semantic models), Document AI, and Snowflake Arctic — covered with real SQL, cost tables, and honest trade-offs. When Cortex wins vs external LLM APIs, and when it doesn't.</p>
                 <div class="post-meta"><span>📖 14 min read</span><span>☁️ Cloud</span><span>🏷️ AI Agents</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="ai-agents,architecture,year-review">
+              <a href="state-ai-engineering-2024.html">
+                <h2 class="post-title">State of AI Engineering 2024: Agents, MCP, and Open-Source Catches Up</h2>
+                <div class="post-date">November 30, 2024</div>
+                <p class="post-excerpt">The year AI engineering grew up: LangGraph makes agents debuggable, Claude 3 and GPT-4o change the model selection calculus, Llama 3 closes the capability gap, MCP is announced as the universal tool protocol, and evaluation engineering becomes a real discipline. Annual retrospective.</p>
+                <div class="post-meta"><span>📖 15 min read</span><span>🏷️ AI Agents</span><span>📊 Year Review</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="data-engineering,cloud,architecture">
+              <a href="finops-data-platforms.html">
+                <h2 class="post-title">FinOps for Data Platforms: Real Cost Governance on Snowflake, Databricks, BigQuery, and Fabric</h2>
+                <div class="post-date">August 15, 2024</div>
+                <p class="post-excerpt">Credit-burning Snowflake warehouses, DBU tier mismatches on Databricks, BigQuery tables without partition filters — real cost horror stories and the governance patterns that prevent them. Query-level attribution, resource monitors, cluster policies, and the weekly email that changes team behavior faster than any dashboard.</p>
+                <div class="post-meta"><span>📖 14 min read</span><span>☁️ Cloud</span><span>🔧 Data Engineering</span></div>
               </a>
             </li>
 
@@ -212,6 +279,34 @@
               </a>
             </li>
 
+            <li class="post-item" data-tags="data-engineering,architecture,cloud">
+              <a href="spark-performance.html">
+                <h2 class="post-title">Spark Performance Tuning: Stop Guessing, Start Measuring</h2>
+                <div class="post-date">February 10, 2024</div>
+                <p class="post-excerpt">How Spark actually executes jobs (stages, shuffles, tasks), why your partitioning strategy matters more than your cluster size, data skew and the salting fix, join strategies from broadcast hash to sort-merge, AQE in Spark 3.x, memory configuration, and what Photon actually accelerates on Databricks.</p>
+                <div class="post-meta"><span>📖 15 min read</span><span>🔧 Data Engineering</span><span>☁️ Cloud</span></div>
+              </a>
+            </li>
+
+            <!-- 2023 -->
+            <li class="post-item" data-tags="data-engineering,cloud,year-review">
+              <a href="state-data-engineering-2023.html">
+                <h2 class="post-title">State of Data Engineering 2023: The AI Earthquake and the Format Wars</h2>
+                <div class="post-date">December 31, 2023</div>
+                <p class="post-excerpt">The year ChatGPT's aftershock hit data engineering: text-to-SQL becomes viable, vector databases explode, Databricks acquires MosaicML, Microsoft Fabric goes GA, the Iceberg vs Delta war heats up, DuckDB quietly revolutionizes local analytics, and dbt Semantic Layer arrives. Annual retrospective.</p>
+                <div class="post-meta"><span>📖 14 min read</span><span>🔧 Data Engineering</span><span>📊 Year Review</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="ai-agents,architecture,year-review">
+              <a href="state-ai-engineering-2023.html">
+                <h2 class="post-title">State of AI Engineering 2023: LangChain Explosions, RAG Everywhere, and the Open-Source LLM Surprise</h2>
+                <div class="post-date">November 30, 2023</div>
+                <p class="post-excerpt">GPT-4 raises the baseline, LangChain becomes the most polarizing library in AI engineering, RAG solidifies as the production pattern, Llama 2 surprises everyone, function calling unlocks reliable tool-using agents, and the evaluation problem becomes impossible to ignore. Annual retrospective.</p>
+                <div class="post-meta"><span>📖 14 min read</span><span>🏷️ AI Agents</span><span>📊 Year Review</span></div>
+              </a>
+            </li>
+
             <li class="post-item" data-tags="architecture,cloud,fabric">
               <a href="ms-fabric-internals.html">
                 <h2 class="post-title">Understanding MS Fabric Internals</h2>
@@ -230,6 +325,44 @@
               </a>
             </li>
 
+            <li class="post-item" data-tags="data-engineering,architecture,cloud">
+              <a href="kafka-internals.html">
+                <h2 class="post-title">Kafka Internals: The Commit Log That Powers Half the Data Stack</h2>
+                <div class="post-date">February 5, 2023</div>
+                <p class="post-excerpt">Topics, partitions, and the commit log abstraction that makes Kafka different from a message queue. Deep dive into replication with ISR, the rebalance problem in consumer groups, exactly-once semantics (EOS), log compaction, and cloud-managed options (MSK vs Confluent vs Event Hubs) compared with hard numbers.</p>
+                <div class="post-meta"><span>📖 14 min read</span><span>🔧 Data Engineering</span><span>☁️ Cloud</span></div>
+              </a>
+            </li>
+
+            <!-- 2022 -->
+            <li class="post-item" data-tags="data-engineering,cloud,year-review">
+              <a href="state-data-engineering-2022.html">
+                <h2 class="post-title">State of Data Engineering 2022: Data Mesh Hype, Data Quality Crisis, and a Chatbot Changes Everything</h2>
+                <div class="post-date">December 31, 2022</div>
+                <p class="post-excerpt">The year data engineering got complicated: Zhamak's Data Mesh book lands with organizational shock waves, data contracts emerge as the practical governance response, streaming grows up a little, and on November 30 a chatbot launches that nobody in data engineering has fully processed yet. Annual retrospective.</p>
+                <div class="post-meta"><span>📖 13 min read</span><span>🔧 Data Engineering</span><span>📊 Year Review</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="ai-agents,architecture,year-review">
+              <a href="state-ai-engineering-2022.html">
+                <h2 class="post-title">State of AI Engineering 2022: The Year Before Everything Changed</h2>
+                <div class="post-date">November 30, 2022</div>
+                <p class="post-excerpt">The world before ChatGPT: supervised ML on tabular data, MLOps maturation, RLHF as the alignment breakthrough, Stable Diffusion going open-source, GitHub Copilot proving LLM developer tools can retain paying users. Then November 30 happens and none of that felt the same. Annual retrospective.</p>
+                <div class="post-meta"><span>📖 12 min read</span><span>🏷️ AI Agents</span><span>📊 Year Review</span></div>
+              </a>
+            </li>
+
+            <!-- 2021 -->
+            <li class="post-item" data-tags="data-engineering,cloud,year-review">
+              <a href="state-data-engineering-2021.html">
+                <h2 class="post-title">State of Data Engineering 2021: The Modern Data Stack Goes Mainstream</h2>
+                <div class="post-date">December 31, 2021</div>
+                <p class="post-excerpt">The year the MDS trifecta (Snowflake + Fivetran + dbt) stopped being a niche stack and started showing up in CFO budgets. Reverse ETL emerges as a category, the lakehouse concept gets serious, data mesh seeds are planted, and the orchestration wars begin. Annual retrospective on the year everything professionalized.</p>
+                <div class="post-meta"><span>📖 12 min read</span><span>🔧 Data Engineering</span><span>📊 Year Review</span></div>
+              </a>
+            </li>
+
           </ul>
         </div>
 
@@ -245,7 +378,7 @@
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items" id="year-2026">
-                <div class="timeline-item" data-href="ai-agent-memory.html"><div class="timeline-dot"></div><div class="timeline-date">June 8, 2026</div><div class="timeline-title">AI Agent Memory</div></div>
+                <div class="timeline-item" data-href="ai-agent-memory.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 8, 2026</div><div class="timeline-title">AI Agent Memory</div></div>
                 <div class="timeline-item" data-href="llm-observability.html"><div class="timeline-dot"></div><div class="timeline-date">May 5, 2026</div><div class="timeline-title">LLM Observability</div></div>
                 <div class="timeline-item" data-href="vertipaq-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Mar 15, 2026</div><div class="timeline-title">VertiPaq Internals</div></div>
               </div>
@@ -254,14 +387,18 @@
             <!-- 2025 — collapsed -->
             <div class="timeline-year-group" data-year="2025">
               <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2025">
-                2025 <span class="timeline-year-badge">6</span>
+                2025 <span class="timeline-year-badge">10</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items collapsed" id="year-2025">
+                <div class="timeline-item" data-href="state-data-engineering-2025.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 29, 2025</div><div class="timeline-title">Data Eng 2025</div></div>
                 <div class="timeline-item" data-href="fabric-vs-databricks.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 10, 2025</div><div class="timeline-title">Fabric vs Databricks</div></div>
+                <div class="timeline-item" data-href="state-ai-engineering-2025.html"><div class="timeline-dot"></div><div class="timeline-date">Nov 30, 2025</div><div class="timeline-title">AI Eng 2025</div></div>
                 <div class="timeline-item" data-href="direct-lake-vs-import-vs-directquery.html"><div class="timeline-dot"></div><div class="timeline-date">Oct 7, 2025</div><div class="timeline-title">Direct Lake vs Import</div></div>
                 <div class="timeline-item" data-href="rag-on-gcp.html"><div class="timeline-dot"></div><div class="timeline-date">Jul 15, 2025</div><div class="timeline-title">RAG on GCP</div></div>
                 <div class="timeline-item" data-href="open-table-formats.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 8, 2025</div><div class="timeline-title">Open Table Formats</div></div>
+                <div class="timeline-item" data-href="unity-catalog.html"><div class="timeline-dot"></div><div class="timeline-date">Apr 8, 2025</div><div class="timeline-title">Unity Catalog</div></div>
+                <div class="timeline-item" data-href="graphrag.html"><div class="timeline-dot"></div><div class="timeline-date">Mar 10, 2025</div><div class="timeline-title">GraphRAG</div></div>
                 <div class="timeline-item" data-href="ms-fabric-azure-migration.html"><div class="timeline-dot"></div><div class="timeline-date">Feb 12, 2025</div><div class="timeline-title">Fabric + Azure</div></div>
                 <div class="timeline-item" data-href="vector-databases.html"><div class="timeline-dot"></div><div class="timeline-date">Jan 20, 2025</div><div class="timeline-title">Vector Databases</div></div>
               </div>
@@ -270,25 +407,55 @@
             <!-- 2024 — collapsed -->
             <div class="timeline-year-group" data-year="2024">
               <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2024">
-                2024 <span class="timeline-year-badge">3</span>
+                2024 <span class="timeline-year-badge">7</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items collapsed" id="year-2024">
+                <div class="timeline-item" data-href="state-data-engineering-2024.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 31, 2024</div><div class="timeline-title">Data Eng 2024</div></div>
                 <div class="timeline-item" data-href="snowflake-cortex.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 12, 2024</div><div class="timeline-title">Snowflake Cortex AI</div></div>
+                <div class="timeline-item" data-href="state-ai-engineering-2024.html"><div class="timeline-dot"></div><div class="timeline-date">Nov 30, 2024</div><div class="timeline-title">AI Eng 2024</div></div>
+                <div class="timeline-item" data-href="finops-data-platforms.html"><div class="timeline-dot"></div><div class="timeline-date">Aug 15, 2024</div><div class="timeline-title">FinOps Data Platforms</div></div>
                 <div class="timeline-item" data-href="power-bi-semantic-models.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 8, 2024</div><div class="timeline-title">Power BI Models</div></div>
                 <div class="timeline-item" data-href="dbt-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Mar 20, 2024</div><div class="timeline-title">dbt Internals</div></div>
+                <div class="timeline-item" data-href="spark-performance.html"><div class="timeline-dot"></div><div class="timeline-date">Feb 10, 2024</div><div class="timeline-title">Spark Performance</div></div>
               </div>
             </div>
 
             <!-- 2023 — collapsed -->
             <div class="timeline-year-group" data-year="2023">
               <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2023">
-                2023 <span class="timeline-year-badge">2</span>
+                2023 <span class="timeline-year-badge">5</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items collapsed" id="year-2023">
+                <div class="timeline-item" data-href="state-data-engineering-2023.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 31, 2023</div><div class="timeline-title">Data Eng 2023</div></div>
+                <div class="timeline-item" data-href="state-ai-engineering-2023.html"><div class="timeline-dot"></div><div class="timeline-date">Nov 30, 2023</div><div class="timeline-title">AI Eng 2023</div></div>
                 <div class="timeline-item" data-href="ms-fabric-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 9, 2023</div><div class="timeline-title">MS Fabric Internals</div></div>
                 <div class="timeline-item" data-href="data-mesh.html"><div class="timeline-dot"></div><div class="timeline-date">Apr 10, 2023</div><div class="timeline-title">Data Mesh</div></div>
+                <div class="timeline-item" data-href="kafka-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Feb 5, 2023</div><div class="timeline-title">Kafka Internals</div></div>
+              </div>
+            </div>
+
+            <!-- 2022 — collapsed -->
+            <div class="timeline-year-group" data-year="2022">
+              <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2022">
+                2022 <span class="timeline-year-badge">2</span>
+                <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
+              </button>
+              <div class="timeline-year-items collapsed" id="year-2022">
+                <div class="timeline-item" data-href="state-data-engineering-2022.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 31, 2022</div><div class="timeline-title">Data Eng 2022</div></div>
+                <div class="timeline-item" data-href="state-ai-engineering-2022.html"><div class="timeline-dot"></div><div class="timeline-date">Nov 30, 2022</div><div class="timeline-title">AI Eng 2022</div></div>
+              </div>
+            </div>
+
+            <!-- 2021 — collapsed -->
+            <div class="timeline-year-group" data-year="2021">
+              <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2021">
+                2021 <span class="timeline-year-badge">1</span>
+                <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
+              </button>
+              <div class="timeline-year-items collapsed" id="year-2021">
+                <div class="timeline-item" data-href="state-data-engineering-2021.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 31, 2021</div><div class="timeline-title">Data Eng 2021</div></div>
               </div>
             </div>
 

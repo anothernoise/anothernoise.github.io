@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>State of AI Engineering 2024: Agents, MCP, and Open-Source Catches Up</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1mm; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>State of AI Engineering 2024: Agents, MCP, and Open-Source Catches Up</h1>
+        <div class="article-meta">
+          <span>📅 November 30, 2024</span>
+          <span>📖 15 min read</span>
+          <span>🤖 AI Agents</span>
+          <span>📊 Year Review</span>
+          <span>🏗️ Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>2024 was the year AI engineering stopped being about building demos and started being about the hard engineering problems that production requires. The models got dramatically better (GPT-4o, Claude 3 Opus, Gemini 1.5 Pro with 1M token context). The agent frameworks matured from proof-of-concept to production-viable (LangGraph, CrewAI, AutoGen 0.4). And the open-source model ecosystem closed the capability gap with proprietary models substantially, changing the "build vs buy" calculation for many organizations.</p>
+
+        <p>The single most consequential infrastructure announcement of 2024 was Anthropic's Model Context Protocol (MCP) in November — a standard for connecting AI systems to tools and data sources. But before that, the year was defined by three core narratives: the agent reliability problem, the evaluation maturity push, and open-source LLMs becoming genuinely competitive.</p>
+
+        <h2>Agents in 2024: From Demo to Production</h2>
+
+        <p>2023 introduced the agent concept broadly. 2024 was the year we collectively learned how hard it is to make agents reliable in production. The core tension: agents are powerful because they can take multi-step actions autonomously — but every additional step is another opportunity for the agent to go wrong, and errors compound.</p>
+
+        <p>The failure modes that emerged from production experience:</p>
+        <ul>
+          <li><strong>Infinite loops:</strong> Agents cycling on a task without converging, burning tokens and time</li>
+          <li><strong>Tool hallucination:</strong> Agents calling tools that don't exist or with incorrect parameters</li>
+          <li><strong>Context window overflow:</strong> Long-running agents accumulating a context that exceeded limits, losing early reasoning</li>
+          <li><strong>Premature termination:</strong> Agents declaring success before actually completing the task</li>
+          <li><strong>Overconfident actions:</strong> Agents taking irreversible actions (deleting data, sending emails) when uncertain</li>
+        </ul>
+
+        <p>The solutions that emerged were engineering patterns, not model improvements: structured output with Pydantic for tool calls, explicit stop conditions, human-in-the-loop checkpoints for irreversible actions, conversation summarization for long-running sessions, and aggressive logging of every agent step for debugging.</p>
+
+        <h3>LangGraph: Stateful Agents with Explicit Control Flow</h3>
+
+        <p>LangGraph (from the LangChain team) addressed the "agents as black boxes" problem by making agent logic explicit as a graph. Each node is a function; edges define the control flow; state is managed explicitly between nodes. This made agents debuggable, testable, and modifiable — three things that were very hard with the earlier "ReAct agent in a loop" pattern.</p>
+
+        <pre><code class="language-python">from langgraph.graph import StateGraph, END
+from typing import TypedDict, Annotated, List
+import operator
+
+class AgentState(TypedDict):
+    messages: Annotated[List[str], operator.add]
+    data_retrieved: bool
+    analysis_complete: bool
+
+def retrieve_data(state: AgentState) -> AgentState:
+    # Tool call: query the data warehouse
+    results = query_snowflake(state["messages"][-1])
+    return {"messages": [f"Retrieved: {results}"], "data_retrieved": True}
+
+def analyze_data(state: AgentState) -> AgentState:
+    # LLM call: analyze the retrieved data
+    analysis = llm.invoke(state["messages"])
+    return {"messages": [analysis.content], "analysis_complete": True}
+
+def should_continue(state: AgentState) -> str:
+    if not state["data_retrieved"]:
+        return "retrieve"
+    if not state["analysis_complete"]:
+        return "analyze"
+    return END
+
+workflow = StateGraph(AgentState)
+workflow.add_node("retrieve", retrieve_data)
+workflow.add_node("analyze", analyze_data)
+workflow.add_conditional_edges("retrieve", should_continue)
+workflow.add_conditional_edges("analyze", should_continue)
+workflow.set_entry_point("retrieve")</code></pre>
+
+        <h2>Claude 3 and the "Which Model for What" Problem</h2>
+
+        <p>March 2024: Anthropic releases Claude 3 (Haiku, Sonnet, Opus). Opus benchmarked above GPT-4 on several measures; Haiku was competitively fast and cheap for high-volume use cases. GPT-4o (May 2024) brought GPT-4-class capability at GPT-3.5 pricing and significantly faster inference.</p>
+
+        <p>For the first time, AI engineers had to make real "which model for which task" decisions — not just "GPT-4 for everything important." The emerging framework:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Use Case</th><th>2024 Model Choice</th><th>Reasoning</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Complex reasoning, code generation</td><td>Claude 3 Opus / GPT-4o</td><td>Best quality, cost justified</td></tr>
+              <tr><td>High-volume classification / extraction</td><td>Claude 3 Haiku / GPT-4o mini</td><td>Cost efficiency, fast latency</td></tr>
+              <tr><td>Long document processing</td><td>Claude 3 (200K context)</td><td>Context window advantage</td></tr>
+              <tr><td>Code completion (IDE)</td><td>GitHub Copilot / Claude</td><td>Specialized fine-tuning</td></tr>
+              <tr><td>On-premise / data privacy</td><td>Llama 3 70B / Mistral</td><td>No data leaves your infra</td></tr>
+              <tr><td>Embeddings</td><td>text-embedding-3-large</td><td>Cost, quality, standardization</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Open-Source LLMs Close the Gap</h2>
+
+        <p>Meta's Llama 3 (April 2024) was the moment open-source LLMs went from "good enough for internal chatbots" to "genuinely competitive with proprietary models for many production use cases." Llama 3 70B benchmarked comparably to GPT-3.5-turbo on coding and reasoning benchmarks — the model that powered ChatGPT for most of 2023.</p>
+
+        <p>The infrastructure for running open models had also matured. vLLM (efficient batched inference) made serving 70B models on A100 clusters practical and cost-effective. Ollama made local inference on developer MacBooks a one-line install. The quantization ecosystem (GGUF format, llama.cpp) let you run capable models on consumer hardware — 8GB VRAM for 7B models, 24GB for 13B.</p>
+
+        <p>For enterprises, the calculus shifted: if Llama 3 70B is competitive with GPT-3.5 for your specific task, and you can run it on your own infrastructure with no API costs and full data control, why pay per token? The answer depended on infrastructure cost and capability requirements, but the question became worth asking.</p>
+
+        <h2>MCP: The USB-C Moment for AI Tools</h2>
+
+        <p>November 2024: Anthropic announces the Model Context Protocol (MCP). MCP is a standard client-server protocol for connecting AI systems to external tools, databases, files, and APIs. The analogy used frequently: MCP is to AI tools what USB-C is to hardware peripherals — a standard connector that means any compatible AI client can talk to any compatible MCP server.</p>
+
+        <p>Before MCP, every AI application that needed to connect to external tools built its own integration. LangChain had one integration approach; the OpenAI function calling spec had another; custom agent frameworks had their own. MCP proposed a single protocol: servers expose tools and resources via a defined JSON-RPC interface; clients (LLM applications) discover and call them in a standard way.</p>
+
+        <div class="callout tip">
+          <p><strong>Why MCP matters for data engineering:</strong> MCP servers can expose data warehouse query tools, dbt catalog resources, pipeline monitoring APIs, and data quality metrics — all in a standard way that any MCP-compatible AI client can discover and use. The vision: an AI assistant that can query Snowflake, check Airflow DAG status, run a data quality test, and interpret the results — without custom integration code for each system. The ecosystem was nascent in late 2024 but the adoption trajectory was clear.</p>
+        </div>
+
+        <h2>AI Evaluation Becomes Real Engineering</h2>
+
+        <p>The dirty secret of 2023 AI deployments: most teams shipped LLM applications without systematic evaluation. "We tried it and it seemed good" was the de facto evaluation process. By 2024, this was no longer acceptable, and the tooling to do better had matured.</p>
+
+        <p>LangSmith (LangChain's observability platform), Arize Phoenix (open-source), and MLflow 2.x (with LLM tracing) all became genuinely useful in 2024 for tracking prompt performance, identifying regression when model versions changed, and running automated evaluation suites. The RAGAS framework matured; "LLM as judge" evaluation became standard practice for non-trivial applications.</p>
+
+        <p>The pattern that emerged: pre-production evaluation (automated, with a curated test set representing the most important query types), post-deployment monitoring (sampling production traffic and evaluating outputs), and red-team testing (adversarial prompts, edge cases) as part of the release process.</p>
+
+        <p>2024 ended with AI engineering in a more mature, more serious state than it started. The models were better. The frameworks were production-ready. The evaluation culture was developing. And MCP had been announced, promising a next wave of tool-using agents that would define 2025's challenges. Those challenges turned out to be exactly what everyone expected — and simultaneously weirder than predicted.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2025 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

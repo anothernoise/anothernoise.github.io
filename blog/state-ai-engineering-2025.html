@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>State of AI Engineering 2025: Agents in Production, MCP Goes Universal, and the EU Starts Regulating</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>State of AI Engineering 2025: Agents in Production, MCP Goes Universal, and the EU Starts Regulating</h1>
+        <div class="article-meta">
+          <span>📅 November 30, 2025</span>
+          <span>📖 15 min read</span>
+          <span>🤖 AI Agents</span>
+          <span>📊 Year Review</span>
+          <span>🏗️ Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Three years after ChatGPT launched, the AI engineering landscape in 2025 looks nothing like what anyone predicted — and exactly like what the trajectory implied. Agents moved from research curiosity to production infrastructure. MCP became the standard protocol for AI-tool connectivity, with hundreds of official and community servers. The EU AI Act's high-risk provisions came into enforcement, forcing the first real reckoning with AI compliance engineering. And the model capability curve continued its relentless upward trend, making 2024's "frontier" models look like mid-tier options.</p>
+
+        <p>The most important shift wasn't technical. It was organizational: AI engineering stopped being a specialist function and became part of the software engineering job description. The teams that treated "add AI features" as a separate initiative struggled. The ones that embedded AI engineers with product teams, built evaluation infrastructure as a first-class concern, and treated agents as software (with tests, observability, and rollback capabilities) shipped real things that users relied on.</p>
+
+        <h2>Agents in Production: What Actually Shipped</h2>
+
+        <p>The agent use cases that reached production at scale in 2025 were narrower than the demos suggested but deeper than the skeptics predicted. The pattern: agents excel at well-scoped, high-volume tasks with clear success criteria and reversible or supervised actions. They struggle at open-ended, ambiguous tasks or anything requiring nuanced judgment in novel situations.</p>
+
+        <p>Real production agent systems in 2025:</p>
+        <ul>
+          <li><strong>Customer support tier-1 triage:</strong> Agents classifying, routing, and drafting responses for support tickets. Human agents review and approve — but the human is reviewing a draft rather than writing from scratch. 40–60% reduction in handle time for standard queries.</li>
+          <li><strong>Code review assistance:</strong> Agents running automated checks, identifying potential bugs, and leaving contextual comments on PRs. GitHub Copilot's PR review feature, Cursor's agent mode, and custom implementations all saw serious adoption.</li>
+          <li><strong>Data pipeline operations:</strong> Agents monitoring data quality, diagnosing failures, generating incident tickets with root-cause hypotheses, and in some cases triggering automatic remediation (rerunning failed jobs, backfilling missing data).</li>
+          <li><strong>Research and due diligence:</strong> Agents synthesizing large document corpora for legal, financial, and competitive analysis. GraphRAG-style architectures for cross-document synthesis.</li>
+        </ul>
+
+        <h2>MCP: The Ecosystem Arrives</h2>
+
+        <p>Anthropic announced MCP in November 2024; by mid-2025 it had become the de facto standard for AI-tool connectivity. The reasons were pragmatic: MCP was simple enough that server implementation was trivial (a few hundred lines of code), Anthropic and OpenAI both supported it in their official clients, and the community built an enormous ecosystem of official and unofficial servers.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph LR
+    subgraph Clients["MCP Clients"]
+        Claude["Claude Desktop"]
+        Cursor["Cursor IDE"]
+        Custom["Custom AI App"]
+    end
+
+    subgraph MCPLayer["MCP Protocol Layer"]
+        direction TB
+        Proto["JSON-RPC over stdio / SSE"]
+    end
+
+    subgraph Servers["MCP Servers"]
+        DB["Database\n(Snowflake, Postgres)"]
+        Files["File System\n(S3, local)"]
+        APIs["External APIs\n(GitHub, Jira, Slack)"]
+        Tools["Custom Tools\n(data quality, pipelines)"]
+    end
+
+    Clients --> MCPLayer --> Servers
+          </pre>
+          <p class="diagram-caption">MCP architecture: clients (AI applications) connect to servers (tools, data sources) via a standard protocol. Any MCP client can use any MCP server without custom integration code.</p>
+        </div>
+
+        <p>For data engineering specifically, the MCP ecosystem in 2025 included production-ready servers for Snowflake, BigQuery, Databricks, dbt Cloud, Airflow, and most major data quality tools. An AI assistant could now: query a data warehouse to investigate an anomaly, check the dbt lineage to find upstream dependencies, look at recent Airflow run logs, and file a Jira ticket — all through a standard protocol, without custom integration code for each system.</p>
+
+        <h2>EU AI Act: Compliance Engineering Becomes a Real Job</h2>
+
+        <p>The EU AI Act's high-risk system provisions entered enforcement in August 2025. For AI engineers building systems that touch EU citizens in regulated domains (credit, employment, healthcare, critical infrastructure), this meant new requirements:</p>
+
+        <ul>
+          <li><strong>Risk assessment documentation:</strong> Formal documentation of the AI system's purpose, risk level classification, and mitigation measures</li>
+          <li><strong>Human oversight mechanisms:</strong> Mandatory human-in-the-loop for high-risk decisions; auditable logs of who reviewed what and when</li>
+          <li><strong>Data governance:</strong> Training data documentation, bias testing, and ongoing monitoring requirements</li>
+          <li><strong>Incident reporting:</strong> 72-hour reporting obligation for serious incidents involving high-risk AI systems</li>
+          <li><strong>Transparency:</strong> Disclosure requirements when users interact with AI systems that affect their rights or interests</li>
+        </ul>
+
+        <div class="callout warning">
+          <p><strong>The compliance engineering gap:</strong> Most AI engineering teams in 2025 were not ready for EU AI Act compliance. The requirements implied documentation and audit trail infrastructure that wasn't built into the 2022–2024 generation of LLM application frameworks. The teams that had invested in observability (LangSmith, Arize, MLflow tracing), evaluation infrastructure, and explicit human-in-the-loop checkpoints were in much better shape. The teams that had shipped fast with minimal instrumentation faced a significant retrofit project.</p>
+        </div>
+
+        <h2>Reasoning Models Change What's Possible</h2>
+
+        <p>OpenAI's o1/o3 series and the "extended thinking" capabilities in Claude 3.5+ changed the quality ceiling for AI-assisted reasoning tasks. These models spend more inference time "thinking" through problems before responding — effectively chain-of-thought reasoning at the model level rather than the prompt engineering level.</p>
+
+        <p>The practical effect: tasks that were borderline for LLMs in 2024 (complex multi-step reasoning, mathematical proofs, long-horizon planning) became reliably solvable in 2025. For AI engineering specifically: complex SQL generation with multi-table joins and edge cases, data pipeline architecture recommendations, and code debugging with multiple interacting issues all benefited significantly from reasoning models.</p>
+
+        <p>The trade-off: reasoning models were slower and more expensive than standard models. The emerging pattern: use fast/cheap models for classification, triage, and simple generation; reserve reasoning models for complex analysis and high-stakes decisions where the cost is justified by the quality requirement.</p>
+
+        <h2>AI-Native Data Engineering: The Integrated Stack</h2>
+
+        <p>The phrase "AI-native data engineering" went from marketing language to a description of how the best-run data teams actually operated in 2025:</p>
+
+        <ul>
+          <li><strong>Pipeline generation:</strong> Agents generate first-draft dbt models, Airflow DAGs, and Spark jobs; humans review and approve</li>
+          <li><strong>Documentation automation:</strong> Models automatically generate and maintain column-level descriptions, business definitions, and lineage documentation — the kind of documentation that always lagged in manually maintained systems</li>
+          <li><strong>Anomaly investigation:</strong> Alert fires → agent investigates (checks lineage, queries data, checks recent pipeline runs) → posts diagnostic summary to Slack → human decides action</li>
+          <li><strong>Natural language interfaces:</strong> Internal data portals where analysts type questions in natural language, and the system generates and executes SQL against the appropriate data sources with source attribution</li>
+        </ul>
+
+        <p>Not science fiction — all of these were running in production at companies with mature data platforms by the end of 2025.</p>
+
+        <h2>The Skills That Matter in 2026</h2>
+
+        <p>The AI engineer job description in 2026 will look different from 2022. The skills that compound:</p>
+        <ul>
+          <li>Evaluation engineering — building test suites, evaluation metrics, and monitoring for AI systems</li>
+          <li>Prompt and agent architecture — designing reliable, observable, controllable agent systems</li>
+          <li>AI compliance — understanding regulatory requirements and building systems that satisfy them</li>
+          <li>Human-in-the-loop system design — knowing when and how to insert human oversight without destroying the value of automation</li>
+          <li>Foundation model selection and fine-tuning — matching model capabilities to use case requirements across the cost/quality curve</li>
+        </ul>
+
+        <p>The skills that don't change: data engineering fundamentals, software engineering craft, and the judgment to distinguish a demo from a production system. Models get better; good engineering judgment remains the scarce resource.</p>
+
+        <p>2025 was the year AI engineering became a mature engineering discipline. Fewer demos, more production systems. Fewer "what if" conversations, more "how do we maintain this" conversations. The excitement is not gone — the capabilities continue to improve faster than our ability to fully utilize them — but the work is more recognizably engineering work now. Which is exactly what the field needed to be taken seriously.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2025 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

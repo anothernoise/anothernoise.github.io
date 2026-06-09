@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>State of Data Engineering 2021: The Modern Data Stack Goes Mainstream</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>State of Data Engineering 2021: The Modern Data Stack Goes Mainstream</h1>
+        <div class="article-meta">
+          <span>📅 December 31, 2021</span>
+          <span>📖 12 min read</span>
+          <span>🔧 Data Engineering</span>
+          <span>📊 Year Review</span>
+          <span>☁️ Cloud</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>2021 was the year the "Modern Data Stack" stopped being a buzzword on tech blogs and started showing up in CFO budget conversations. Snowflake went public in 2020 — the largest software IPO in history at the time — and 2021 was when the ecosystem around it fully crystallized. Fivetran and dbt became household names in data engineering circles. The combination of cloud data warehouse + ELT + transformation-in-SQL became the default architecture for analytics teams of any size.</p>
+
+        <p>Looking back from 2024 with the benefit of hindsight, 2021 was also the year some important seeds were planted: the lakehouse concept got serious attention, reverse ETL emerged as a category, and the first quiet rumblings of "data mesh" started filtering out of Zhamak Dehghani's ThoughtWorks blog posts and into actual organizational conversations. We didn't know at the time how loud those rumblings would get.</p>
+
+        <h2>The MDS Trifecta Takes Over</h2>
+
+        <p>The canonical Modern Data Stack of 2021 looked like this: <strong>Fivetran</strong> (or Stitch, Airbyte for the self-hosted crowd) for ELT ingestion, <strong>Snowflake</strong> (or BigQuery, Redshift) as the cloud data warehouse, and <strong>dbt</strong> for SQL-based transformation. Looker, Metabase, or Tableau sat on top. The selling point was obvious: no Spark cluster to manage, no Python ETL scripts, no Hadoop cluster humming in a data center somewhere.</p>
+
+        <p>What made this stack genuinely disruptive wasn't any single technology — it was the combination of <em>separation of storage and compute</em> (pay for what you query, not for what you keep) and <em>ELT over ETL</em> (load first, transform later in the warehouse using SQL). The data warehouse became the place where transformation happened, not just the destination.</p>
+
+        <p>dbt, in particular, had a coming-out party in 2021. It went from a tool used by forward-thinking analytics engineering teams to mainstream adoption. The concept of treating SQL transformations like software — version controlled, tested, documented, with lineage — resonated strongly. dbt Labs raised a Series B in early 2021 and a Series C by the end of the year. The analytics engineer job title went from niche to widely recognized.</p>
+
+        <div class="callout">
+          <p><strong>The dbt moment:</strong> Before dbt, SQL transformations lived in stored procedures, Informatica workflows, or ad-hoc scripts run by whoever was on call. "Version controlled SQL with tests and documentation" sounds obvious in retrospect, but it required someone to build the tooling and name the practice before it became normal. dbt did both.</p>
+        </div>
+
+        <h2>The Lakehouse Concept Gets Serious</h2>
+
+        <p>Databricks coined the term "lakehouse" and published the academic paper in 2020, but 2021 was when the idea moved from conference talks to real architecture decisions. Delta Lake (open-source, from Databricks), Apache Hudi (from Uber), and Apache Iceberg (from Netflix) were all maturing into production-grade open table formats that could bring ACID transactions and schema evolution to data lakes.</p>
+
+        <p>The promise: keep your data in open cloud storage (S3, ADLS, GCS) in columnar format, but with the transactional semantics you'd expect from a database. No more "just overwrite the partition" as your update strategy. No more corrupted reads during long-running writes. The lakehouse was positioned as a third path between the traditional data warehouse (expensive, closed formats) and the data lake (cheap but chaotic).</p>
+
+        <p>Databricks' IPO filing in April 2021 — it ultimately went public in 2023 — kept the conversation alive. The company was valued at $28B in a January 2021 funding round. The Snowflake vs Databricks narrative was already forming: SQL warehouse vs Spark compute, structured analytics vs ML-friendly, proprietary storage vs open formats.</p>
+
+        <h2>Reverse ETL: The Data Warehouse Strikes Back</h2>
+
+        <p>One of 2021's genuinely new ideas was reverse ETL — using the data warehouse as the source of truth for operational systems, not just for analytics. Tools like Census, Hightouch, and Grouparoo emerged to solve this: sync calculated segments, scores, and aggregations from your warehouse back into Salesforce, HubSpot, Intercom, and other SaaS tools.</p>
+
+        <p>The use case was compelling: your data team has built a customer lifetime value model in the warehouse. Your sales team needs that LTV score visible in Salesforce for prioritization. Before reverse ETL, this required an engineering ticket, a custom integration, and ongoing maintenance. Reverse ETL tools reduced it to a SQL query and a destination connector.</p>
+
+        <h2>The Orchestration Landscape Consolidates</h2>
+
+        <p>Apache Airflow dominated orchestration in 2021, but the cracks were showing. Managing Airflow in production — DAG deployment, workers, schedulers, versioning — required real operational overhead. Managed Airflow options (Astronomer, Google Cloud Composer, MWAA on AWS) helped but added cost and abstraction layers.</p>
+
+        <p>Prefect and Dagster emerged as genuine Airflow alternatives with better developer experience and more native support for the modern Python data stack. Neither was dominant in 2021 — adoption was still firmly in the "early majority" phase — but the orchestration wars were just beginning. The bet was that next-generation tools could handle the full workflow from data ingestion to ML training to deployment, not just batch SQL pipelines.</p>
+
+        <h2>What We Got Wrong in 2021</h2>
+
+        <p>Looking back with brutal honesty:</p>
+        <ul>
+          <li><strong>We underestimated the data quality problem.</strong> The MDS made it easy to load data. It did not make it easy to know if the data was correct. Data quality and observability (Monte Carlo, Great Expectations, elementary) were an afterthought in 2021 and a crisis in 2022–2023.</li>
+          <li><strong>We overestimated data mesh adoption speed.</strong> The concept was compelling, but the organizational change required — treating data as a product, decentralizing ownership — turned out to be multi-year transformations, not 2021 projects.</li>
+          <li><strong>We ignored the cost problem.</strong> Snowflake's elastic compute was magical, but "pay for what you use" is only good when someone's watching. Warehouse auto-suspend was not the default, and cloud data warehouse bills surprised many organizations in 2021. FinOps for data platforms would become a real discipline in 2023–2024.</li>
+        </ul>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+timeline
+    title Modern Data Stack Evolution — 2021 Snapshot
+    section Ingestion
+        Fivetran, Stitch : Managed connectors, ELT over ETL
+        Airbyte 0.x : Open-source alternative emerging
+    section Storage
+        Snowflake : SQL warehouse, storage+compute separation
+        BigQuery : Serverless, slot-based pricing
+        Databricks Delta Lake : Lakehouse concept
+    section Transformation
+        dbt Core 0.21 : SQL testing, docs, lineage
+        Analytics Engineering : New job title goes mainstream
+    section Orchestration
+        Airflow 2.0 : Still dominant, operational overhead real
+        Prefect / Dagster : Early alternatives gaining attention
+    section Reverse ETL
+        Census, Hightouch : New category, warehouse → SaaS sync
+          </pre>
+          <p class="diagram-caption">The 2021 Modern Data Stack landscape. Each layer had a dominant player and at least one challenger. The combination of these tools represented a step-change in how analytics teams could operate without heavy engineering investment.</p>
+        </div>
+
+        <h2>What to Watch in 2022</h2>
+
+        <p>The themes we thought would dominate 2022 at the end of 2021 — and we were roughly right:</p>
+        <ul>
+          <li>Data quality and observability move from nice-to-have to must-have as MDS adoption expands</li>
+          <li>Streaming accessibility improves as Kafka gets friendlier management options (Confluent Cloud, AWS MSK) and tools like Materialize bring SQL to real-time</li>
+          <li>Data mesh goes from blog post to actual organizational experiments, with mixed results</li>
+          <li>Open table formats (Iceberg, Delta, Hudi) mature and start a multi-year format war</li>
+          <li>Orchestration tools continue to evolve; Airflow's dominance is challenged but not broken</li>
+        </ul>
+
+        <p>2021 was the year data engineering professionalized. The tools got good enough that you didn't need a 10-person engineering team to build a functional data platform. Snowflake + Fivetran + dbt could be run by a team of two or three analytics engineers. Whether that's good or bad for data engineers depends on whether you're one of the two or three — or someone who got displaced by them.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

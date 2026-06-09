@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>State of Data Engineering 2022: Data Mesh Hype, Data Quality Crisis, and a Chatbot Changes Everything</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>State of Data Engineering 2022: Data Mesh Hype, Data Quality Crisis, and a Chatbot Changes Everything</h1>
+        <div class="article-meta">
+          <span>📅 December 31, 2022</span>
+          <span>📖 13 min read</span>
+          <span>🔧 Data Engineering</span>
+          <span>📊 Year Review</span>
+          <span>☁️ Cloud</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Two things happened in 2022 that defined the next few years of data engineering. First: data mesh went from concept to controversy. Zhamak Dehghani published her book "Data Mesh" in March 2022, and every data organization with more than 50 engineers suddenly had a mandate to "do data mesh" — often without understanding what that meant or what it would cost. Second: on November 30, 2022, OpenAI launched ChatGPT. It didn't matter to data engineers yet. But it would, very soon.</p>
+
+        <p>In between those two events, the mundane realities of scaled modern data stacks caught up with the hype. Data quality became a real crisis at organizations that had spent two years loading everything into Snowflake and BigQuery. Streaming became more accessible but didn't replace batch for most teams. The format wars between Iceberg, Delta, and Hudi started heating up. And data contracts — the idea that data producers should make explicit commitments to downstream consumers — emerged as a practical response to the data mesh governance problem.</p>
+
+        <h2>Data Mesh: The Book, the Hype, and the Hard Reality</h2>
+
+        <p>Zhamak Dehghani's "Data Mesh" (O'Reilly, March 2022) codified four principles into a coherent framework: domain ownership, data as a product, self-serve infrastructure, and federated computational governance. The book was excellent and the framework was well-reasoned. What followed in practice was messier.</p>
+
+        <p>Organizations that actually attempted data mesh implementations in 2022 discovered that the hard part wasn't the technology — it was the organizational change. "Domain ownership" meant convincing the marketing team to own and maintain their data pipelines. The marketing team, reasonably, did not want to own and maintain data pipelines. They wanted their data to be correct, available, and someone else's problem.</p>
+
+        <p>The self-serve infrastructure platform piece was equally challenging. Building a platform that makes it genuinely easy for non-data-engineers to publish, document, and maintain data products requires significant investment. Most companies that tried to DIY it in 2022 underestimated the effort by 2–5x. The companies that succeeded were mostly large tech companies with dedicated platform teams of 10–20 engineers. Everyone else was improvising.</p>
+
+        <div class="callout warning">
+          <p><strong>The data mesh trap:</strong> Data mesh is an organizational operating model, not a technology. You can't buy data mesh from a vendor. You can't implement it in a sprint. Organizations that treated it as a technology project in 2022 spent a lot of money on tooling and training, achieved some of the structural changes (domain catalogs, ownership models), and then stalled when the cultural change required actual authority redistribution. Data mesh requires executives to accept that the central data team will lose control of data — and that's a harder sell than any technical architecture.</p>
+        </div>
+
+        <h2>Data Contracts: The Practical Response</h2>
+
+        <p>If data mesh is the organizational philosophy, data contracts are the operational mechanism. The idea: upstream teams (data producers) make formal, versioned commitments about the schema, semantics, and SLAs of the data they publish. Downstream teams (consumers) can rely on these contracts. Breaking changes require contract negotiation, not surprise schema drift.</p>
+
+        <p>Chad Sanderson's writing at Convoy popularized the idea in 2022. Tools like Soda (data quality), Great Expectations, and custom YAML contract schemas started appearing. The most practical implementation pattern was simple: a contract is a YAML file in a git repo that specifies column names, types, not-null constraints, and expected freshness. CI/CD validates new data against the contract before promoting to production.</p>
+
+        <pre><code class="language-yaml"># Example data contract (2022 style)
+apiVersion: v1
+kind: DataContract
+metadata:
+  name: orders_daily
+  owner: team-commerce
+  version: 2.1.0
+schema:
+  - name: order_id
+    type: STRING
+    required: true
+    unique: true
+  - name: order_date
+    type: DATE
+    required: true
+  - name: customer_id
+    type: STRING
+    required: true
+  - name: total_amount
+    type: DECIMAL(18,2)
+    required: true
+sla:
+  freshness: 4 hours
+  completeness: 99.9%</code></pre>
+
+        <p>Data contracts didn't solve data quality — they shifted accountability. With a contract, you knew who to call when data broke. Without one, you were debugging a mystery that could have been caused by anyone in the pipeline.</p>
+
+        <h2>Streaming Grows Up (A Little)</h2>
+
+        <p>Kafka was everywhere in 2022, but managing Kafka was still painful enough that many teams chose managed alternatives. Confluent Cloud matured significantly, MSK Serverless (AWS) launched in preview, and Redpanda emerged as a Kafka-compatible alternative built in C++ — promising lower latency and simpler operations by eliminating ZooKeeper and the JVM.</p>
+
+        <p>The more interesting streaming story of 2022 was the attempt to make streaming accessible without Kafka at all. Apache Flink's SQL surface improved; Materialize built a Postgres-compatible streaming SQL database; ksqlDB made Kafka Streams accessible via SQL. The vision: analysts who knew SQL should be able to write streaming queries without learning Scala or Java stream processing frameworks.</p>
+
+        <p>Reality check: most analytics use cases in 2022 did not need true streaming. Near-real-time (5-minute microbatches via Spark Structured Streaming or dbt + Airflow) handled the actual business requirements, and teams that invested in full streaming architectures often found themselves maintaining complex infrastructure for requirements that batch-plus-incremental could have satisfied.</p>
+
+        <h2>The Great Tech Layoffs and Their Effect on Data</h2>
+
+        <p>2022 was also the year of mass tech layoffs — Meta, Twitter, Amazon, Stripe, and dozens of others announced significant cuts starting in mid-2022. Data teams were hit proportionally. This had a paradoxical effect: it forced the "do more with less" mandate on data organizations, which actually accelerated adoption of the modern data stack's efficiency benefits. Teams that lost 30% of their headcount leaned harder into dbt, Fivetran, and automation to maintain output.</p>
+
+        <p>It also created a buyer's market for data engineering talent for the first time in years, and a wave of consultants and boutique agencies formed from laid-off data engineers. Some of the best dbt core contributors came from this cohort.</p>
+
+        <h2>ChatGPT Drops: End of November, End of an Era</h2>
+
+        <p>November 30, 2022. ChatGPT launches. One million users in five days. Data engineers collectively said "huh, that's impressive" and went back to debugging their Airflow DAGs. It felt like a product demo, not a paradigm shift. We were wrong.</p>
+
+        <p>The immediate effect on data engineering was subtle: GitHub Copilot, which had launched in June 2021, became noticeably better at generating SQL and dbt YAML. A few data teams started experimenting with LLM-assisted documentation generation. But the full impact of LLMs on data engineering — vector databases, RAG, AI-assisted SQL everywhere — would take another 12 months to materialize.</p>
+
+        <p>What we didn't see coming at the end of 2022: by the end of 2023, "write me a SQL query to..." would be a legitimate first step before opening your editor, vector databases would become a VC-funded gold rush, and the question of whether LLMs would replace data analysts would be earnestly debated at every data conference.</p>
+
+        <h2>The Tools That Defined 2022</h2>
+
+        <ul>
+          <li><strong>dbt v1.0 → v1.3:</strong> Metrics layer introduced. Python models (dbt-core) became a thing, allowing non-SQL transformations within the dbt DAG.</li>
+          <li><strong>Databricks acquires 8080 Labs (Bamboolib):</strong> Low-code data transformation in notebooks. Sign of the "analytics democratization" push.</li>
+          <li><strong>Monte Carlo, Acceldata, Anomalo:</strong> Data observability became a funded category. Data quality monitoring was no longer a DIY Great Expectations project — it was a SaaS vertical.</li>
+          <li><strong>Iceberg vs Delta:</strong> Apple and Netflix championed Iceberg; Databricks championed Delta. Both gained traction; the format wars would not be resolved in 2022.</li>
+          <li><strong>Dagster 1.0:</strong> Software-defined assets became the mental model. Thinking in data assets rather than tasks or jobs was a genuine shift in how engineers reasoned about pipelines.</li>
+        </ul>
+
+        <p>2022 was the year data engineering grew up and got complicated. The simple "load it into Snowflake and query it" story of 2021 collided with the real-world messiness of scale: quality problems, organizational ownership conflicts, format fragmentation, and the first hints of an AI disruption that nobody quite believed yet.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>
