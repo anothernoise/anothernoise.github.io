@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM Observability in Production: What to Instrument Before Your First Incident</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>LLM Observability in Production: What to Instrument Before Your First Incident</h1>
+        <div class="article-meta">
+          <span>📅 May 5, 2026</span>
+          <span>📖 15 min read</span>
+          <span>🏷️ AI Agents</span>
+          <span>🔧 Architecture</span>
+          <span>☁️ LLM Ops</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>You shipped your LLM feature. It works in staging. It works in the first week of production. Then three weeks later, a user complains the answers got worse. Your on-call engineer stares at a Grafana dashboard showing normal latency, normal error rate, normal CPU — and absolutely no signal about what changed. Welcome to the LLM observability gap.</p>
+
+        <p>Traditional application monitoring — Prometheus, Datadog, OpenTelemetry — was designed around deterministic systems. Request comes in, response goes out, you measure how long it took and whether it errored. LLMs break this model. Two identical prompts can produce different outputs. A response can be fast and completely wrong. Costs can spike silently. Prompt quality can degrade gradually over weeks without a single error log. You need a different instrumentation philosophy.</p>
+
+        <p>This article covers what actually works: the tools (LangSmith, Arize Phoenix, MLflow Tracing), what to measure at each layer, how to detect prompt drift and cost anomalies before users notice, and the minimum instrumentation you should have before going live.</p>
+
+        <h2>Why Traditional APM Misses Most LLM Problems</h2>
+
+        <p>Before picking a tool, it helps to understand what class of failures you're actually trying to catch. LLM systems fail in four ways that traditional monitoring can't see:</p>
+
+        <ul>
+          <li><strong>Quality degradation without errors:</strong> The model still responds with 200 OK, but the answers become evasive, hallucinated, or off-topic. No error rate spike. No latency change. Only users notice.</li>
+          <li><strong>Prompt drift:</strong> Your system prompt, retrieved context, or conversation history changes over time — new documents in the knowledge base, updated few-shot examples, accumulated conversation turns — and the model's behavior shifts without any code deployment.</li>
+          <li><strong>Cost creep:</strong> Token counts grow as you add features (longer system prompts, more retrieval context, multi-turn history). The billing impact is invisible until month-end.</li>
+          <li><strong>Retrieval/generation mismatch:</strong> In RAG pipelines, retrieved chunks become irrelevant as the underlying data changes. The retrieval step "succeeds" (returns results), but the generation uses wrong context. The answer is confidently wrong.</li>
+        </ul>
+
+        <p>Catching these requires tracing at the LLM call level — capturing inputs, outputs, token counts, model versions, retrieved chunks, and evaluation scores for every request. That's what LLM observability platforms are built for.</p>
+
+        <h2>The Observability Stack</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph App["Application Layer"]
+        UI["User Interface"]
+        Agent["LLM Agent / Chain"]
+        RAG["RAG Pipeline"]
+    end
+
+    subgraph Tracing["Tracing & Collection"]
+        LangSmith["LangSmith\n(LangChain-native tracing)"]
+        Phoenix["Arize Phoenix\n(Open-source, framework-agnostic)"]
+        MLflow["MLflow Tracing\n(experiment + trace unified)"]
+        OTEL["OpenTelemetry\n(custom spans → any backend)"]
+    end
+
+    subgraph Eval["Evaluation Layer"]
+        Online["Online Evals\n(real-time, sampled 10-20%)"]
+        Offline["Offline Evals\n(golden dataset, nightly)"]
+        Human["Human Review\n(low-confidence samples)"]
+    end
+
+    subgraph Alerts["Alerting"]
+        QualityAlert["Quality alerts\n(faithfulness drops below threshold)"]
+        CostAlert["Cost alerts\n(token spend anomaly)"]
+        DriftAlert["Drift alerts\n(embedding distance from baseline)"]
+        LatencyAlert["Latency alerts\n(P95 > SLA)"]
+    end
+
+    Agent --> LangSmith
+    Agent --> Phoenix
+    RAG --> Phoenix
+    Agent --> MLflow
+    Agent --> OTEL
+    LangSmith --> Online
+    Phoenix --> Online
+    Online --> QualityAlert
+    Online --> DriftAlert
+    Online --> CostAlert
+    Online --> LatencyAlert
+    Offline --> Human
+          </pre>
+          <p class="diagram-caption">The LLM observability stack has two planes: a tracing plane that captures every run, and an evaluation plane that scores outputs for quality. Both feed into alerting. The platforms differ in what they make easy — LangSmith is LangChain-native, Phoenix is framework-agnostic, MLflow unifies experiments and production traces.</p>
+        </div>
+
+        <h2>LangSmith: The LangChain-Native Option</h2>
+
+        <p>LangSmith is Langchain's commercial observability platform and is genuinely excellent if your stack is built on LangChain or LangGraph. Integration is a one-liner: set <code>LANGCHAIN_TRACING_V2=true</code> and <code>LANGCHAIN_API_KEY</code>, and every chain, agent step, retrieval call, and LLM invocation is automatically traced. Zero code changes.</p>
+
+        <pre><code class="language-python">import os
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"]    = "ls__..."
+os.environ["LANGCHAIN_PROJECT"]    = "prod-rag-v2"
+
+from langchain_anthropic import ChatAnthropic
+from langchain_core.prompts import ChatPromptTemplate
+
+llm    = ChatAnthropic(model="claude-3-5-sonnet-20241022")
+prompt = ChatPromptTemplate.from_template("Answer: {question}")
+chain  = prompt | llm
+
+# This call is automatically traced — inputs, outputs, tokens, latency
+result = chain.invoke({"question": "What is the capital of France?"})</code></pre>
+
+        <p>What LangSmith traces automatically: every chain node and its input/output, LLM calls with full prompt+completion text, token usage per call, latency per step, tool calls and their results. The UI shows the full execution tree with costs per node — invaluable for understanding why a complex agent took 8 seconds when it should take 2.</p>
+
+        <p>LangSmith's eval framework lets you define custom evaluators (Python functions that score a run) or use built-in LLM-as-judge evaluators for correctness, faithfulness, and relevance. You can run these online (on sampled production traffic) or offline (on a golden dataset after each deployment).</p>
+
+        <div class="callout warning">
+          <p><strong>LangSmith vendor lock-in:</strong> If you're using LangChain, LangSmith is the path of least resistance. But LangSmith traces only LangChain/LangGraph abstractions cleanly. Direct Anthropic SDK or OpenAI SDK calls need manual <code>@traceable</code> decorators. If you might migrate off LangChain, build instrumentation as a separate concerns layer — don't let observability tightly couple you to an orchestration framework.</p>
+        </div>
+
+        <h2>Arize Phoenix: Open-Source and Framework-Agnostic</h2>
+
+        <p>Phoenix (by Arize AI) is the observability platform I reach for when I'm not in the LangChain ecosystem — or when I want the data on my own infrastructure. It's fully open-source (Apache 2), runs locally or in your cloud, and instruments any LLM call via OpenTelemetry. The Arize team contributed <code>openinference</code>, an OTel semantic convention for LLM spans that's becoming a de facto standard.</p>
+
+        <pre><code class="language-python">import phoenix as px
+from openinference.instrumentation.anthropic import AnthropicInstrumentor
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+
+# Start Phoenix server (local) or point to hosted endpoint
+session = px.launch_app()  # opens UI at localhost:6006
+
+# Wire up OTel → Phoenix
+provider = TracerProvider()
+provider.add_span_processor(
+    BatchSpanProcessor(OTLPSpanExporter(endpoint=session.url + "/v1/traces"))
+)
+trace.set_tracer_provider(provider)
+
+# Auto-instrument Anthropic SDK calls
+AnthropicInstrumentor().instrument()
+
+# Now all anthropic.messages.create() calls are traced automatically
+import anthropic
+client = anthropic.Anthropic()
+msg = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Explain VertiPaq encoding"}]
+)</code></pre>
+
+        <p>Phoenix's killer feature is its embedding analysis and drift detection. It clusters your prompt and response embeddings in 2D space (UMAP projection) and alerts when the distribution of production queries drifts away from your evaluation baseline. This catches the scenario where users start asking a new type of question your system wasn't designed for — not a code change, not a data change, just organic user behavior shift.</p>
+
+        <p>Phoenix also has the best built-in RAG evaluation UI: for every traced RAG run, it shows retrieved chunks alongside the generated answer and scores relevance, context utilization, and hallucination using configurable LLM judges. It's the only platform where you can visually see "this answer used only chunk 1 of 5 retrieved chunks" — a strong signal of over-retrieval.</p>
+
+        <h2>MLflow Tracing: When You're Already in the MLflow Ecosystem</h2>
+
+        <p>MLflow 2.14+ added first-class LLM tracing that integrates directly with existing MLflow experiment tracking. If your team already uses MLflow for training runs, model registry, and evaluation datasets, adding LLM tracing gives you a unified view of models from training to production — without adding another platform.</p>
+
+        <pre><code class="language-python">import mlflow
+mlflow.set_experiment("rag-production-v3")
+
+# Auto-tracing for OpenAI, Anthropic, LangChain, LlamaIndex
+mlflow.anthropic.autolog()  # patches anthropic SDK automatically
+
+with mlflow.start_run():
+    # All LLM calls in this block are traced + linked to the run
+    response = client.messages.create(
+        model="claude-3-5-sonnet-20241022",
+        max_tokens=512,
+        messages=[{"role": "user", "content": "Summarize this document: ..."}]
+    )
+    # Log custom quality metrics alongside the trace
+    mlflow.log_metric("answer_length_tokens", len(response.content[0].text.split()))</code></pre>
+
+        <p>MLflow's tracing integrates with its evaluation framework: you can run <code>mlflow.evaluate()</code> on a dataset with your production traces and get a comparison table showing how response quality changed between model versions or prompt updates. For teams doing continuous evaluation as part of a CI/CD pipeline, this is the most natural integration point.</p>
+
+        <h2>What to Measure: The Six Instrumentation Layers</h2>
+
+        <h3>1. Token Economics</h3>
+        <p>Track input tokens, output tokens, and total cost per request, per user, and per feature. Set up cost-per-query dashboards from day one — not because you'll act on them immediately, but because you need a baseline to detect anomalies. A RAG feature that adds a 2,000-token context window to every query has a predictable cost profile. When that cost doubles without explanation, it means your retrieval is pulling more context than it should.</p>
+
+        <pre><code class="language-python">def track_llm_call(response, model: str, feature: str):
+    """Log cost metrics after every LLM call."""
+    usage = response.usage
+    cost_per_token = {"claude-3-5-sonnet-20241022": (3.0, 15.0)}  # in/out per 1M
+    in_cost, out_cost = cost_per_token.get(model, (0, 0))
+    total_cost = (usage.input_tokens * in_cost + usage.output_tokens * out_cost) / 1_000_000
+    metrics.histogram("llm.input_tokens",  usage.input_tokens,  tags={"model": model, "feature": feature})
+    metrics.histogram("llm.output_tokens", usage.output_tokens, tags={"model": model, "feature": feature})
+    metrics.increment("llm.cost_usd", total_cost,               tags={"model": model, "feature": feature})</code></pre>
+
+        <h3>2. Latency per Stage</h3>
+        <p>End-to-end latency tells you the system is slow. Per-stage latency tells you why. For a RAG pipeline: embed query → vector search → rerank → LLM call → post-process. Instrument each stage separately. When P95 latency spikes, you want to know immediately whether it's the embedding API, the vector DB, or the LLM.</p>
+
+        <h3>3. Retrieval Quality (RAG-specific)</h3>
+        <p>If you're running RAG, the retrieval step produces a score alongside each chunk. Log the distribution of top-1 retrieval scores. A drop in average top-1 score means your corpus has drifted from your query distribution — new questions are being asked that your documents don't cover well. This is one of the earliest signals of a degrading RAG system.</p>
+
+        <h3>4. Output Quality Scores</h3>
+        <p>Automatic evaluation using LLM-as-judge. Sample 10-20% of production requests (cost-prohibitive to evaluate everything) and run evaluators for: <strong>faithfulness</strong> (does the answer contradict retrieved context?), <strong>relevance</strong> (does the answer address the question?), and <strong>completeness</strong> (does the answer address all parts of a multi-part question?). Log scores as metrics and alert on 7-day rolling average drops.</p>
+
+        <pre><code class="language-python">import random
+from anthropic import Anthropic
+
+eval_client = Anthropic()
+
+def evaluate_faithfulness(question: str, context: str, answer: str) -> float:
+    """LLM-as-judge: is the answer supported by the retrieved context?"""
+    if random.random() > 0.15:  # sample 15% of production requests
+        return None
+
+    judgment = eval_client.messages.create(
+        model="claude-3-haiku-20240307",  # cheap judge model
+        max_tokens=5,
+        messages=[{"role": "user", "content": f"""
+Rate whether this answer is fully supported by the context. Reply with just a number 1-5.
+Context: {context[:2000]}
+Answer: {answer}
+Score (1=contradicts context, 5=fully supported):"""}]
+    )
+    try:
+        return int(judgment.content[0].text.strip()) / 5.0
+    except:
+        return None</code></pre>
+
+        <h3>5. Prompt Version Tracking</h3>
+        <p>Every LLM call should record which prompt template version it used. This sounds obvious and is almost universally skipped. When your quality metrics drop, "which prompt version was live during the degradation period?" should have an instant answer. Store prompt versions in code (not a database), use semantic versioning, and log the version with every trace.</p>
+
+        <h3>6. User Feedback Signal</h3>
+        <p>Thumbs up/down, regenerate button clicks, follow-up clarification questions — all of these are implicit quality signals. Log them as events linked to the specific trace that generated the response. Even a 2% feedback rate gives you a labeled dataset for training better evaluators. This is the ground truth your automated metrics should be calibrated against.</p>
+
+        <h2>Prompt Drift Detection</h2>
+
+        <p>Prompt drift is the gradual change in what your prompts actually contain at runtime — not the template (which is in version control) but the rendered prompt including dynamic context, conversation history, and retrieved chunks. Three mechanisms drive it:</p>
+
+        <ul>
+          <li><strong>Knowledge base drift:</strong> New documents get added or old ones updated. The chunks retrieved for the same query change, changing the effective prompt even though the template didn't.</li>
+          <li><strong>Conversation accumulation:</strong> Multi-turn chatbots include conversation history in the prompt. As conversations grow longer, token counts grow and the effective context window available for retrieval shrinks.</li>
+          <li><strong>Few-shot example staleness:</strong> Static few-shot examples that were representative of user queries when you wrote them become unrepresentative as users' actual questions evolve.</li>
+        </ul>
+
+        <p>Detection: compute embedding vectors of your rendered system prompts (not the template, the full rendered output) and track their centroid over time. A significant shift in centroid indicates drift. Phoenix does this automatically with its embedding drift analysis. For a DIY approach, compute daily average embeddings of your system prompts and alert when cosine distance from the 30-day rolling average exceeds 0.15.</p>
+
+        <h2>Cost Anomaly Alerting</h2>
+
+        <p>LLM costs don't behave like compute costs. A single runaway agent loop, a context window bug that multiplies input tokens by 10x, or a feature accidentally running in production mode instead of development mode can produce a 100x cost spike in minutes. Standard statistical anomaly detection on hourly aggregates catches these too slowly.</p>
+
+        <p>The pattern that works: per-request cost budget enforcement at the application layer (reject requests that would exceed a per-query token budget), combined with a rolling-window alert on aggregate cost per hour. The per-request check prevents individual disasters; the rolling window catches gradual creep.</p>
+
+        <pre><code class="language-python">MAX_INPUT_TOKENS = 32_000  # hard per-request budget
+
+def count_tokens_before_call(messages: list, model: str) -> int:
+    """Estimate token count before making the LLM call."""
+    # Use model's token counting endpoint when available
+    return anthropic_client.count_tokens(model=model, messages=messages)
+
+def safe_llm_call(messages: list, model: str):
+    token_count = count_tokens_before_call(messages, model)
+    if token_count > MAX_INPUT_TOKENS:
+        raise ValueError(f"Prompt exceeds budget: {token_count} tokens (max {MAX_INPUT_TOKENS})")
+    return anthropic_client.messages.create(model=model, max_tokens=2048, messages=messages)</code></pre>
+
+        <h2>Tool Comparison: What to Choose</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Platform</th>
+                <th>Best for</th>
+                <th>Pricing</th>
+                <th>Self-hosted?</th>
+                <th>RAG eval?</th>
+                <th>Drift detection?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>LangSmith</strong></td>
+                <td>LangChain / LangGraph stacks</td>
+                <td>Free tier; $39+/mo</td>
+                <td>No (cloud only)</td>
+                <td>Yes (eval datasets + runners)</td>
+                <td>Limited</td>
+              </tr>
+              <tr>
+                <td><strong>Arize Phoenix</strong></td>
+                <td>Any framework, embedding drift</td>
+                <td>Open-source free; Arize cloud $$$</td>
+                <td>Yes (Docker)</td>
+                <td>Yes (best built-in RAG evals)</td>
+                <td>Yes (embedding analysis)</td>
+              </tr>
+              <tr>
+                <td><strong>MLflow Tracing</strong></td>
+                <td>Already in MLflow ecosystem</td>
+                <td>Open-source free</td>
+                <td>Yes</td>
+                <td>Yes (mlflow.evaluate)</td>
+                <td>No native drift UI</td>
+              </tr>
+              <tr>
+                <td><strong>Weights &amp; Biases Weave</strong></td>
+                <td>ML teams already on W&amp;B</td>
+                <td>Free tier; $50+/mo</td>
+                <td>No</td>
+                <td>Yes</td>
+                <td>Limited</td>
+              </tr>
+              <tr>
+                <td><strong>Datadog LLM Observability</strong></td>
+                <td>Teams on Datadog infra monitoring</td>
+                <td>Expensive per-event</td>
+                <td>No</td>
+                <td>Basic</td>
+                <td>No</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>The Minimum Viable Instrumentation Checklist</h2>
+
+        <p>Before shipping any LLM feature to production, this is the non-negotiable list:</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph LR
+    subgraph MustHave["Must Have (before launch)"]
+        T1["✅ Per-request token count\n+ cost logging"]
+        T2["✅ Per-stage latency\n(P50, P95, P99)"]
+        T3["✅ Prompt version tagging\non every trace"]
+        T4["✅ Per-request cost budget\nenforcement"]
+        T5["✅ Error rate by\nerror type"]
+    end
+    subgraph ShouldHave["Should Have (week 1)"]
+        S1["📊 Sampled quality evals\n(faithfulness, relevance)"]
+        S2["📊 Cost anomaly alert\n(hourly rolling window)"]
+        S3["📊 User feedback\nlinked to traces"]
+    end
+    subgraph NiceToHave["Nice to Have (month 1)"]
+        N1["🔍 Embedding drift detection"]
+        N2["🔍 Retrieval score distribution"]
+        N3["🔍 Model version A/B comparison"]
+    end
+          </pre>
+          <p class="diagram-caption">Instrumentation priority tiers. The "Must Have" items can be added in an afternoon. The "Should Have" items take a day or two of integration work. "Nice to Have" requires a dedicated observability platform — but you want this before your first production incident, not after it.</p>
+        </div>
+
+        <p>The most common mistake is treating LLM observability as a "polish later" item. It's not. The first production incidents — cost spikes, quality regressions, agent loops — happen in week 2 or 3. You want baselines established in week 1 so you can see anomalies against a known good state. Instrumentation added after an incident is always too late to explain it.</p>
+
+        <p>One more thing: don't use your production LLM for evaluation. A Haiku-class model (Claude Haiku, GPT-4o-mini) running LLM-as-judge evals at 10-15% sampling costs roughly 2-3% of your production inference cost. That's cheap. The most expensive mistake is running evaluations with the same frontier model you use for production — you'll either skip evals to save money, or your eval costs will equal your application costs. Use the cheapest model that produces reliable judgments for your specific eval criteria.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

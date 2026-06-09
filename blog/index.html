@@ -4,272 +4,62 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <title>Blog | Dmitry Shirokov</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
     <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-
     <script type="module" src="../javascripts/theme.js"></script>
 
     <style>
-      .blog-container {
-        max-width: 1400px;
-        display: flex;
-        gap: 2rem;
-        position: relative;
-      }
+      .blog-container { max-width: 1400px; display: flex; gap: 2rem; position: relative; }
+      .blog-sidebar { flex: 0 0 200px; position: sticky; top: 2rem; height: fit-content; }
+      .blog-content { flex: 1; min-width: 0; }
+      .blog-timeline { flex: 0 0 190px; position: sticky; top: 2rem; height: fit-content; max-height: calc(100vh - 4rem); overflow-y: auto; }
 
-      .blog-sidebar {
-        flex: 0 0 200px;
-        position: sticky;
-        top: 2rem;
-        height: fit-content;
-      }
-
-      .blog-content {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .blog-timeline {
-        flex: 0 0 190px;
-        position: sticky;
-        top: 2rem;
-        height: fit-content;
-        max-height: calc(100vh - 4rem);
-        overflow-y: auto;
-      }
-
-      /* ── Timeline base ───────────────────────────────────── */
+      /* ── Timeline ────────────────────── */
       .timeline { position: relative; padding: 0; }
-
-      .timeline::before {
-        content: '';
-        position: absolute;
-        left: 20px;
-        top: 0; bottom: 0;
-        width: 2px;
-        background: linear-gradient(to bottom, var(--accent-primary), var(--accent-hover));
-      }
-
-      /* ── Year group ──────────────────────────────────────── */
+      .timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--accent-primary), var(--accent-hover)); }
       .timeline-year-group { margin-bottom: 0.25rem; }
-
-      .timeline-year-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        width: 100%;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0.2rem 0 0.2rem 10px;
-        color: var(--accent-primary);
-        font-size: 0.78rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-      }
-
+      .timeline-year-btn { display: flex; align-items: center; gap: 0.5rem; width: 100%; background: none; border: none; cursor: pointer; padding: 0.2rem 0 0.2rem 10px; color: var(--accent-primary); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
       .timeline-year-btn:hover { color: var(--accent-hover); }
-
-      .timeline-year-btn .yr-chevron {
-        margin-left: auto;
-        transition: transform 0.22s ease;
-        color: var(--text-muted);
-        flex-shrink: 0;
-      }
-
+      .timeline-year-btn .yr-chevron { margin-left: auto; transition: transform 0.22s ease; color: var(--text-muted); flex-shrink: 0; }
       .timeline-year-btn.collapsed .yr-chevron { transform: rotate(-90deg); }
+      .timeline-year-badge { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 1px 6px; font-size: 0.68rem; font-weight: 600; color: var(--text-muted); }
+      .timeline-year-items { overflow: hidden; max-height: 800px; transition: max-height 0.3s ease, opacity 0.25s ease; opacity: 1; }
+      .timeline-year-items.collapsed { max-height: 0; opacity: 0; }
+      .timeline-item { position: relative; margin-bottom: 1.8rem; padding-left: 60px; cursor: pointer; }
+      .timeline-dot { position: absolute; left: 10px; top: 4px; width: 20px; height: 20px; background: var(--bg-primary); border: 3px solid var(--accent-primary); border-radius: 50%; transition: all 0.3s ease; }
+      .timeline-item:hover .timeline-dot { width: 28px; height: 28px; left: 6px; box-shadow: 0 0 12px rgba(184,134,11,0.4); }
+      .timeline-date { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+      .timeline-title { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
 
-      .timeline-year-badge {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 1px 6px;
-        font-size: 0.68rem;
-        font-weight: 600;
-        color: var(--text-muted);
-      }
+      /* ── Tags ────────────────────────── */
+      .tags-section { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+      .tags-section h3 { font-size: 1rem; margin: 0 0 1rem 0; color: var(--text-primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+      .tags-cloud { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+      .tag { display: inline-block; padding: 0.4rem 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 20px; font-size: 0.85rem; color: var(--text-secondary); text-decoration: none; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; }
+      .tag:hover { background: var(--accent-primary); color: white; border-color: var(--accent-primary); transform: translateY(-2px); }
+      .tag.active { font-weight: 600; background: var(--accent-primary); color: white; border-color: var(--accent-primary); }
 
-      .timeline-year-items {
-        overflow: hidden;
-        max-height: 600px;
-        transition: max-height 0.3s ease, opacity 0.25s ease;
-        opacity: 1;
-      }
-
-      .timeline-year-items.collapsed {
-        max-height: 0;
-        opacity: 0;
-      }
-
-      /* ── Individual timeline item ───────────────────────── */
-      .timeline-item {
-        position: relative;
-        margin-bottom: 1.8rem;
-        padding-left: 60px;
-        cursor: pointer;
-      }
-
-      .timeline-dot {
-        position: absolute;
-        left: 10px;
-        top: 4px;
-        width: 20px;
-        height: 20px;
-        background: var(--bg-primary);
-        border: 3px solid var(--accent-primary);
-        border-radius: 50%;
-        transition: all 0.3s ease;
-      }
-
-      .timeline-item:hover .timeline-dot {
-        width: 28px;
-        height: 28px;
-        left: 6px;
-        box-shadow: 0 0 12px rgba(184, 134, 11, 0.4);
-      }
-
-      .timeline-date {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        font-weight: 500;
-        white-space: nowrap;
-      }
-
-      .timeline-title {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        margin-top: 0.3rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-weight: 500;
-      }
-
-      /* ── Sidebar tags ────────────────────────────────────── */
-      .tags-section {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .tags-section h3 {
-        font-size: 1rem;
-        margin: 0 0 1rem 0;
-        color: var(--text-primary);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-
-      .tags-cloud {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-      }
-
-      .tag {
-        display: inline-block;
-        padding: 0.4rem 0.75rem;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: 20px;
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        text-decoration: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        white-space: nowrap;
-      }
-
-      .tag:hover {
-        background: var(--accent-primary);
-        color: white;
-        border-color: var(--accent-primary);
-        transform: translateY(-2px);
-      }
-
-      .tag.active {
-        font-weight: 600;
-        background: var(--accent-primary);
-        color: white;
-        border-color: var(--accent-primary);
-      }
-
-      /* ── Post list ───────────────────────────────────────── */
+      /* ── Posts ───────────────────────── */
       .blog-header { margin-bottom: 3rem; }
-
-      .back-link {
-        display: inline-block;
-        margin-bottom: 2rem;
-        color: var(--accent-primary);
-        text-decoration: none;
-        font-size: 0.95rem;
-      }
-
+      .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.95rem; }
       .back-link:hover { text-decoration: underline; }
-
       .post-list { list-style: none; padding: 0; }
-
-      .post-item {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 2rem;
-        margin-bottom: 1.5rem;
-        display: block;
-        transition: all 0.3s ease;
-      }
-
-      .post-item:hover {
-        border-color: var(--accent-primary);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      }
-
+      .post-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 2rem; margin-bottom: 1.5rem; display: block; transition: all 0.3s ease; }
+      .post-item:hover { border-color: var(--accent-primary); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
       .post-item a { text-decoration: none; color: inherit; }
-
-      .post-title {
-        font-size: 1.5rem;
-        margin: 0 0 0.5rem 0;
-        color: var(--text-primary);
-        font-weight: 600;
-      }
-
+      .post-title { font-size: 1.5rem; margin: 0 0 0.5rem 0; color: var(--text-primary); font-weight: 600; }
       .post-item a:hover .post-title { color: var(--accent-primary); }
-
-      .post-date {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        margin-bottom: 1rem;
-      }
-
+      .post-date { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
       .post-excerpt { color: var(--text-secondary); line-height: 1.6; margin-bottom: 1rem; }
-
-      .post-meta {
-        display: flex;
-        gap: 1.5rem;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-      }
-
+      .post-meta { display: flex; gap: 1.5rem; font-size: 0.85rem; color: var(--text-muted); }
       .post-meta span { display: flex; align-items: center; gap: 0.4rem; }
 
       @media (max-width: 1024px) { .blog-timeline { display: none; } }
-
-      @media (max-width: 768px) {
-        .blog-container { flex-direction: column; gap: 2rem; }
-        .blog-sidebar { position: static; flex: 1; }
-        .blog-timeline { display: none; }
-        .tags-cloud { display: flex; flex-wrap: wrap; }
-      }
+      @media (max-width: 768px) { .blog-container { flex-direction: column; gap: 2rem; } .blog-sidebar { position: static; flex: 1; } .blog-timeline { display: none; } }
     </style>
   </head>
 
@@ -277,9 +67,7 @@
     <div class="wrapper">
       <div class="theme-toggle-container">
         <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
-          <svg viewBox="0 0 24 24" width="16" height="16">
-            <path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/>
-          </svg>
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
           <span>Toggle Theme</span>
         </button>
       </div>
@@ -287,6 +75,7 @@
       <a href="../" class="back-link">← Back to Home</a>
 
       <div class="blog-container">
+        <!-- ── Sidebar tags ── -->
         <aside class="blog-sidebar">
           <div class="tags-section">
             <h3>🏷️ Tags</h3>
@@ -300,10 +89,13 @@
               <a href="#" class="tag" data-tag="semantic-models">Semantic Models</a>
               <a href="#" class="tag" data-tag="cloud">Cloud</a>
               <a href="#" class="tag" data-tag="gcp">GCP</a>
+              <a href="#" class="tag" data-tag="llm-ops">LLM Ops</a>
+              <a href="#" class="tag" data-tag="data-mesh">Data Mesh</a>
             </div>
           </div>
         </aside>
 
+        <!-- ── Posts ── -->
         <div class="blog-content">
           <header class="blog-header">
             <h1>Blog</h1>
@@ -312,216 +104,191 @@
 
           <ul class="post-list">
 
-          <li class="post-item" data-tags="ai-agents,architecture,memory">
-            <a href="ai-agent-memory.html">
-              <h2 class="post-title">AI Agent Memory: The Infrastructure Layer Nobody Told You About</h2>
-              <div class="post-date">June 8, 2026</div>
-              <p class="post-excerpt">The context window is not memory — it's a scratchpad. For agents that need to persist knowledge across sessions, the architecture choices matter enormously. A deep dive into the four memory types, how AWS Bedrock AgentCore, GCP Vertex Memory Bank, OpenAI, and Claude implement them, the security risks of memory poisoning, and what actually goes wrong in production.</p>
-              <div class="post-meta">
-                <span>📖 16 min read</span>
-                <span>🏷️ AI Agents</span>
-                <span>🔧 Architecture</span>
-              </div>
-            </a>
-          </li>
+            <li class="post-item" data-tags="ai-agents,architecture">
+              <a href="ai-agent-memory.html">
+                <h2 class="post-title">AI Agent Memory: The Infrastructure Layer Nobody Told You About</h2>
+                <div class="post-date">June 8, 2026</div>
+                <p class="post-excerpt">The context window is not memory — it's a scratchpad. A deep dive into the four memory types (in-context, episodic, semantic, procedural), how AWS Bedrock AgentCore, GCP Vertex Memory Bank, OpenAI, and Claude implement them, the security risks of memory poisoning, and what actually goes wrong in production.</p>
+                <div class="post-meta"><span>📖 16 min read</span><span>🏷️ AI Agents</span><span>🔧 Architecture</span></div>
+              </a>
+            </li>
 
-          <li class="post-item" data-tags="power-bi,semantic-models,architecture">
-            <a href="vertipaq-internals.html">
-              <h2 class="post-title">VertiPaq Internals: What's Really Happening When Power BI Loads Your Model</h2>
-              <div class="post-date">March 15, 2026</div>
-              <p class="post-excerpt">Every refresh, 200 MB of raw data becomes a 40 MB in-memory structure that answers complex aggregations in milliseconds. The engine behind this is VertiPaq — and understanding its columnar encoding, SE/FE split, relationship hashmaps, and segment architecture turns model optimization from cargo-cult advice into engineering decisions.</p>
-              <div class="post-meta">
-                <span>📖 14 min read</span>
-                <span>🏷️ Power BI</span>
-                <span>🔧 VertiPaq</span>
-              </div>
-            </a>
-          </li>
+            <li class="post-item" data-tags="ai-agents,architecture,llm-ops">
+              <a href="llm-observability.html">
+                <h2 class="post-title">LLM Observability in Production: What to Instrument Before Your First Incident</h2>
+                <div class="post-date">May 5, 2026</div>
+                <p class="post-excerpt">Traditional APM doesn't catch LLM failures — quality degradation without errors, prompt drift, silent cost creep, retrieval-generation mismatch. Covers LangSmith, Arize Phoenix, MLflow Tracing, what to measure at each layer, prompt drift detection, cost anomaly alerts, and the minimum instrumentation checklist you need before go-live.</p>
+                <div class="post-meta"><span>📖 15 min read</span><span>🏷️ AI Agents</span><span>☁️ LLM Ops</span></div>
+              </a>
+            </li>
 
-          <li class="post-item" data-tags="fabric,data-engineering,architecture">
-            <a href="fabric-vs-databricks.html">
-              <h2 class="post-title">Microsoft Fabric vs Databricks on Azure: The 2025 Decision Guide</h2>
-              <div class="post-date">December 10, 2025</div>
-              <p class="post-excerpt">Fabric is SaaS, Databricks is PaaS, and the pricing models are completely different animals. By late 2025, Unity Catalog OneLake mirroring makes the hybrid path genuinely viable. A practitioner's comparison covering TCO with real numbers, governance models, ML toolchain gaps, Photon vs Fabric Spark, and a decision framework that actually leads to a recommendation.</p>
-              <div class="post-meta">
-                <span>📖 18 min read</span>
-                <span>🏷️ MS Fabric</span>
-                <span>🔧 Data Engineering</span>
-              </div>
-            </a>
-          </li>
+            <li class="post-item" data-tags="power-bi,semantic-models,architecture">
+              <a href="vertipaq-internals.html">
+                <h2 class="post-title">VertiPaq Internals: What's Really Happening When Power BI Loads Your Model</h2>
+                <div class="post-date">March 15, 2026</div>
+                <p class="post-excerpt">Every refresh, 200 MB of raw data becomes a 40 MB in-memory structure that answers complex aggregations in milliseconds. The engine behind this is VertiPaq — and understanding its columnar encoding, SE/FE split, relationship hashmaps, and segment architecture turns model optimization from cargo-cult advice into engineering decisions.</p>
+                <div class="post-meta"><span>📖 14 min read</span><span>🏷️ Power BI</span><span>🔧 VertiPaq</span></div>
+              </a>
+            </li>
 
-          <li class="post-item" data-tags="power-bi,fabric,architecture">
-            <a href="direct-lake-vs-import-vs-directquery.html">
-              <h2 class="post-title">Direct Lake vs Import vs DirectQuery: How to Stop Guessing and Actually Choose</h2>
-              <div class="post-date">October 7, 2025</div>
-              <p class="post-excerpt">Import and Direct Lake both use VertiPaq. DirectQuery usually doesn't. That one fact changes everything about how you reason over performance, freshness, and modeling trade-offs. A practical guide to choosing the right Power BI storage mode — including composite models, the five mistakes that ruin production deployments, and a decision tree that actually leads to an answer.</p>
-              <div class="post-meta">
-                <span>📖 13 min read</span>
-                <span>🏷️ Power BI</span>
-                <span>🔧 MS Fabric</span>
-              </div>
-            </a>
-          </li>
+            <li class="post-item" data-tags="fabric,data-engineering,architecture">
+              <a href="fabric-vs-databricks.html">
+                <h2 class="post-title">Microsoft Fabric vs Databricks on Azure: The 2025 Decision Guide</h2>
+                <div class="post-date">December 10, 2025</div>
+                <p class="post-excerpt">Fabric is SaaS, Databricks is PaaS, and the pricing models are completely different animals. A practitioner's comparison covering real TCO numbers, Unity Catalog OneLake mirroring, governance models, ML toolchain gaps, Photon vs Fabric Spark, and a decision framework that actually leads to a recommendation.</p>
+                <div class="post-meta"><span>📖 18 min read</span><span>🏷️ MS Fabric</span><span>🔧 Data Engineering</span></div>
+              </a>
+            </li>
 
-          <li class="post-item" data-tags="architecture,gcp,cloud">
-            <a href="rag-on-gcp.html">
-              <h2 class="post-title">RAG on GCP: From First Corpus to Production — A Practitioner's Guide</h2>
-              <div class="post-date">July 15, 2025</div>
-              <p class="post-excerpt">GCP has three distinct RAG paths — Vertex AI Search, the managed RAG Engine, and DIY with AlloyDB or Vector Search — and the right choice depends on how custom your retrieval needs to be. Covers chunking strategies, embedding model versioning, the context window cost cliff, production failure modes, TCO comparison, and when to use Gemini Flash vs Pro.</p>
-              <div class="post-meta">
-                <span>📖 16 min read</span>
-                <span>☁️ GCP</span>
-                <span>🏷️ AI/ML</span>
-              </div>
-            </a>
-          </li>
+            <li class="post-item" data-tags="power-bi,fabric,architecture">
+              <a href="direct-lake-vs-import-vs-directquery.html">
+                <h2 class="post-title">Direct Lake vs Import vs DirectQuery: How to Stop Guessing and Actually Choose</h2>
+                <div class="post-date">October 7, 2025</div>
+                <p class="post-excerpt">Import and Direct Lake both use VertiPaq. DirectQuery usually doesn't. That one fact changes everything about how you reason over performance, freshness, and modeling trade-offs. A practical guide to choosing the right Power BI storage mode including composite models and the five production mistakes to avoid.</p>
+                <div class="post-meta"><span>📖 13 min read</span><span>🏷️ Power BI</span><span>🔧 MS Fabric</span></div>
+              </a>
+            </li>
 
-          <li class="post-item" data-tags="data-engineering,architecture,cloud">
-            <a href="open-table-formats.html">
-              <h2 class="post-title">Open Table Formats: Iceberg, Delta Lake, and Hudi — The War Nobody Told Your Data Team About</h2>
-              <div class="post-date">June 8, 2025</div>
-              <p class="post-excerpt">Three teams at Netflix, Databricks, and Uber independently solved the same problem: how do you get ACID transactions, schema evolution, and row-level deletes on top of object storage? Their solutions — Iceberg, Delta Lake, and Hudi — are now converging in ways nobody predicted. An internals-first guide to how they actually work and how to choose between them.</p>
-              <div class="post-meta">
-                <span>📖 18 min read</span>
-                <span>🏷️ Data Engineering</span>
-                <span>☁️ Cloud</span>
-              </div>
-            </a>
-          </li>
+            <li class="post-item" data-tags="architecture,gcp,cloud,ai-agents">
+              <a href="rag-on-gcp.html">
+                <h2 class="post-title">RAG on GCP: From First Corpus to Production — A Practitioner's Guide</h2>
+                <div class="post-date">July 15, 2025</div>
+                <p class="post-excerpt">GCP has three distinct RAG paths — Vertex AI Search, the managed RAG Engine, and DIY with AlloyDB or Vector Search. Covers chunking strategies, embedding model versioning, the context window cost cliff, production failure modes, TCO comparison, and when to use Gemini Flash vs Pro.</p>
+                <div class="post-meta"><span>📖 16 min read</span><span>☁️ GCP</span><span>🏷️ AI/ML</span></div>
+              </a>
+            </li>
 
-          <li class="post-item" data-tags="architecture,cloud,fabric">
-            <a href="ms-fabric-azure-migration.html">
-              <h2 class="post-title">Microsoft Fabric in the Azure Ecosystem: Migration, Integration, and the Databricks Question</h2>
-              <div class="post-date">February 12, 2025</div>
-              <p class="post-excerpt">Fabric collapses Azure Synapse, ADF, Power BI Premium, and ADX into one platform — but the migration isn't a checkbox exercise. A technical guide covering the ADF and Synapse migration paths, where the TCO math actually works, the honest Databricks vs Fabric comparison, and the hybrid pattern that most large organizations end up running in practice.</p>
-              <div class="post-meta">
-                <span>📖 17 min read</span>
-                <span>☁️ Azure</span>
-                <span>🔧 MS Fabric</span>
-              </div>
-            </a>
-          </li>
+            <li class="post-item" data-tags="data-engineering,architecture,cloud">
+              <a href="open-table-formats.html">
+                <h2 class="post-title">Open Table Formats: Iceberg, Delta Lake, and Hudi — The War Nobody Told Your Data Team About</h2>
+                <div class="post-date">June 8, 2025</div>
+                <p class="post-excerpt">Three teams at Netflix, Databricks, and Uber independently solved the same problem: ACID transactions on object storage. Their solutions — Iceberg, Delta Lake, and Hudi — are now converging. An internals-first guide to how they actually work and how to choose between them.</p>
+                <div class="post-meta"><span>📖 18 min read</span><span>🏷️ Data Engineering</span><span>☁️ Cloud</span></div>
+              </a>
+            </li>
 
-          <li class="post-item" data-tags="power-bi,semantic-models">
-            <a href="power-bi-semantic-models.html">
-              <h2 class="post-title">Power BI & Semantic Models Deep Dive</h2>
-              <div class="post-date">June 8, 2024</div>
-              <p class="post-excerpt">Explore the architecture and optimization of Power BI semantic models—from query folding and Import/DirectQuery modes to DAX performance tuning and star schema design. Master the semantic layer that powers effective BI systems.</p>
-              <div class="post-meta">
-                <span>📖 10 min read</span>
-                <span>🏷️ Power BI</span>
-                <span>🔧 Semantic Models</span>
-              </div>
-            </a>
-          </li>
+            <li class="post-item" data-tags="architecture,cloud,fabric">
+              <a href="ms-fabric-azure-migration.html">
+                <h2 class="post-title">Microsoft Fabric in the Azure Ecosystem: Migration, Integration, and the Databricks Question</h2>
+                <div class="post-date">February 12, 2025</div>
+                <p class="post-excerpt">Fabric collapses Azure Synapse, ADF, Power BI Premium, and ADX into one platform — but the migration isn't a checkbox exercise. A technical guide covering the ADF and Synapse migration paths, where the TCO math actually works, and the hybrid pattern most large organizations end up running.</p>
+                <div class="post-meta"><span>📖 17 min read</span><span>☁️ Azure</span><span>🔧 MS Fabric</span></div>
+              </a>
+            </li>
 
-          <li class="post-item" data-tags="architecture,cloud">
-            <a href="ms-fabric-internals.html">
-              <h2 class="post-title">Understanding MS Fabric Internals</h2>
-              <div class="post-date">June 9, 2023</div>
-              <p class="post-excerpt">A deep dive into Microsoft Fabric's architecture—from OneLake storage and Spark compute to semantic models and governance. Learn how Fabric unifies data engineering, warehousing, and analytics under a single SaaS platform.</p>
-              <div class="post-meta">
-                <span>📖 8 min read</span>
-                <span>🏷️ Architecture</span>
-                <span>🔧 Cloud</span>
-              </div>
-            </a>
-          </li>
+            <li class="post-item" data-tags="ai-agents,architecture,data-engineering">
+              <a href="vector-databases.html">
+                <h2 class="post-title">Vector Databases Compared: Pinecone vs Weaviate vs Qdrant vs pgvector vs FAISS</h2>
+                <div class="post-date">January 20, 2025</div>
+                <p class="post-excerpt">HNSW vs IVFFlat vs ScaNN internals, the filtering problem that breaks most benchmarks, and a platform comparison with real cost numbers. The foundational guide to choosing and sizing a vector store before building a RAG pipeline.</p>
+                <div class="post-meta"><span>📖 17 min read</span><span>🏷️ AI Agents</span><span>🔧 Architecture</span></div>
+              </a>
+            </li>
 
-        </ul>
+            <li class="post-item" data-tags="cloud,ai-agents,architecture">
+              <a href="snowflake-cortex.html">
+                <h2 class="post-title">Snowflake Cortex AI Deep Dive: LLMs Inside Your Data Warehouse</h2>
+                <div class="post-date">December 12, 2024</div>
+                <p class="post-excerpt">Cortex LLM functions, Cortex Search (managed RAG without infra), Cortex Analyst (text-to-SQL on semantic models), Document AI, and Snowflake Arctic — covered with real SQL, cost tables, and honest trade-offs. When Cortex wins vs external LLM APIs, and when it doesn't.</p>
+                <div class="post-meta"><span>📖 14 min read</span><span>☁️ Cloud</span><span>🏷️ AI Agents</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="power-bi,semantic-models">
+              <a href="power-bi-semantic-models.html">
+                <h2 class="post-title">Power BI &amp; Semantic Models Deep Dive</h2>
+                <div class="post-date">June 8, 2024</div>
+                <p class="post-excerpt">Explore the architecture and optimization of Power BI semantic models — from query folding and Import/DirectQuery modes to DAX performance tuning and star schema design. Master the semantic layer that powers effective BI systems.</p>
+                <div class="post-meta"><span>📖 10 min read</span><span>🏷️ Power BI</span><span>🔧 Semantic Models</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="data-engineering,architecture">
+              <a href="dbt-internals.html">
+                <h2 class="post-title">dbt Internals and Best Practices: What Happens When You Run <code>dbt run</code></h2>
+                <div class="post-date">March 20, 2024</div>
+                <p class="post-excerpt">dbt's five-phase compilation pipeline, materializations and incremental strategies in depth, platform differences on Snowflake vs Databricks vs Redshift vs BigQuery, project structure patterns, the 10 most common mistakes, dbt on DuckDB/MotherDuck for local dev, and the Semantic Layer (MetricFlow).</p>
+                <div class="post-meta"><span>📖 16 min read</span><span>🏷️ Data Engineering</span><span>🔧 Architecture</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="architecture,cloud,fabric">
+              <a href="ms-fabric-internals.html">
+                <h2 class="post-title">Understanding MS Fabric Internals</h2>
+                <div class="post-date">June 9, 2023</div>
+                <p class="post-excerpt">A deep dive into Microsoft Fabric's architecture — from OneLake storage and Spark compute to semantic models and governance. Learn how Fabric unifies data engineering, warehousing, and analytics under a single SaaS platform.</p>
+                <div class="post-meta"><span>📖 8 min read</span><span>🏷️ Architecture</span><span>🔧 MS Fabric</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="data-engineering,architecture,cloud,data-mesh">
+              <a href="data-mesh.html">
+                <h2 class="post-title">Data Mesh: What Actually Works and What Doesn't — Lessons from the Field</h2>
+                <div class="post-date">April 10, 2023</div>
+                <p class="post-excerpt">The gap between Data Mesh theory and enterprise reality is wide. Domain ownership, federated governance, and self-serve infrastructure — what each principle actually requires organizationally, real cases (Zalando vs financial institutions), AWS vs Azure vs GCP vs on-prem implementations, and who should and shouldn't attempt it.</p>
+                <div class="post-meta"><span>📖 17 min read</span><span>🏷️ Data Engineering</span><span>☁️ Cloud</span></div>
+              </a>
+            </li>
+
+          </ul>
         </div>
 
+        <!-- ── Timeline sidebar ── -->
         <aside class="blog-timeline">
-          <h3 style="font-size: 0.9rem; margin: 0 0 1.2rem 0; color: var(--text-primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">📜 Timeline</h3>
+          <h3 style="font-size:0.9rem;margin:0 0 1.2rem 0;color:var(--text-primary);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">📜 Timeline</h3>
           <div class="timeline" id="timeline-root">
 
-            <!-- 2026 — expanded by default -->
+            <!-- 2026 — expanded -->
             <div class="timeline-year-group" data-year="2026">
               <button class="timeline-year-btn" aria-expanded="true" aria-controls="year-2026">
-                2026
-                <span class="timeline-year-badge">2</span>
+                2026 <span class="timeline-year-badge">3</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items" id="year-2026">
-                <div class="timeline-item" data-href="ai-agent-memory.html">
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-date">June 8, 2026</div>
-                  <div class="timeline-title">AI Agent Memory</div>
-                </div>
-                <div class="timeline-item" data-href="vertipaq-internals.html">
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-date">Mar 15, 2026</div>
-                  <div class="timeline-title">VertiPaq Internals</div>
-                </div>
+                <div class="timeline-item" data-href="ai-agent-memory.html"><div class="timeline-dot"></div><div class="timeline-date">June 8, 2026</div><div class="timeline-title">AI Agent Memory</div></div>
+                <div class="timeline-item" data-href="llm-observability.html"><div class="timeline-dot"></div><div class="timeline-date">May 5, 2026</div><div class="timeline-title">LLM Observability</div></div>
+                <div class="timeline-item" data-href="vertipaq-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Mar 15, 2026</div><div class="timeline-title">VertiPaq Internals</div></div>
               </div>
             </div>
 
-            <!-- 2025 — collapsed by default -->
+            <!-- 2025 — collapsed -->
             <div class="timeline-year-group" data-year="2025">
               <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2025">
-                2025
-                <span class="timeline-year-badge">5</span>
+                2025 <span class="timeline-year-badge">6</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items collapsed" id="year-2025">
-                <div class="timeline-item" data-href="fabric-vs-databricks.html">
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-date">Dec 10, 2025</div>
-                  <div class="timeline-title">Fabric vs Databricks</div>
-                </div>
-                <div class="timeline-item" data-href="direct-lake-vs-import-vs-directquery.html">
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-date">Oct 7, 2025</div>
-                  <div class="timeline-title">Direct Lake vs Import</div>
-                </div>
-                <div class="timeline-item" data-href="rag-on-gcp.html">
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-date">Jul 15, 2025</div>
-                  <div class="timeline-title">RAG on GCP</div>
-                </div>
-                <div class="timeline-item" data-href="open-table-formats.html">
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-date">June 8, 2025</div>
-                  <div class="timeline-title">Open Table Formats</div>
-                </div>
-                <div class="timeline-item" data-href="ms-fabric-azure-migration.html">
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-date">Feb 12, 2025</div>
-                  <div class="timeline-title">Fabric + Azure Migration</div>
-                </div>
+                <div class="timeline-item" data-href="fabric-vs-databricks.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 10, 2025</div><div class="timeline-title">Fabric vs Databricks</div></div>
+                <div class="timeline-item" data-href="direct-lake-vs-import-vs-directquery.html"><div class="timeline-dot"></div><div class="timeline-date">Oct 7, 2025</div><div class="timeline-title">Direct Lake vs Import</div></div>
+                <div class="timeline-item" data-href="rag-on-gcp.html"><div class="timeline-dot"></div><div class="timeline-date">Jul 15, 2025</div><div class="timeline-title">RAG on GCP</div></div>
+                <div class="timeline-item" data-href="open-table-formats.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 8, 2025</div><div class="timeline-title">Open Table Formats</div></div>
+                <div class="timeline-item" data-href="ms-fabric-azure-migration.html"><div class="timeline-dot"></div><div class="timeline-date">Feb 12, 2025</div><div class="timeline-title">Fabric + Azure</div></div>
+                <div class="timeline-item" data-href="vector-databases.html"><div class="timeline-dot"></div><div class="timeline-date">Jan 20, 2025</div><div class="timeline-title">Vector Databases</div></div>
               </div>
             </div>
 
-            <!-- 2024 — collapsed by default -->
+            <!-- 2024 — collapsed -->
             <div class="timeline-year-group" data-year="2024">
               <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2024">
-                2024
-                <span class="timeline-year-badge">1</span>
+                2024 <span class="timeline-year-badge">3</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items collapsed" id="year-2024">
-                <div class="timeline-item" data-href="power-bi-semantic-models.html">
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-date">June 8, 2024</div>
-                  <div class="timeline-title">Power BI Models</div>
-                </div>
+                <div class="timeline-item" data-href="snowflake-cortex.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 12, 2024</div><div class="timeline-title">Snowflake Cortex AI</div></div>
+                <div class="timeline-item" data-href="power-bi-semantic-models.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 8, 2024</div><div class="timeline-title">Power BI Models</div></div>
+                <div class="timeline-item" data-href="dbt-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Mar 20, 2024</div><div class="timeline-title">dbt Internals</div></div>
               </div>
             </div>
 
-            <!-- 2023 — collapsed by default -->
+            <!-- 2023 — collapsed -->
             <div class="timeline-year-group" data-year="2023">
               <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2023">
-                2023
-                <span class="timeline-year-badge">1</span>
+                2023 <span class="timeline-year-badge">2</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items collapsed" id="year-2023">
-                <div class="timeline-item" data-href="ms-fabric-internals.html">
-                  <div class="timeline-dot"></div>
-                  <div class="timeline-date">June 9, 2023</div>
-                  <div class="timeline-title">MS Fabric Internals</div>
-                </div>
+                <div class="timeline-item" data-href="ms-fabric-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 9, 2023</div><div class="timeline-title">MS Fabric Internals</div></div>
+                <div class="timeline-item" data-href="data-mesh.html"><div class="timeline-dot"></div><div class="timeline-date">Apr 10, 2023</div><div class="timeline-title">Data Mesh</div></div>
               </div>
             </div>
 
@@ -529,75 +296,61 @@
         </aside>
       </div>
 
-      <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted);">
-        <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color: var(--accent-primary);">Return to home</a></small></p>
+      <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+        <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
       </footer>
     </div>
 
     <script>
       document.addEventListener('DOMContentLoaded', function () {
+        // ── Tag filtering ──────────────────────────────────────────
+        const tagBtns = document.querySelectorAll('.tag');
+        const posts   = document.querySelectorAll('.post-item');
+        let activeTag = 'all';
 
-        // ── Tag filtering ─────────────────────────────────────────────
-        const tagButtons = document.querySelectorAll('.tag');
-        const postItems  = document.querySelectorAll('.post-item');
-        let selectedTag  = 'all';
-
-        tagButtons.forEach(btn => {
-          btn.addEventListener('click', function (e) {
+        tagBtns.forEach(btn => {
+          btn.addEventListener('click', e => {
             e.preventDefault();
-            selectedTag = this.dataset.tag;
-
-            tagButtons.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-
-            postItems.forEach(post => {
-              if (selectedTag === 'all') {
-                post.style.display = 'block';
-              } else {
-                const tags = (post.dataset.tags || '').split(',');
-                post.style.display = tags.includes(selectedTag) ? 'block' : 'none';
-              }
+            activeTag = btn.dataset.tag;
+            tagBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            posts.forEach(p => {
+              if (activeTag === 'all') { p.style.display = 'block'; return; }
+              const t = (p.dataset.tags || '').split(',');
+              p.style.display = t.includes(activeTag) ? 'block' : 'none';
             });
           });
         });
 
-        // ── Year-group collapse / expand ──────────────────────────────
-        const yearBtns = document.querySelectorAll('.timeline-year-btn');
-
-        yearBtns.forEach(btn => {
-          btn.addEventListener('click', function () {
-            const isCollapsed = this.classList.contains('collapsed');
-            const targetId    = this.getAttribute('aria-controls');
-            const items       = document.getElementById(targetId);
-
-            if (isCollapsed) {
-              this.classList.remove('collapsed');
-              this.setAttribute('aria-expanded', 'true');
-              items.classList.remove('collapsed');
-            } else {
-              this.classList.add('collapsed');
-              this.setAttribute('aria-expanded', 'false');
+        // ── Year-group collapse / expand ───────────────────────────
+        document.querySelectorAll('.timeline-year-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const open  = !btn.classList.contains('collapsed');
+            const items = document.getElementById(btn.getAttribute('aria-controls'));
+            if (open) {
+              btn.classList.add('collapsed');
+              btn.setAttribute('aria-expanded', 'false');
               items.classList.add('collapsed');
+            } else {
+              btn.classList.remove('collapsed');
+              btn.setAttribute('aria-expanded', 'true');
+              items.classList.remove('collapsed');
             }
           });
         });
 
-        // ── Timeline item click → scroll + highlight post ─────────────
+        // ── Timeline click → scroll to post ───────────────────────
         document.querySelectorAll('.timeline-item[data-href]').forEach(item => {
-          item.addEventListener('click', function () {
-            const href = this.dataset.href;
-            const link = document.querySelector(`.post-item a[href="${href}"]`);
+          item.addEventListener('click', () => {
+            const link = document.querySelector(`.post-item a[href="${item.dataset.href}"]`);
             if (!link) return;
             const post = link.closest('.post-item');
             if (!post || post.style.display === 'none') return;
             post.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            post.style.borderColor  = 'var(--accent-primary)';
-            post.style.boxShadow    = '0 0 20px rgba(184, 134, 11, 0.5)';
-            setTimeout(() => {
-              post.style.boxShadow  = '0 4px 12px rgba(0, 0, 0, 0.1)';
-            }, 2000);
+            post.style.borderColor = 'var(--accent-primary)';
+            post.style.boxShadow   = '0 0 20px rgba(184,134,11,0.5)';
+            setTimeout(() => { post.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'; }, 2000);
           });
-
           item.addEventListener('mouseenter', () => { item.style.opacity = '0.8'; });
           item.addEventListener('mouseleave', () => { item.style.opacity = '1'; });
         });

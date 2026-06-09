@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dbt Internals and Best Practices: What Happens When You Run dbt run</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>dbt Internals and Best Practices: What Happens When You Run <code>dbt run</code></h1>
+        <div class="article-meta">
+          <span>📅 March 20, 2024</span>
+          <span>📖 16 min read</span>
+          <span>🏷️ Data Engineering</span>
+          <span>🔧 Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Everyone uses dbt. Fewer people understand what it actually does. It's not a query engine, not an orchestrator, and not a data warehouse — it's a SQL compiler with a dependency resolver and a test runner built in. Understanding the compilation pipeline is the difference between a dbt project that runs reliably at scale and one that collapses into a spaghetti of <code>{{ ref() }}</code> calls nobody can debug.</p>
+
+        <p>This article covers dbt's internal compilation pipeline (what happens between <code>dbt run</code> and the first SQL statement hitting your warehouse), materializations and how they differ on Snowflake vs Databricks vs Redshift vs BigQuery, incremental strategies in depth, common project structure mistakes, and how dbt performs on modern lightweight engines like DuckDB and MotherDuck for development and testing.</p>
+
+        <h2>The Compilation Pipeline: Jinja → SQL → Execution</h2>
+
+        <p>When you run <code>dbt run</code>, dbt does five things before executing a single SQL statement against your warehouse:</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph LR
+    A["1. Parse project\n(dbt_project.yml +\nall .sql .yml files)"]
+    B["2. Resolve\ndependencies\n(build DAG from ref()/source())"]
+    C["3. Jinja render\n(compile templates\nto raw SQL)"]
+    D["4. Adapter\ntranslation\n(dialect-specific SQL)"]
+    E["5. Execute\n(warehouse API calls\nin topological order)"]
+
+    A --> B --> C --> D --> E
+          </pre>
+          <p class="diagram-caption">dbt's five-phase execution pipeline. Steps 1–4 happen on your local machine or dbt Cloud runner — no warehouse queries. Only step 5 hits the warehouse. This means compilation errors (syntax, missing refs, undefined variables) are caught before any compute is consumed.</p>
+        </div>
+
+        <h3>Phase 1: Parse</h3>
+        <p>dbt reads every <code>.sql</code>, <code>.yml</code>, and <code>.py</code> file in your project, parses model configs, source definitions, macros, and tests. This phase builds the internal graph — a Python dict mapping node IDs to their metadata. At this point dbt knows every model exists but hasn't compiled any SQL yet.</p>
+
+        <h3>Phase 2: DAG Resolution</h3>
+        <p>The <code>{{ ref('model_name') }}</code> function is a dependency declaration, not a SQL expression. dbt resolves all <code>ref()</code> and <code>source()</code> calls to their fully qualified table names (e.g., <code>analytics.prod.orders_daily</code>) and builds a directed acyclic graph. If model B refs model A, B depends on A — and dbt will execute A before B. Circular references fail here with a clear error.</p>
+
+        <h3>Phase 3: Jinja Compilation</h3>
+        <p>dbt uses Jinja2 to render model SQL. Every model file is a Jinja template; <code>{{ ref('stg_orders') }}</code> resolves to the fully-qualified table name, <code>{{ config() }}</code> sets model properties, <code>{{ is_incremental() }}</code> evaluates to True/False based on run context. The output is plain SQL with no Jinja syntax — this is what <code>dbt compile</code> shows you and what actually runs against the warehouse.</p>
+
+        <pre><code class="language-sql">-- models/marts/fct_orders.sql (Jinja template)
+{{ config(
+    materialized='incremental',
+    unique_key='order_id',
+    incremental_strategy='merge'
+) }}
+
+SELECT
+    order_id,
+    customer_id,
+    order_total,
+    created_at
+FROM {{ ref('stg_orders') }}
+{% if is_incremental() %}
+    WHERE created_at > (SELECT MAX(created_at) FROM {{ this }})
+{% endif %}</code></pre>
+
+        <pre><code class="language-sql">-- Compiled output (what dbt sends to Snowflake)
+MERGE INTO analytics.prod.fct_orders AS DBT_INTERNAL_DEST
+USING (
+    SELECT order_id, customer_id, order_total, created_at
+    FROM analytics.prod.stg_orders
+    WHERE created_at > (SELECT MAX(created_at) FROM analytics.prod.fct_orders)
+) AS DBT_INTERNAL_SOURCE
+ON DBT_INTERNAL_DEST.order_id = DBT_INTERNAL_SOURCE.order_id
+WHEN MATCHED THEN UPDATE SET ...
+WHEN NOT MATCHED THEN INSERT ...</code></pre>
+
+        <h3>Phase 4: Adapter Translation</h3>
+        <p>The adapter layer translates dbt's dialect-independent compiled SQL into the specific SQL dialect of your warehouse. This is where the differences between Snowflake, Redshift, BigQuery, and Databricks become relevant. The same <code>merge</code> incremental strategy compiles to different SQL on each platform — Snowflake uses <code>MERGE INTO</code>, BigQuery uses <code>MERGE</code> with slightly different syntax, Databricks uses <code>MERGE INTO</code> on Delta tables, Redshift uses a delete-then-insert pattern (no native MERGE until recently).</p>
+
+        <h2>Materializations: What They Actually Do</h2>
+
+        <h3>Table</h3>
+        <p>Drops and recreates the table on every run: <code>DROP TABLE IF EXISTS; CREATE TABLE AS SELECT ...</code>. Simple, reliable, expensive for large tables. Use for small dimension tables, reference data, and marts with relatively fast rebuild times.</p>
+
+        <h3>View</h3>
+        <p>Creates or replaces a view: <code>CREATE OR REPLACE VIEW AS SELECT ...</code>. No storage cost. Query performance depends entirely on the upstream tables. Use for staging models and lightweight transformations where freshness matters more than query speed.</p>
+
+        <h3>Incremental</h3>
+        <p>The most complex and most misunderstood materialization. On the first run (when the table doesn't exist), behaves like a full table build. On subsequent runs, only processes new/changed rows. The exact SQL depends on the <code>incremental_strategy</code>:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Strategy</th><th>Mechanics</th><th>Best for</th><th>Supported on</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>append</code></td>
+                <td>INSERT new rows only. No deduplication.</td>
+                <td>Immutable event logs</td>
+                <td>All adapters</td>
+              </tr>
+              <tr>
+                <td><code>merge</code></td>
+                <td>MERGE ON unique_key: update matches, insert new. Idempotent.</td>
+                <td>Fact tables with updates</td>
+                <td>Snowflake, BigQuery, Databricks (Delta), Postgres</td>
+              </tr>
+              <tr>
+                <td><code>delete+insert</code></td>
+                <td>DELETE matching rows, INSERT all new rows. Slower than merge but more compatible.</td>
+                <td>Replacing partitions</td>
+                <td>All adapters (Redshift prefers this)</td>
+              </tr>
+              <tr>
+                <td><code>insert_overwrite</code></td>
+                <td>Replace entire partition(s) atomically. Partition-level idempotency.</td>
+                <td>Large time-partitioned tables</td>
+                <td>BigQuery, Databricks, Spark</td>
+              </tr>
+              <tr>
+                <td><code>microbatch</code></td>
+                <td>dbt 1.9+: Processes each time batch separately with retries. Event-time-based.</td>
+                <td>Reliable large-scale incremental with late data</td>
+                <td>BigQuery, Snowflake, Databricks (1.9+)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Ephemeral</h3>
+        <p>Not materialized at all — compiled as a CTE and inlined into the downstream model's SQL. No storage, no warehouse object, no way to query it directly. Use for intermediate transformations you'd otherwise write as subqueries. The downside: complex ephemeral chains make debugging hard because you can't <code>SELECT * FROM that_intermediate_step</code> to check what's in it.</p>
+
+        <h2>Platform Differences That Actually Matter</h2>
+
+        <h3>Snowflake</h3>
+        <p>The reference dbt platform. Every incremental strategy works reliably. Dynamic Tables (Snowflake-native streaming materialization) can replace some incremental models for near-real-time use cases. <code>CLUSTER BY</code> is the Snowflake equivalent of partitioning — specify it in dbt config for large fact tables. Snowflake's ZERO_COPY_CLONE capability (cloning a table without copying data) makes <code>dbt test --store-failures</code> very cheap — failed test results get cloned into a test schema without data movement.</p>
+
+        <h3>Databricks (Delta Lake)</h3>
+        <p>Databricks' Delta Lake supports all dbt incremental strategies plus liquid clustering (Delta's partitioning evolution, replacing static <code>PARTITIONED BY</code>). The <code>insert_overwrite</code> strategy replaces Spark partitions atomically and is often faster than MERGE on large tables. Python models (dbt-databricks >= 1.3) let you write Spark DataFrame code as a dbt model — useful for ML feature engineering that's easier in PySpark than SQL. One gotcha: Unity Catalog on Databricks changes table naming from <code>database.schema.table</code> to <code>catalog.schema.table</code> — updating your <code>dbt_project.yml</code> database config is required when migrating to Unity Catalog.</p>
+
+        <h3>Redshift</h3>
+        <p>Redshift lacks a native MERGE statement until Redshift Serverless (and even there it's limited). dbt's default incremental strategy on Redshift is <code>delete+insert</code>: it deletes rows matching the <code>unique_key</code>, then inserts all new rows. This creates vacuum bloat — rows deleted from column-store pages leave ghost rows that consume space and slow queries until <code>VACUUM</code> runs. Production Redshift dbt projects need a scheduled <code>VACUUM ANALYZE</code> on incremental tables, or they'll degrade significantly over time. Redshift's SORT KEY is the performance lever dbt exposes via the <code>sort</code> config — critical for range-based query patterns on large fact tables.</p>
+
+        <h3>BigQuery</h3>
+        <p>BigQuery partitioned tables + dbt's <code>insert_overwrite</code> strategy is the standard production pattern: each run replaces the affected date partition(s) atomically. Partition replacement is idempotent and handles late-arriving data correctly. BigQuery's <code>require_partition_filter</code> table option (prevents full-table scans — every query must include a partition filter) can be set via dbt config and is strongly recommended for any table over a few hundred GB.</p>
+
+        <h3>Azure Synapse / SQL Server</h3>
+        <p>The dbt-synapse adapter is maintained by Microsoft and covers most dbt features, but Synapse Dedicated SQL Pool lacks some Delta Lake features and has different MERGE semantics. External tables from ADLS Gen2 are handled via source configs but have query performance limitations. For Azure-native dbt work in 2024, Fabric Lakehouse (via the dbt-fabric adapter) is increasingly the preferred target over Synapse Dedicated SQL Pool, which Microsoft is steering users away from.</p>
+
+        <h2>dbt on Modern Open/Lightweight Engines</h2>
+
+        <h3>DuckDB</h3>
+        <p>dbt-duckdb made dbt development genuinely fast. DuckDB is an in-process OLAP engine (runs inside your Python process or CLI, reads Parquet/CSV/JSON directly from disk or S3) that executes SQL at warehouse speeds on a laptop. With dbt-duckdb, you can run your entire dbt project locally against a sample of production data in seconds — no warehouse needed, no costs, no cloud credentials. This changes the development loop: instead of writing a model, pushing to a branch, waiting for a CI job, and paying for warehouse compute to run a test, you write a model, run it locally in 3 seconds, and iterate.</p>
+
+        <pre><code class="language-yaml"># profiles.yml — DuckDB for local dev
+my_project:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "./dev.duckdb"       # local file, or :memory: for ephemeral
+      # Can read Parquet directly from S3 without loading into the DB
+      settings:
+        s3_region: us-east-1
+
+    prod:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      ...</code></pre>
+
+        <h3>MotherDuck</h3>
+        <p>MotherDuck is serverless DuckDB in the cloud. Same SQL dialect and dbt-duckdb adapter, but your data lives in a managed cloud database rather than a local file. The hybrid execution model is particularly clever: you can join a local DuckDB table with a MotherDuck cloud table in a single query, running the compute nearest the data. For dbt projects, this means a development environment that's cloud-hosted (no local file management) but still orders of magnitude cheaper than Snowflake or BigQuery for development and testing workloads.</p>
+
+        <h2>Project Structure: The Patterns That Scale</h2>
+
+        <p>The standard dbt project structure follows the Fivetran/dbt Labs "jaffle shop" pattern, which has become the community default for good reason:</p>
+
+        <pre><code class="language-bash">models/
+├── staging/          # 1-1 with source tables; rename, recast, light cleaning
+│   ├── salesforce/
+│   │   ├── _salesforce__sources.yml
+│   │   ├── _salesforce__models.yml
+│   │   ├── stg_salesforce__contacts.sql
+│   │   └── stg_salesforce__opportunities.sql
+│   └── stripe/
+│       ├── stg_stripe__charges.sql
+│       └── stg_stripe__customers.sql
+├── intermediate/     # reusable building blocks; not exposed directly to BI
+│   ├── int_customer_order_rollup.sql
+│   └── int_revenue_by_month.sql
+└── marts/            # business-logic models; exposed to BI and downstream
+    ├── core/
+    │   ├── dim_customer.sql
+    │   └── fct_orders.sql
+    └── finance/
+        └── fct_mrr.sql</code></pre>
+
+        <p>The <strong>staging layer</strong> is a 1:1 mapping from source system to a clean, typed, consistently named table. Rename <code>acct_no</code> to <code>account_number</code> here. Cast types here. Do nothing else here. The discipline of keeping staging models thin is what makes the intermediate and marts layers predictable.</p>
+
+        <h2>The 10 Most Common dbt Project Mistakes</h2>
+
+        <ol>
+          <li><strong>Putting business logic in staging models.</strong> Staging is for cleaning, not business rules. The moment you write a <code>CASE WHEN</code> with business logic in a staging model, it becomes invisible to anyone looking at the marts layer.</li>
+          <li><strong>Not using contracts on mart models.</strong> dbt contracts (enforced column definitions + data types) prevent silent schema changes from breaking downstream BI reports. Every model exposed to a BI tool or external consumer should have a contract.</li>
+          <li><strong>Incremental models without <code>+full_refresh</code> protection.</strong> A misbehaving incremental model that needs a full refresh will silently contain stale data until someone manually runs <code>--full-refresh</code>. Add a freshness assertion to your tests.</li>
+          <li><strong>Over-relying on ephemeral models for debugging.</strong> Ephemeral models are invisible at query time. Large chains of ephemeral models produce enormous CTEs that are impossible to profile or debug in the warehouse.</li>
+          <li><strong>Missing <code>on_schema_change</code> config.</strong> When an incremental model's source adds a new column, the incremental table won't include it until a full refresh — unless you set <code>on_schema_change: 'sync_all_columns'</code>.</li>
+          <li><strong>Using <code>{{ ref() }}</code> in macros.</strong> Macros don't participate in the dependency graph. Using <code>ref()</code> inside a macro doesn't create a DAG dependency — the referenced model might not exist yet when the macro runs.</li>
+          <li><strong>No separation of dev and prod targets.</strong> Running dbt in dev should write to a dev schema, not prod. Misconfigured profiles that point dev runs at prod tables have caused real data loss.</li>
+          <li><strong>Testing only for not-null and unique.</strong> These are the minimum. Accepted-values, relationship, and custom expression tests are what catch real data quality issues.</li>
+          <li><strong>Circular source definitions.</strong> Defining a staging model as a source of another staging model (instead of using <code>ref()</code>) breaks lineage tracking and creates hidden dependencies.</li>
+          <li><strong>Giant models.</strong> A model with 500 lines of SQL doing 15 joins is not a model — it's a monolith. Break it into intermediate models. Future debuggers will thank you.</li>
+        </ol>
+
+        <div class="callout tip">
+          <p><strong>The one dbt feature most projects underuse:</strong> <code>dbt docs generate</code> and <code>dbt docs serve</code>. A documented, auto-generated data catalog with lineage graphs, column descriptions, and test coverage is a significant data governance artifact — and it's free if you write YAML descriptions. The organizations that document their dbt models in YAML have fundamentally different data literacy than those that don't.</p>
+        </div>
+
+        <h2>dbt Semantic Layer (MetricFlow)</h2>
+
+        <p>dbt 1.6+ introduced the Semantic Layer (powered by MetricFlow), which lets you define metrics — not just SQL transformations — in dbt. A metric defined in dbt can be queried by BI tools (Tableau, Looker, Hex, Evidence) via a consistent interface, ensuring the number means the same thing everywhere it appears.</p>
+
+        <pre><code class="language-yaml"># models/metrics/revenue_metrics.yml
+semantic_models:
+  - name: orders
+    model: ref('fct_orders')
+    entities:
+      - name: order
+        type: primary
+        expr: order_id
+      - name: customer
+        type: foreign
+        expr: customer_id
+    dimensions:
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
+    measures:
+      - name: order_total
+        agg: sum
+        expr: order_total
+
+metrics:
+  - name: total_revenue
+    type: simple
+    label: Total Revenue
+    type_params:
+      measure: order_total
+  - name: revenue_30d
+    type: cumulative
+    label: Revenue (30-day rolling)
+    type_params:
+      measure: order_total
+      window: 30 days</code></pre>
+
+        <p>The Semantic Layer is dbt's answer to the "metrics are defined differently in every BI tool" problem. It's still maturing, but for teams running multiple BI tools consuming the same dbt project, it's the right architectural direction — define the metric once, query it consistently everywhere.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snowflake Cortex AI Deep Dive: LLMs Inside Your Data Warehouse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Snowflake Cortex AI Deep Dive: LLMs Inside Your Data Warehouse</h1>
+        <div class="article-meta">
+          <span>📅 December 12, 2024</span>
+          <span>📖 14 min read</span>
+          <span>☁️ Cloud</span>
+          <span>🏷️ AI Agents</span>
+          <span>🔧 Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Snowflake's pitch with Cortex AI is compelling: what if you didn't need a separate LLM infrastructure layer at all? What if you could run <code>SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-70b', 'Summarize this contract: ' || contract_text) FROM contracts</code> and get AI-powered results on your existing data, billed to your existing Snowflake contract, governed by your existing Snowflake access controls? No API keys. No separate vector database. No orchestration infrastructure.</p>
+
+        <p>For organizations that are already Snowflake-native, Cortex AI is genuinely worth serious evaluation. For organizations that aren't, the question is whether the workflow simplicity is worth any trade-offs in model selection and flexibility. This article covers the full Cortex AI product surface — LLM functions, Cortex Search (hybrid RAG), Cortex Analyst (text-to-SQL), Document AI, and Arctic — with honest assessments of where it works, where it doesn't, and how costs actually add up.</p>
+
+        <h2>The Cortex AI Product Surface</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph CortexAI["Snowflake Cortex AI"]
+        LLMFunctions["LLM Functions\nCOMPLETE, SUMMARIZE\nTRANSLATE, SENTIMENT\nEXTRACT_ANSWER"]
+        CortexSearch["Cortex Search\nHybrid vector+BM25\nManaged embedding + index\nRAG without infra"]
+        CortexAnalyst["Cortex Analyst\nText-to-SQL on semantic model\nNatural language → verified SQL"]
+        DocAI["Document AI\nPDF/image extraction\nClassification + field extraction\nno-code document processing"]
+        FinetuningAPI["Cortex Fine-Tuning\nParameter-efficient fine-tuning\non your own Snowflake data"]
+    end
+
+    subgraph Models["Available Models (Dec 2024)"]
+        Arctic["Snowflake Arctic\n(480B MoE, open weights)"]
+        LLaMA["Meta Llama 3.1\n8B / 70B / 405B"]
+        Mistral["Mistral / Mixtral\n7B / 8x7B / 8x22B"]
+        Reka["Reka Flash\n(vision + text)"]
+        GoogleM["Google gemma-7b"]
+    end
+
+    LLMFunctions --> Arctic
+    LLMFunctions --> LLaMA
+    LLMFunctions --> Mistral
+    CortexSearch --> LLMFunctions
+    CortexAnalyst --> LLMFunctions
+          </pre>
+          <p class="diagram-caption">Cortex AI product surface as of December 2024. LLM Functions are the foundation — all higher-level products (Cortex Search, Analyst, Document AI) ultimately call LLM functions internally. The key constraint: no GPT-4 or Claude access; models are limited to open-weights models Snowflake hosts directly.</p>
+        </div>
+
+        <h2>LLM Functions: SQL-Native AI</h2>
+
+        <p>Cortex LLM functions are SQL scalar functions that call hosted LLMs as part of a query. They run inside Snowflake's compute infrastructure — no external API calls, no data leaving Snowflake, governed by existing Snowflake RBAC.</p>
+
+        <pre><code class="language-sql">-- Summarize customer support tickets using Llama 3.1 70B
+SELECT
+    ticket_id,
+    created_at,
+    SNOWFLAKE.CORTEX.SUMMARIZE(ticket_text)          AS summary,
+    SNOWFLAKE.CORTEX.SENTIMENT(ticket_text)           AS sentiment,    -- returns float -1 to 1
+    SNOWFLAKE.CORTEX.CLASSIFY_TEXT(
+        ticket_text,
+        ['billing', 'technical', 'account', 'other']
+    ):label::STRING                                   AS category
+FROM support_tickets
+WHERE created_at >= DATEADD(day, -7, CURRENT_DATE());
+
+-- Extract structured fields from unstructured text
+SELECT
+    contract_id,
+    SNOWFLAKE.CORTEX.COMPLETE(
+        'mistral-large2',
+        CONCAT(
+            'Extract the following fields from this contract as JSON: ',
+            '{"start_date": "", "end_date": "", "total_value": "", "parties": []}. ',
+            'Contract: ', contract_text
+        )
+    )::VARIANT AS extracted_fields
+FROM contracts;</code></pre>
+
+        <p>The available functions cover the most common NLP tasks: <code>COMPLETE</code> (free-form generation), <code>SUMMARIZE</code> (optimized summarization shortcut), <code>SENTIMENT</code> (returns a score), <code>TRANSLATE</code> (language translation), <code>EXTRACT_ANSWER</code> (extractive QA from a context), <code>CLASSIFY_TEXT</code> (multi-class classification), and <code>EMBED_TEXT_768/1024</code> (generate embeddings for semantic search). All are SQL functions, composable with standard SQL.</p>
+
+        <div class="callout warning">
+          <p><strong>Model availability by region:</strong> Cortex AI model availability varies by Snowflake region. Not all models are available in all regions — particularly EU regions have a smaller model menu due to data sovereignty requirements. Check the Snowflake docs for your specific region before designing workflows around a specific model. The <code>snowflake.cortex.get_service_status('mistral-large2')</code> function tells you if a model is available in your account.</p>
+        </div>
+
+        <h2>Cortex Search: Managed RAG Without Infrastructure</h2>
+
+        <p>Cortex Search (GA Q4 2024) is the most significant Cortex product for data teams that want RAG without building or managing a vector database. You create a "Cortex Search Service" pointing at a Snowflake table (or view) with a text column, and Snowflake automatically handles embedding, indexing, and hybrid search (dense vector + BM25 keyword). The service stays synchronized as the source table changes.</p>
+
+        <pre><code class="language-sql">-- Create a Cortex Search service on a documents table
+CREATE CORTEX SEARCH SERVICE product_docs_search
+    ON doc_text                          -- column to embed + index
+    ATTRIBUTES category, updated_at     -- filterable metadata columns
+    WAREHOUSE = cortex_wh
+    TARGET_LAG = '1 hour'              -- how often to sync with source
+AS (
+    SELECT
+        doc_id,
+        title,
+        doc_text,
+        category,
+        updated_at
+    FROM product_documentation
+    WHERE is_published = TRUE
+);</code></pre>
+
+        <pre><code class="language-python">from snowflake.cortex import CortexSearchService
+
+# Query the search service from Python
+service = CortexSearchService(
+    session=snowflake_session,
+    service_name="product_docs_search"
+)
+
+results = service.search(
+    query="How do I configure SSO with Okta?",
+    columns=["title", "doc_text"],
+    filter={"@eq": {"category": "authentication"}},  # metadata filter
+    limit=5
+)
+
+# Build RAG prompt with retrieved chunks
+context = "\n---\n".join([r["doc_text"] for r in results.results])
+answer = snowflake.cortex.Complete(
+    "mistral-large2",
+    f"Answer based on context:\n{context}\n\nQuestion: {query}"
+)</code></pre>
+
+        <p>Cortex Search's hybrid search (vector + keyword) is particularly valuable for technical documentation and code — keyword search finds exact terms (function names, error codes, product names) that semantic search alone misses. The managed sync eliminates one of the hardest operational problems in DIY RAG: keeping the vector index in sync with source data changes.</p>
+
+        <p>The limitation: Cortex Search is Snowflake-specific and uses Snowflake's own embedding models (<code>snowflake-arctic-embed-m</code> or <code>-l</code> variants). You can't bring your own embedding model or swap to a different model per-document. For most enterprise document search use cases, this is fine. For specialized domains (genomics, legal, code) where domain-specific fine-tuned embeddings outperform general-purpose ones, the inflexibility matters.</p>
+
+        <h2>Cortex Analyst: Text-to-SQL on Your Semantic Model</h2>
+
+        <p>Cortex Analyst is Snowflake's answer to the "can I ask questions about my data in English?" problem — executed properly, as a semantic model layer rather than raw schema-to-SQL. You define a semantic model YAML file describing your tables, measures, dimensions, and their business meaning, and Cortex Analyst uses it to generate verified SQL.</p>
+
+        <pre><code class="language-yaml"># semantic_model.yaml — the layer between natural language and SQL
+name: Sales Analytics
+tables:
+  - name: orders
+    base_table:
+      database: ANALYTICS
+      schema: PROD
+      table: FCT_ORDERS
+    dimensions:
+      - name: order_date
+        expr: order_date
+        data_type: date
+        label: Order Date
+      - name: customer_region
+        expr: c.region
+        data_type: varchar
+        label: Customer Region
+    measures:
+      - name: total_revenue
+        expr: SUM(order_total)
+        data_type: number
+        label: Total Revenue
+        description: "Sum of order_total for completed orders only"
+        filters:
+          - expr: order_status = 'completed'
+      - name: order_count
+        expr: COUNT(DISTINCT order_id)
+        label: Number of Orders</code></pre>
+
+        <p>With this semantic model, a business user can ask "What was total revenue by region in Q3?" and Cortex Analyst generates the correct SQL — not by guessing column names from raw schema, but by mapping business terms to verified SQL expressions. This is substantially more reliable than naive text-to-SQL approaches that hallucinate column names or miss business logic (like the <code>order_status = 'completed'</code> filter that belongs on revenue but not on order count).</p>
+
+        <p>The honest assessment: Cortex Analyst works well for well-defined metrics on clean dimensional models. It struggles with complex multi-step analyses, ambiguous business terms, and ad-hoc exploratory questions that require understanding data distribution before formulating the query. It's a genuinely useful tool for business users asking standard questions about standard reports — not a replacement for a data analyst on novel analytical tasks.</p>
+
+        <h2>Document AI: Unstructured Document Processing</h2>
+
+        <p>Document AI processes PDFs, scanned images, and unstructured documents at scale — extracting structured fields (dates, names, amounts, entities) without hand-crafted parsers. The typical workflow: upload documents to a Snowflake stage, create a Document AI build, define the fields to extract, review a sample to verify accuracy, then process the full corpus as a SQL query.</p>
+
+        <pre><code class="language-sql">-- Extract fields from invoices using Document AI
+-- (After building and reviewing a Document AI model in the UI)
+
+SELECT
+    RELATIVE_PATH,
+    doc_ai_model!PREDICT(
+        GET_PRESIGNED_URL('@invoice_stage', RELATIVE_PATH), 1
+    ) AS extracted
+FROM DIRECTORY('@invoice_stage')
+WHERE RELATIVE_PATH LIKE '%.pdf';
+
+-- Access individual extracted fields
+SELECT
+    RELATIVE_PATH,
+    extracted:invoice_number::VARCHAR AS invoice_number,
+    extracted:invoice_date::DATE      AS invoice_date,
+    extracted:total_amount::FLOAT     AS total_amount,
+    extracted:vendor_name::VARCHAR    AS vendor_name
+FROM (
+    SELECT RELATIVE_PATH, doc_ai_model!PREDICT(...) AS extracted
+    FROM DIRECTORY('@invoice_stage')
+);</code></pre>
+
+        <p>Document AI is genuinely useful for finance teams processing invoices, legal teams extracting contract terms, and HR teams processing resumes — tasks that previously required custom OCR pipelines or expensive third-party services. The in-Snowflake execution means extracted data lands directly in your data warehouse with no ETL step and full lineage.</p>
+
+        <h2>Cost Model: Tokens, Credits, and Surprises</h2>
+
+        <p>Cortex AI functions are billed in tokens, but tokens are charged as Snowflake credits (not a separate API budget). This is important: a Cortex LLM function call consumes Snowflake credits from your warehouse, not a separate AI budget line item. In practice this means:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Model</th><th>Tokens per credit</th><th>Effective $/1M tokens (at $3/credit)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Llama 3.1 8B</td><td>200,000</td><td>$15</td></tr>
+              <tr><td>Llama 3.1 70B</td><td>25,000</td><td>$120</td></tr>
+              <tr><td>Mistral 7B</td><td>200,000</td><td>$15</td></tr>
+              <tr><td>Mixtral 8x7B</td><td>33,333</td><td>$90</td></tr>
+              <tr><td>mistral-large2</td><td>5,000</td><td>$600</td></tr>
+              <tr><td>Snowflake Arctic</td><td>100,000</td><td>$30</td></tr>
+              <tr><td>EMBED_TEXT_768</td><td>500,000 tokens</td><td>$6</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The premium for mistral-large2 (Snowflake's most capable generally-available model as of late 2024) is significant — 12x more expensive than Llama 8B. For batch summarization or classification tasks, Llama 8B or Mistral 7B is usually sufficient and dramatically cheaper. Save mistral-large2 for tasks where quality genuinely matters: complex extractions, nuanced generation, Cortex Analyst query generation.</p>
+
+        <div class="callout">
+          <p><strong>The "run AI on all your historical data" trap:</strong> Cortex makes it trivially easy to run <code>SELECT SNOWFLAKE.CORTEX.SUMMARIZE(text) FROM my_table</code> on millions of rows. The first time you do this on a 10M-row table, the credit bill can be shocking. Always test on a sample (<code>LIMIT 1000</code>), calculate the per-row cost, multiply by row count, and compare against your monthly budget before running batch AI at scale. Use <code>SHOW FUNCTIONS LIKE 'COMPLETE'</code> to check current token rates in your region.</p>
+        </div>
+
+        <h2>Snowflake Arctic: The Open-Weights Model</h2>
+
+        <p>Snowflake Arctic is Snowflake's own open-weights LLM, released in April 2024. It's a 480B parameter mixture-of-experts (MoE) model — 128 expert layers but only a small subset activate per token, making inference cheaper than a dense 480B model would be. Arctic was optimized specifically for enterprise tasks: SQL generation, code, and data transformation — not creative writing or general reasoning.</p>
+
+        <p>In practice, Arctic performs well on structured data tasks (SQL, JSON extraction, data transformation instructions) and is priced attractively within Cortex. For general conversation quality, Llama 3.1 70B is stronger. The "open weights" aspect is meaningful: Arctic's weights are available on Hugging Face under the Apache 2.0 license, so you can self-host it outside Snowflake if needed.</p>
+
+        <h2>When Cortex AI Wins vs. External LLM APIs</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>Cortex AI advantage</th>
+                <th>External API advantage</th>
+                <th>Verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Batch processing millions of rows</td>
+                <td>SQL-native, scales with Snowflake compute, no API rate limits</td>
+                <td>GPT-4 / Claude quality</td>
+                <td>Cortex wins (cost + simplicity)</td>
+              </tr>
+              <tr>
+                <td>Real-time user-facing chatbot</td>
+                <td>Governed by Snowflake IAM</td>
+                <td>Lower latency, GPT-4o / Claude quality</td>
+                <td>External API wins (latency + quality)</td>
+              </tr>
+              <tr>
+                <td>RAG over Snowflake data</td>
+                <td>Cortex Search, no vector DB needed, data stays in Snowflake</td>
+                <td>Custom embedding models</td>
+                <td>Cortex wins (simplicity)</td>
+              </tr>
+              <tr>
+                <td>Text-to-SQL for business users</td>
+                <td>Cortex Analyst + semantic model = verified SQL</td>
+                <td>More models to choose from</td>
+                <td>Cortex wins (semantic model integration)</td>
+              </tr>
+              <tr>
+                <td>Complex multi-step AI agents</td>
+                <td>Limited agent framework</td>
+                <td>LangChain, LangGraph, CrewAI ecosystem</td>
+                <td>External wins (ecosystem)</td>
+              </tr>
+              <tr>
+                <td>Data governance / compliance</td>
+                <td>Data never leaves Snowflake, existing IAM applies</td>
+                <td>Requires data egress policies</td>
+                <td>Cortex wins (compliance)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The clearest Cortex AI use cases: batch document processing on large tables in Snowflake, semantic search over Snowflake-managed documents, and text-to-SQL for non-technical users on well-defined metrics. The clearest cases for external APIs: user-facing latency-sensitive applications, tasks requiring frontier model quality (GPT-4o, Claude), and complex agentic workflows that need a full orchestration framework.</p>
+
+        <p>Most Snowflake-native organizations end up running both: Cortex for data-warehouse-side AI (batch enrichment, self-serve analytics), external LLM APIs for application-side AI (user-facing features, complex agents). The data governance story is Cortex's strongest argument — if your compliance team is nervous about sending customer data to an external API, Cortex eliminates that conversation entirely.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

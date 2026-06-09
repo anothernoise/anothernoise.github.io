@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Mesh: What Actually Works and What Doesn't — Lessons from the Field</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Data Mesh: What Actually Works and What Doesn't — Lessons from the Field</h1>
+        <div class="article-meta">
+          <span>📅 April 10, 2023</span>
+          <span>📖 17 min read</span>
+          <span>🏷️ Data Engineering</span>
+          <span>🔧 Architecture</span>
+          <span>☁️ Cloud</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Data Mesh is the most discussed and least understood architecture pattern in modern data engineering. Zhamak Dehghani's 2019 article and 2022 book introduced a paradigm shift that resonated deeply with organizations frustrated by centralized data teams that became bottlenecks. Three years later, having seen multiple enterprise implementations — some successful, many not — the gap between the theory and the reality is wide enough to drive a data warehouse through.</p>
+
+        <p>The theory is compelling: treat data as a product, give domain teams ownership of their data, federate governance, and build a self-serve platform so domains don't need a central team to publish or consume data. The reality: most organizations attempting Data Mesh discover that the organizational problem is much harder than the technical problem, and the technical problem is already quite hard.</p>
+
+        <p>This isn't an argument against Data Mesh. It's an argument for going in clear-eyed about what you're signing up for.</p>
+
+        <h2>The Four Principles, Revisited</h2>
+
+        <p>Dehghani's original framework has four principles. Let's look at what each one actually means in practice:</p>
+
+        <h3>1. Domain Ownership</h3>
+        <p><strong>Theory:</strong> The team that understands the data best — the domain team — owns and publishes it as a product.</p>
+        <p><strong>Reality:</strong> Domain teams are hired to build and operate their domain's product, not to become data engineers. Finance builds financial products. Engineering builds engineering products. Nobody hired them to maintain data pipelines, write dbt models, or respond to data quality SLA breaches at 2am. When you give domain teams data ownership without giving them data engineering capacity, you create new bottlenecks with worse on-call coverage.</p>
+        <p><strong>What works:</strong> Embedded data engineers within domain teams, or a data platform team that provides templates, tooling, and guardrails that make producing a compliant data product fast enough that domain teams can do it without becoming data engineering experts.</p>
+
+        <h3>2. Data as a Product</h3>
+        <p><strong>Theory:</strong> Data products have SLAs, documentation, versioning, and quality guarantees — just like software products.</p>
+        <p><strong>Reality:</strong> Most domain teams have never written a data contract, defined a freshness SLA, or managed a deprecation process for a data product. The maturity requirements for "data as a product" are often higher than the domain team's current maturity with data. You're asking teams to adopt product management practices for their data before they've mastered them for their software.</p>
+        <p><strong>What works:</strong> Start with data contracts — a machine-readable schema + quality assertion + SLA agreement between producer and consumer. Tools like Soda Core, Great Expectations, and dbt contracts make this actionable. But keep the initial contract lightweight: schema enforcement + freshness SLA + one quality assertion. Don't require comprehensive documentation before letting teams publish anything.</p>
+
+        <h3>3. Self-Serve Data Infrastructure</h3>
+        <p><strong>Theory:</strong> A central platform team builds tooling that lets domain teams publish and consume data without needing central team involvement.</p>
+        <p><strong>Reality:</strong> This is the part that takes 18-24 months of dedicated platform work before it actually reduces friction for domain teams. Most organizations underestimate the investment and declare the platform "done" when it's merely functional rather than genuinely self-serve. A platform that requires 20 steps, a Jira ticket, and a 2-week SLA is not self-serve — it's just a different kind of central bottleneck.</p>
+        <p><strong>What works:</strong> Focus platform work on the top three friction points domain teams actually hit (not the ones your platform team imagines they hit). Usually: environment provisioning, discovery/search of existing data products, and access request approval. Fix those three things well before building anything else.</p>
+
+        <h3>4. Federated Computational Governance</h3>
+        <p><strong>Theory:</strong> A federated governance body sets global policies (data classification, quality standards, security policies) while domain teams implement them locally.</p>
+        <p><strong>Reality:</strong> This requires organizational commitment at the executive level to enforce. Federated governance without enforcement authority becomes a committee that writes documents nobody reads. When a domain team's data product breaks a governance policy and the consequence is "the governance committee writes a sharply worded email," the policy has no teeth.</p>
+        <p><strong>What works:</strong> Policy-as-code, enforced automatically at the platform layer. If your governance policy says all PII fields must be tagged, implement that as a CI check that fails PRs missing PII tags — not a process humans are supposed to follow. Automated enforcement is the only governance that scales across many domain teams.</p>
+
+        <h2>What Actually Works: Real Cases</h2>
+
+        <h3>Zalando (the archetypal success)</h3>
+        <p>Zalando's data mesh implementation is the most cited success story, and it works because Zalando had the organizational prerequisites: mature engineering culture, strong platform engineering teams, and executive commitment to the multi-year investment. Their platform (Nakadi for event streaming, their internal data product catalog) took years of dedicated effort before domain teams could self-serve meaningfully. The lesson: Zalando succeeded because they had the organizational muscle to execute the platform work — not because the Data Mesh pattern is easy to implement.</p>
+
+        <h3>Large Financial Institutions (the common struggle)</h3>
+        <p>Financial institutions attempting Data Mesh consistently hit the same wall: regulatory data lineage requirements conflict with the decentralized ownership model. When regulators need to trace a number from a report back to its source, "the Finance domain team owns that data, ask them" doesn't satisfy a regulatory audit. Central data lineage tooling (Collibra, Purview, Unity Catalog) has to span domain boundaries — which requires a level of central coordination that Data Mesh was trying to eliminate. Most end up running a hybrid: domain ownership for operational data products, central ownership for regulatory/reporting data.</p>
+
+        <h3>Mid-Size Tech Companies (the sweet spot)</h3>
+        <p>Organizations with 500-2000 engineers, reasonably mature engineering culture, and 3-5 distinct data domains (Product, Finance, Marketing, Engineering, Support) have the best Data Mesh success rate. They have enough organizational complexity to benefit from domain ownership, but not so much that federated governance becomes a coordination nightmare. If you're in this range, Data Mesh is worth evaluating seriously.</p>
+
+        <div class="callout warning">
+          <p><strong>The organizational anti-pattern:</strong> Data Mesh attempted by organizations where the data team is small (under 10 people), data maturity is low, and the primary problem is "we don't have enough data engineers" — not "our central data team is a bottleneck." Data Mesh doesn't solve data team capacity problems. It redistributes the problem. If you have 5 data engineers serving 500 domain users, Data Mesh turns those 5 engineers into a platform team and hopes domain teams fill the gap. They usually can't.</p>
+        </div>
+
+        <h2>Architecture: What a Real Data Mesh Looks Like</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph Platform["Self-Serve Data Platform"]
+        Catalog["Data Catalog\n(discovery + lineage)"]
+        Templates["Data Product Templates\n(IaC, pipeline scaffolding)"]
+        Governance["Governance Enforcement\n(policy-as-code, CI checks)"]
+        Access["Access Management\n(self-serve IAM, attribute-based)"]
+    end
+
+    subgraph Domains["Domain Teams (examples)"]
+        Finance["Finance Domain\nP&L data product\nFraud signals product"]
+        Product["Product Domain\nUser events product\nFeature usage product"]
+        Ops["Operations Domain\nInventory product\nFulfillment product"]
+        Marketing["Marketing Domain\nCampaign data product\nAttribution product"]
+    end
+
+    subgraph Consumers["Data Consumers"]
+        Analytics["Analytics / BI Teams"]
+        MLPipelines["ML Training Pipelines"]
+        External["External API consumers"]
+    end
+
+    Platform --> Finance
+    Platform --> Product
+    Platform --> Ops
+    Platform --> Marketing
+
+    Finance -->|"publish via\nplatform mesh bus"| Catalog
+    Product --> Catalog
+    Ops --> Catalog
+    Marketing --> Catalog
+
+    Catalog --> Analytics
+    Catalog --> MLPipelines
+    Catalog --> External
+          </pre>
+          <p class="diagram-caption">A Data Mesh topology. The platform team provides the infrastructure and tools; domain teams own and publish their data products through the platform; consumers discover and access data through the catalog. The platform team's job is to make publishing a compliant data product as easy as deploying a microservice.</p>
+        </div>
+
+        <h2>Data Mesh on AWS vs Azure vs GCP vs On-Premises</h2>
+
+        <h3>AWS</h3>
+        <p>AWS Lake Formation provides the access control layer for a Data Mesh: LF-Tags for attribute-based access control, data sharing across AWS accounts via RAM (Resource Access Manager), and Glue Data Catalog as the central metadata store. The <strong>AWS Data Mesh pattern</strong> uses separate AWS accounts per domain (account-per-domain isolation), with the Glue catalog shared via Lake Formation across accounts. Cross-account table sharing means the Finance domain's data stays in the Finance AWS account, but the Marketing team can query it via their Athena without copying it.</p>
+        <p>The gap: Glue Catalog's search and discovery UX is poor. Most AWS Data Mesh implementations layer a dedicated catalog (DataHub, open-source; Collibra or Atlan, commercial) on top of Glue metadata. AWS also lacks a native Data Mesh "product" abstraction — you're assembling it from Lake Formation + Glue + S3 + potentially DynamoDB for catalog metadata.</p>
+
+        <h3>Azure</h3>
+        <p>Microsoft Purview is the closest thing to a native Data Mesh catalog layer on Azure. It supports automated lineage scanning, data classification, and policy enforcement — but as we've discussed in other articles, its enforcement is external to the query engine, not in-engine. For Data Mesh governance (consistent access control across domain data products), Unity Catalog on Azure Databricks is the stronger technical choice — in-engine enforcement, ABAC policies, and cross-workspace federation. Microsoft Fabric's OneLake Shortcuts enable the zero-copy data sharing model that Data Mesh requires: domain teams keep data in their OneLake workspace; other domains mount it via shortcuts without copying.</p>
+
+        <h3>GCP</h3>
+        <p>GCP's <strong>Dataplex</strong> is the native Data Mesh orchestration service — explicitly designed for the Data Mesh pattern. Dataplex organizes data into "lakes" and "zones" (roughly mapping to domains and data product tiers), manages metadata, enforces data quality with automated scanning, and integrates with Dataproc, BigQuery, and Cloud Storage. BigQuery's column-level security and row-level access policies make it the strongest per-domain access control story of the three major clouds. For pure Data Mesh topology, GCP's native tooling is the most opinionated (and therefore requires the least assembly) of the three.</p>
+
+        <h3>On-Premises</h3>
+        <p>On-premises Data Mesh is possible but significantly harder. Without cloud-native IAM and cross-service access control, you're typically implementing the mesh bus with Apache Kafka (domain events), the catalog with Apache Atlas or Collibra, and the access control layer with Apache Ranger (for Hadoop ecosystem) or custom authorization services. The self-serve platform is entirely hand-built. The organizations that make it work on-premises are either Kafka-native shops that can extend their streaming infrastructure, or highly mature data engineering organizations with dedicated platform teams. Most on-premises Data Mesh attempts produce a catalog and some documentation, never reaching the self-serve or federated governance capabilities.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Cloud / Env</th>
+                <th>Catalog</th>
+                <th>Data Sharing</th>
+                <th>Access Control</th>
+                <th>Mesh Native?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>AWS</strong></td>
+                <td>Glue + DataHub overlay</td>
+                <td>Lake Formation RAM sharing</td>
+                <td>LF-Tags (ABAC)</td>
+                <td>No (assembled)</td>
+              </tr>
+              <tr>
+                <td><strong>Azure</strong></td>
+                <td>Purview + Unity Catalog</td>
+                <td>OneLake shortcuts / Delta Sharing</td>
+                <td>Unity Catalog (in-engine)</td>
+                <td>Partial</td>
+              </tr>
+              <tr>
+                <td><strong>GCP</strong></td>
+                <td>Dataplex + Data Catalog</td>
+                <td>BigQuery Analytics Hub</td>
+                <td>BigQuery column/row policies</td>
+                <td>Yes (Dataplex)</td>
+              </tr>
+              <tr>
+                <td><strong>On-Prem</strong></td>
+                <td>Apache Atlas / Collibra</td>
+                <td>Custom / Kafka</td>
+                <td>Apache Ranger</td>
+                <td>No (fully custom)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>The Data Product Contract: What it Should Contain</h2>
+
+        <p>A data product contract is the foundational governance artifact in a Data Mesh. Here's a minimal but meaningful version in YAML — parseable by tooling, readable by humans:</p>
+
+        <pre><code class="language-yaml">apiVersion: datacontract/v1
+kind: DataProduct
+metadata:
+  name: orders-daily-summary
+  domain: commerce
+  owner: commerce-data@company.com
+  version: "2.1.0"
+  status: active
+
+interface:
+  type: table
+  engine: bigquery          # or: snowflake, databricks, athena
+  location: project.dataset.orders_daily_summary
+  schema_location: gs://schemas/commerce/orders_daily_summary_v2.json
+
+quality:
+  freshness_sla: 2h          # data must be no older than 2h by 09:00 UTC
+  completeness:
+    - column: order_id
+      assertion: not_null
+      threshold: 1.0         # 100% — no nulls allowed
+  custom_checks:
+    - name: revenue_positive
+      sql: "SELECT COUNT(*) FROM {{table}} WHERE gross_revenue < 0"
+      expected: 0
+
+governance:
+  classification: INTERNAL   # PUBLIC | INTERNAL | CONFIDENTIAL | RESTRICTED
+  pii_fields: []
+  retention_days: 365
+
+consumers:
+  - team: finance-analytics
+    access_level: read
+    approved_since: "2023-01-15"</code></pre>
+
+        <p>This contract is machine-readable: your CI pipeline can validate schema changes, your data quality framework runs the checks automatically, your catalog ingests the metadata, and your access control layer provisions permissions based on the consumers list. This is policy-as-code — the only governance that actually scales.</p>
+
+        <h2>The Honest Assessment: When to Do Data Mesh</h2>
+
+        <p><strong>Do Data Mesh when:</strong> You have 3+ distinct data-producing domains, your central data team is genuinely a bottleneck (not just understaffed), you have organizational commitment for an 18-month platform investment, and you can embed data engineering capability in domain teams.</p>
+
+        <p><strong>Don't do Data Mesh when:</strong> Your primary problem is data team headcount. You have a small data team serving few domains. Your domains lack engineering maturity to own data products. You're in a highly regulated industry where cross-domain lineage traceability is a compliance requirement that centralization makes easier.</p>
+
+        <p><strong>Consider a hybrid:</strong> Most real-world implementations end up here — domain ownership for operational data products, central ownership for critical cross-domain entities (customer, product, transaction master data) and regulatory reporting. This isn't a failure mode. It's a pragmatic acknowledgment that the pure Data Mesh model optimizes for developer velocity over regulatory compliance, and most organizations need both.</p>
+
+        <div class="callout tip">
+          <p><strong>The one thing that predicts Data Mesh success more than any technical choice:</strong> whether domain teams have a data engineer (or someone with equivalent skills) embedded within them. Not a liaison, not an on-call contact — someone who sits in team standups and owns data product quality as part of their job. Without this, domain ownership is a org chart change with no capability change, and the central team just gets different (not fewer) requests.</p>
+        </div>
+
+        <p>Data Mesh isn't wrong. The organizational problems it solves are real. But it's a 3-5 year organizational transformation, not a 6-month platform project. The organizations that succeed treat it as the former and invest accordingly. The ones that struggle treat it as the latter and wonder why the central bottleneck just moved somewhere else.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2023 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

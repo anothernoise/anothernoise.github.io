@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vector Databases Compared: Pinecone vs Weaviate vs Qdrant vs pgvector vs FAISS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true, theme: 'dark', themeVariables: { primaryColor: '#1e3a5f', primaryTextColor: '#c9d4e0', primaryBorderColor: '#2d5a8e', lineColor: '#4a7aaa', secondaryColor: '#0d1f35', tertiaryColor: '#0a1628', background: '#090d1b', mainBkg: '#0d1f35', nodeBorder: '#2d5a8e', clusterBkg: '#0a1628', titleColor: '#d4a540', edgeLabelBackground: '#0d1f35' } });
+  </script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Vector Databases Compared: Pinecone vs Weaviate vs Qdrant vs pgvector vs FAISS</h1>
+        <div class="article-meta">
+          <span>📅 January 20, 2025</span>
+          <span>📖 17 min read</span>
+          <span>🏷️ AI Agents</span>
+          <span>🔧 Architecture</span>
+          <span>🏷️ Data Engineering</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Every RAG tutorial starts with "install a vector database." Few tutorials explain what a vector database actually is, why the indexing algorithm you choose matters more than the database brand, what "filtered vector search" actually costs, or when you should be using pgvector on your existing Postgres instead of adding yet another database to your infrastructure. Let's fix that.</p>
+
+        <p>This article is the foundation you'll want before reading the RAG on GCP article — understand the vector storage layer first, then the managed RAG services that sit on top of it. We'll cover the indexing algorithms (HNSW vs IVFFlat vs ScaNN vs DiskANN), the filtering problem that breaks most vector DB benchmarks, and an honest comparison of the main players with real cost numbers.</p>
+
+        <h2>What a Vector Database Actually Does</h2>
+
+        <p>A vector database solves one problem: given a query vector <strong>q</strong> and a collection of N stored vectors, find the K stored vectors most similar to <strong>q</strong> — fast. This is approximate nearest neighbor (ANN) search, and it's a fundamentally different problem from B-tree or hash index lookups in relational databases.</p>
+
+        <p>The "approximate" part is deliberate. Exact nearest neighbor search requires computing distance to every vector in the collection — O(N) time. With 10 million vectors, that's 10 million distance computations per query. ANN algorithms sacrifice a small amount of recall accuracy (missing 1-5% of true nearest neighbors) in exchange for O(log N) or better query time. For most RAG applications, 95% recall is fine.</p>
+
+        <h3>Similarity Metrics</h3>
+        <p>The distance metric used affects both retrieval quality and index performance:</p>
+        <ul>
+          <li><strong>Cosine similarity:</strong> Measures the angle between vectors, ignoring magnitude. Standard for text embeddings. Most embedding models (text-embedding-3, sentence-transformers) produce unit-normalized vectors, in which case cosine = dot product.</li>
+          <li><strong>Dot product:</strong> Faster than cosine (no normalization step). Works correctly when vectors are already unit-normalized — which most modern embedding models guarantee.</li>
+          <li><strong>L2 (Euclidean):</strong> Distance in Euclidean space. Used for image embeddings and dense numerical features. Inappropriate for text embeddings without normalization.</li>
+          <li><strong>IP (Inner Product):</strong> Same as dot product. Pinecone uses this natively for its most efficient configuration.</li>
+        </ul>
+
+        <h2>Indexing Algorithms: HNSW vs IVFFlat vs ScaNN vs DiskANN</h2>
+
+        <h3>HNSW (Hierarchical Navigable Small World)</h3>
+        <p>The current gold standard for in-memory vector search. HNSW builds a multi-layer graph where each vector is connected to its approximate nearest neighbors. Query traversal starts at the top layer (sparse, long-range connections), descends through layers finding progressively closer neighbors, and terminates at the bottom layer with the final ANN candidates.</p>
+
+        <p>HNSW's two key parameters: <code>M</code> (number of connections per node, default 16) and <code>ef_construction</code> (candidate list size during index build, default 100). Higher M and ef_construction = higher recall, higher memory and build time. At M=16, an HNSW index uses approximately 100-150 bytes per vector dimension — for 1 million 768-dimensional vectors, expect 75-115 GB of RAM just for the index.</p>
+
+        <p>HNSW is used by: Qdrant, Weaviate, pgvector (HNSW index), Milvus, ChromaDB.</p>
+
+        <h3>IVFFlat (Inverted File with Flat Quantization)</h3>
+        <p>Clusters vectors using k-means into N clusters (typically N = sqrt(total_vectors)). At query time, searches only the top-K closest clusters rather than all clusters. Faster index build than HNSW, lower memory, but requires careful tuning of N (number of clusters) and nprobe (how many clusters to search). Under-tuned IVFFlat produces significantly worse recall than HNSW.</p>
+
+        <p>IVFFlat is used by: FAISS (the reference implementation), pgvector (as an alternative to HNSW), Milvus.</p>
+
+        <h3>ScaNN (Scalable Approximate Nearest Neighbors)</h3>
+        <p>Google Research's algorithm, optimized for high-throughput batch queries. ScaNN uses two-phase search: a fast space partition (similar to IVFFlat) followed by asymmetric distance estimation that reuses precomputed quantized representations. ScaNN consistently tops ANN benchmarks for throughput (queries per second) at equivalent recall, outperforming HNSW by 2-10x in throughput while using less memory. The trade-off: ScaNN is harder to tune and less mature tooling compared to HNSW.</p>
+
+        <p>ScaNN is used by: Google's Vertex AI Vector Search, AlloyDB AI (as covered in the RAG on GCP article).</p>
+
+        <h3>DiskANN (Disk-Based ANN)</h3>
+        <p>Microsoft Research's algorithm for datasets too large for RAM. DiskANN indexes vectors on SSD rather than RAM, using graph-based ANN navigation with intelligent prefetching. Enables billion-scale vector search on machines with standard RAM (32-64 GB) that would need terabytes of RAM for HNSW. The latency is higher than in-memory HNSW (milliseconds vs microseconds), but for applications tolerating 10-50ms query latency, DiskANN makes billion-vector search economically feasible.</p>
+
+        <p>DiskANN is used by: Azure AI Search (internally), Weaviate (optional disk-based mode).</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph HNSW["HNSW Graph (3 layers)"]
+        L2A["Layer 2\n(sparse, long range)"]
+        L1A["Layer 1\n(medium density)"]
+        L0A["Layer 0\n(dense, all vectors)"]
+        L2A -->|"navigate to approx region"| L1A
+        L1A -->|"refine neighbors"| L0A
+    end
+
+    subgraph IVF["IVFFlat (k-means clusters)"]
+        C1["Cluster 1\n~1k vectors"]
+        C2["Cluster 2\n~1k vectors"]
+        C3["Cluster 3\n~1k vectors"]
+        CN["...N clusters"]
+        CQ["Query→\nfind closest\n2-4 clusters"]
+        CQ --> C1
+        CQ -.-> C2
+    end
+
+    subgraph SCANN["ScaNN (two-phase)"]
+        SP1["Phase 1: Space partition\n(coarse quantization)"]
+        SP2["Phase 2: Asymmetric\ndistance estimation\n(refined scoring)"]
+        SP1 --> SP2
+    end
+          </pre>
+          <p class="diagram-caption">The three dominant ANN algorithms. HNSW traverses a multi-layer graph from coarse to fine. IVFFlat uses k-means clustering to narrow the search space. ScaNN combines coarse partitioning with efficient asymmetric distance computation for maximum throughput. All three sacrifice small amounts of recall for order-of-magnitude query speedups over brute force.</p>
+        </div>
+
+        <h2>The Filtering Problem</h2>
+
+        <p>Every real-world vector search includes metadata filters: "find the 5 most similar documents, but only from the Finance department, only created after 2024-01-01." This is where ANN benchmarks diverge wildly from production performance — and where vector database design choices become critical.</p>
+
+        <p>Three filtering strategies exist, with different performance profiles:</p>
+
+        <h3>Post-filtering (naive, broken)</h3>
+        <p>Search the full vector index for top-K, then discard results that don't match the filter. If 90% of your corpus is Finance documents and you want only Engineering documents (10%), post-filtering with k=10 returns 10 vectors from ANN search, ~9 of which are Finance (filtered out), leaving ~1 Engineering result. You asked for 5; you get 1. <strong>Do not use post-filtering for selective metadata filters.</strong></p>
+
+        <h3>Pre-filtering (correct, expensive)</h3>
+        <p>First apply the metadata filter to get the candidate set, then run ANN search over only the filtered candidates. Correct results, but slow: if the filtered subset is small (100 vectors), you're doing exact nearest neighbor over 100 vectors (fast). If the filtered subset is large (5M vectors), you're doing ANN over 5M vectors (requires rebuilding a sub-index on the fly or degrading to brute force). Qdrant, Weaviate, and Pinecone all support pre-filtering; efficiency depends on filter selectivity.</p>
+
+        <h3>In-flight filtering (hybrid, best)</h3>
+        <p>Integrates the metadata filter into the ANN graph traversal itself — during HNSW navigation, prune nodes that don't match the filter. This avoids the pre-filtering overhead for large filtered subsets and avoids the correctness problems of post-filtering. Qdrant implements this with its "filterable HNSW" — a graph that maintains separate entry points per filtered payload value. It's the best approach but requires the vector database to have been built with this capability.</p>
+
+        <div class="callout warning">
+          <p><strong>Why most benchmarks don't show you filtering performance:</strong> ANN-Benchmarks (the standard reference benchmark) measures unfiltered recall@10 and QPS. Production RAG queries almost always include metadata filters. When you're choosing a vector database for a production use case, test with realistic filters — especially high-selectivity filters that return a small fraction of your corpus. The QPS rankings change dramatically.</p>
+        </div>
+
+        <h2>Platform-by-Platform Breakdown</h2>
+
+        <h3>Pinecone</h3>
+        <p>The managed-only vector database. No self-hosting, no open-source version. Serverless architecture (pay per query and storage unit, no idle cost) or dedicated pods. Pinecone's index type is proprietary — not HNSW, not IVFFlat — built around approximate nearest neighbor search with metadata filtering. Its managed simplicity is genuine: create an index, upsert vectors, query. No configuration decisions beyond dimension count and metric.</p>
+
+        <p>The downside is cost at scale. Pinecone Serverless bills per write unit (WU) and read unit (RU): at 768 dimensions, 1M upserts costs ~$2 in WUs, and 100k queries at k=10 costs ~$1. Moderate volumes are fine; high-throughput production services at millions of queries/day can get expensive. The other downside: vendor lock-in. Pinecone's index format is not portable — migrating off Pinecone means re-indexing your entire corpus into a different system.</p>
+
+        <h3>Weaviate</h3>
+        <p>Open-source (BSD-3), self-hostable, with Weaviate Cloud as the managed option. Schema-based: you define classes with properties and their data types, and Weaviate enforces them. This schema approach feels more like a database and less like a key-value store. Weaviate's modules system enables in-database embedding generation — you can configure <code>text2vec-openai</code> or <code>text2vec-cohere</code> as a module and have Weaviate call the embedding API automatically during upsert and query.</p>
+
+        <p>Weaviate's multi-tenancy model is strong for SaaS applications: each tenant gets isolated namespaces with separate vectors and configurable resource limits. BM25+vector hybrid search is built in. The self-hosted option requires orchestrating Weaviate's components (standalone or Kubernetes Helm chart), but it works well and the community is active.</p>
+
+        <h3>Qdrant</h3>
+        <p>Open-source (Apache 2.0), written in Rust. Qdrant's focus on production performance shows: it has the fastest insertion throughput of any HNSW-based system I've tested, and its filterable HNSW handles selective metadata filters better than competitors. Qdrant supports named vectors (multiple embeddings per point — e.g., title embedding + body embedding in the same record), sparse vectors (for hybrid sparse+dense search), and quantization (scalar or product quantization to reduce memory by 4-16x with modest recall trade-off).</p>
+
+        <p>Qdrant's gRPC API is significantly faster than REST for high-throughput applications. The Qdrant Cloud managed offering is reasonably priced and genuinely simple to operate. For new self-hosted deployments, Qdrant is my default recommendation in 2025 — it combines performance, production readiness, and pricing that's hard to beat.</p>
+
+        <pre><code class="language-python">from qdrant_client import QdrantClient, models
+
+client = QdrantClient(url="http://localhost:6333")
+
+# Create collection with named vectors for multi-embedding use
+client.create_collection(
+    collection_name="documents",
+    vectors_config={
+        "title": models.VectorParams(size=768, distance=models.Distance.COSINE),
+        "body":  models.VectorParams(size=768, distance=models.Distance.COSINE),
+    }
+)
+
+# Upsert with payload (filterable metadata)
+client.upsert(
+    collection_name="documents",
+    points=[
+        models.PointStruct(
+            id=1,
+            vector={"title": title_embedding, "body": body_embedding},
+            payload={"department": "Finance", "created_at": "2024-06-01", "doc_type": "policy"}
+        )
+    ]
+)
+
+# Filtered search using in-flight filtering (Qdrant filterable HNSW)
+results = client.query_points(
+    collection_name="documents",
+    using="body",
+    query=query_embedding,
+    query_filter=models.Filter(
+        must=[
+            models.FieldCondition(key="department", match=models.MatchValue(value="Finance")),
+            models.FieldCondition(key="created_at", range=models.DatetimeRange(gte="2024-01-01"))
+        ]
+    ),
+    limit=5
+)</code></pre>
+
+        <h3>pgvector</h3>
+        <p>PostgreSQL extension that adds <code>vector</code> data type and HNSW/IVFFlat indexes. If you're already running Postgres, pgvector is the lowest-friction path to vector search — no new service, no new team skill set, no new operational runbook. The limitations are real: pgvector's HNSW implementation is slower than Qdrant's at equivalent recall, and Postgres's shared-memory architecture limits concurrency for high-throughput vector queries. But for applications doing under ~1,000 vector queries/second on corpora under 5M vectors, pgvector on a well-tuned RDS/Cloud SQL instance is completely adequate.</p>
+
+        <pre><code class="language-sql">-- pgvector: create table with vector column
+CREATE TABLE document_chunks (
+    id          BIGSERIAL PRIMARY KEY,
+    doc_id      TEXT NOT NULL,
+    chunk_text  TEXT NOT NULL,
+    embedding   VECTOR(768),          -- 768-dimensional embedding
+    department  TEXT,
+    created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create HNSW index (much faster than IVFFlat for most queries)
+CREATE INDEX ON document_chunks
+    USING hnsw (embedding vector_cosine_ops)
+    WITH (m = 16, ef_construction = 64);
+
+-- Hybrid filtered search
+SELECT doc_id, chunk_text,
+       1 - (embedding <=> $1::vector) AS similarity
+FROM document_chunks
+WHERE department = 'Finance'
+  AND created_at >= '2024-01-01'
+ORDER BY embedding <=> $1::vector
+LIMIT 5;</code></pre>
+
+        <h3>FAISS</h3>
+        <p>Facebook AI Similarity Search is a library, not a database server. You import it in Python, build an index in memory, and query it directly. No server, no persistence (unless you serialize the index to disk manually), no metadata storage (that's your job). FAISS is the right choice for offline batch jobs (embedding a corpus once and querying it thousands of times in a pipeline), research experiments, and as the backend for higher-level frameworks (LangChain, LlamaIndex use FAISS as a local vector store option). It is not the right choice for a persistent production vector search service.</p>
+
+        <h2>Decision Guide: Which One to Choose</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Need</th><th>Best choice</th><th>Why</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Simplest managed path, willing to pay premium</td>
+                <td>Pinecone Serverless</td>
+                <td>No ops, instant setup, pay-per-use</td>
+              </tr>
+              <tr>
+                <td>Self-hosted, best performance + filtering</td>
+                <td>Qdrant</td>
+                <td>Filterable HNSW, Rust speed, named vectors, Apache 2.0</td>
+              </tr>
+              <tr>
+                <td>Already on PostgreSQL, &lt;5M vectors</td>
+                <td>pgvector</td>
+                <td>Zero new infra, HNSW index, SQL joins with metadata</td>
+              </tr>
+              <tr>
+                <td>Multi-tenant SaaS, need schema + modules</td>
+                <td>Weaviate</td>
+                <td>Strong multi-tenancy, built-in embedding modules</td>
+              </tr>
+              <tr>
+                <td>Batch/offline processing, research</td>
+                <td>FAISS</td>
+                <td>Python library, no server overhead, fastest for batch</td>
+              </tr>
+              <tr>
+                <td>Billion-scale, RAM-constrained</td>
+                <td>DiskANN / Azure AI Search</td>
+                <td>Disk-based index, 10-50ms latency, terabyte-scale</td>
+              </tr>
+              <tr>
+                <td>Already in GCP, want managed</td>
+                <td>Vertex AI Vector Search or AlloyDB AI</td>
+                <td>ScaNN performance, GCP-native, no separate infra</td>
+              </tr>
+              <tr>
+                <td>Already in Snowflake, want managed</td>
+                <td>Cortex Search</td>
+                <td>Zero new infra, hybrid search, Snowflake governance</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The pattern I see most in production: teams start with pgvector (zero friction, postgres already running), outgrow it at ~2-5M vectors or ~500 QPS, then migrate to Qdrant for self-hosted or Pinecone/Weaviate Cloud for managed. Very few teams need the billion-scale path; most production RAG systems are under 10M documents and well within HNSW-based solutions' sweet spot.</p>
+
+        <div class="callout tip">
+          <p><strong>The benchmark trap:</strong> ANN-Benchmarks shows Qdrant/Weaviate/pgvector all achieving 95%+ recall@10 at thousands of QPS. These benchmarks use unfiltered search on clean, uniformly distributed embeddings. Your production workload has metadata filters, skewed query distributions, noisy embeddings from chunked documents, and real-world concurrency. Always benchmark with a realistic sample of your actual data and query patterns before committing to a platform — especially if you expect high filter selectivity (returning under 10% of your corpus).</p>
+        </div>
+
+        <p>One final note: the vector database market is consolidating. In 2023, the "best" answer was "use a dedicated vector database." By 2025, every major data platform (Snowflake Cortex Search, AlloyDB AI, Azure AI Search, Elasticsearch, Redis, even MongoDB) has a vector search capability. For most RAG use cases, the question is less "which vector database should I use?" and more "does my existing data platform's vector search capability meet my requirements?" It often does.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2025 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>
