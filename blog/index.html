@@ -84,11 +84,13 @@
               <a href="#" class="tag" data-tag="ai-agents">AI Agents</a>
               <a href="#" class="tag" data-tag="architecture">Architecture</a>
               <a href="#" class="tag" data-tag="data-engineering">Data Engineering</a>
+              <a href="#" class="tag" data-tag="azure">Azure</a>
+              <a href="#" class="tag" data-tag="aws">AWS</a>
+              <a href="#" class="tag" data-tag="gcp">GCP</a>
+              <a href="#" class="tag" data-tag="cloud">Cloud</a>
               <a href="#" class="tag" data-tag="power-bi">Power BI</a>
               <a href="#" class="tag" data-tag="fabric">MS Fabric</a>
               <a href="#" class="tag" data-tag="semantic-models">Semantic Models</a>
-              <a href="#" class="tag" data-tag="cloud">Cloud</a>
-              <a href="#" class="tag" data-tag="gcp">GCP</a>
               <a href="#" class="tag" data-tag="llm-ops">LLM Ops</a>
               <a href="#" class="tag" data-tag="data-mesh">Data Mesh</a>
               <a href="#" class="tag" data-tag="year-review">Year Review</a>
@@ -121,15 +123,6 @@
                 <div class="post-date">May 5, 2026</div>
                 <p class="post-excerpt">Traditional APM doesn't catch LLM failures — quality degradation without errors, prompt drift, silent cost creep, retrieval-generation mismatch. Covers LangSmith, Arize Phoenix, MLflow Tracing, what to measure at each layer, prompt drift detection, cost anomaly alerts, and the minimum instrumentation checklist you need before go-live.</p>
                 <div class="post-meta"><span>📖 15 min read</span><span>🏷️ AI Agents</span><span>☁️ LLM Ops</span></div>
-              </a>
-            </li>
-
-            <li class="post-item" data-tags="power-bi,semantic-models,architecture">
-              <a href="vertipaq-internals.html">
-                <h2 class="post-title">VertiPaq Internals: What's Really Happening When Power BI Loads Your Model</h2>
-                <div class="post-date">March 15, 2026</div>
-                <p class="post-excerpt">Every refresh, 200 MB of raw data becomes a 40 MB in-memory structure that answers complex aggregations in milliseconds. The engine behind this is VertiPaq — and understanding its columnar encoding, SE/FE split, relationship hashmaps, and segment architecture turns model optimization from cargo-cult advice into engineering decisions.</p>
-                <div class="post-meta"><span>📖 14 min read</span><span>🏷️ Power BI</span><span>🔧 VertiPaq</span></div>
               </a>
             </li>
 
@@ -261,6 +254,15 @@
               </a>
             </li>
 
+            <li class="post-item" data-tags="data-engineering,cloud,gcp">
+              <a href="cloudera-hadoop-gcp-dataproc.html">
+                <h2 class="post-title">Migrating from Cloudera Hadoop to GCP Dataproc: War Stories and Lessons Learned</h2>
+                <div class="post-date">June 20, 2024</div>
+                <p class="post-excerpt">Nobody migrates off Cloudera because they want to. The migration is technically straightforward (Spark runs, HDFS maps to GCS, Hive maps to Dataproc Metastore) but the surrounding assumptions — data locality, security model, scheduling, the small-file problem — all need revisiting. 8-month real-world timeline, cost breakdown, and what took twice as long as expected.</p>
+                <div class="post-meta"><span>📖 16 min read</span><span>☁️ GCP</span><span>🔧 Data Engineering</span></div>
+              </a>
+            </li>
+
             <li class="post-item" data-tags="power-bi,semantic-models">
               <a href="power-bi-semantic-models.html">
                 <h2 class="post-title">Power BI &amp; Semantic Models Deep Dive</h2>
@@ -270,12 +272,30 @@
               </a>
             </li>
 
+            <li class="post-item" data-tags="data-engineering,cloud,architecture,azure">
+              <a href="azure-synapse-databricks.html">
+                <h2 class="post-title">Azure Synapse Analytics vs Azure Databricks: Real Architectural Differences and When to Choose</h2>
+                <div class="post-date">April 15, 2024</div>
+                <p class="post-excerpt">The "Synapse vs Databricks?" question comes up in every Azure data platform conversation. Here's the structural answer: Dedicated SQL Pool (MPP) vs Photon + latest Delta, Serverless SQL Pool vs Databricks SQL, Synapse Spark vs Databricks Jobs, and the hybrid pattern most large Azure shops end up running. Real cost numbers included.</p>
+                <div class="post-meta"><span>📖 15 min read</span><span>🏷️ Azure</span><span>🔧 Data Engineering</span></div>
+              </a>
+            </li>
+
             <li class="post-item" data-tags="data-engineering,architecture">
               <a href="dbt-internals.html">
                 <h2 class="post-title">dbt Internals and Best Practices: What Happens When You Run <code>dbt run</code></h2>
                 <div class="post-date">March 20, 2024</div>
                 <p class="post-excerpt">dbt's five-phase compilation pipeline, materializations and incremental strategies in depth, platform differences on Snowflake vs Databricks vs Redshift vs BigQuery, project structure patterns, the 10 most common mistakes, dbt on DuckDB/MotherDuck for local dev, and the Semantic Layer (MetricFlow).</p>
                 <div class="post-meta"><span>📖 16 min read</span><span>🏷️ Data Engineering</span><span>🔧 Architecture</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="data-engineering,cloud,architecture,aws">
+              <a href="aws-kinesis-msk.html">
+                <h2 class="post-title">Amazon Kinesis vs Apache Kafka (MSK): Streaming Data on AWS Without the Regret</h2>
+                <div class="post-date">March 5, 2024</div>
+                <p class="post-excerpt">Kinesis shards, Enhanced Fan-Out, Firehose delivery vs MSK full Kafka API, MSK Serverless, MSK Connect for Debezium CDC. Real cost comparison at 50 MB/s sustained throughput (spoiler: MSK wins by ~4x), the crossover point, and when proprietary Kinesis is actually the right choice.</p>
+                <div class="post-meta"><span>📖 13 min read</span><span>☁️ AWS</span><span>🔧 Data Engineering</span></div>
               </a>
             </li>
 
@@ -298,12 +318,30 @@
               </a>
             </li>
 
+            <li class="post-item" data-tags="data-engineering,cloud,architecture,azure">
+              <a href="azure-data-factory.html">
+                <h2 class="post-title">Azure Data Factory Deep Dive: Pipelines, Data Flows, and When to Stop Using ADF</h2>
+                <div class="post-date">December 5, 2023</div>
+                <p class="post-excerpt">ADF's three-layer architecture (Pipelines, Data Flows, Integration Runtimes), Copy Activity parallelism and partition options, Data Flow cold starts and TTL billing, Tumbling Window vs Schedule triggers, and the honest decision framework for when ADF is the right orchestrator — and when you should reach for Databricks or dbt instead.</p>
+                <div class="post-meta"><span>📖 14 min read</span><span>🏷️ Azure</span><span>🔧 Data Engineering</span></div>
+              </a>
+            </li>
+
             <li class="post-item" data-tags="ai-agents,architecture,year-review">
               <a href="state-ai-engineering-2023.html">
                 <h2 class="post-title">State of AI Engineering 2023: LangChain Explosions, RAG Everywhere, and the Open-Source LLM Surprise</h2>
                 <div class="post-date">November 30, 2023</div>
                 <p class="post-excerpt">GPT-4 raises the baseline, LangChain becomes the most polarizing library in AI engineering, RAG solidifies as the production pattern, Llama 2 surprises everyone, function calling unlocks reliable tool-using agents, and the evaluation problem becomes impossible to ignore. Annual retrospective.</p>
                 <div class="post-meta"><span>📖 14 min read</span><span>🏷️ AI Agents</span><span>📊 Year Review</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="data-engineering,cloud,architecture,aws">
+              <a href="aws-glue.html">
+                <h2 class="post-title">AWS Glue Deep Dive: Crawlers, Job Types, Iceberg Integration, and the Cost Traps</h2>
+                <div class="post-date">November 8, 2023</div>
+                <p class="post-excerpt">The Glue Data Catalog as the cross-service metastore for Athena/EMR/Redshift Spectrum, Crawlers and their DPU billing traps, the three job types (Spark ETL, Ray, Streaming), when to use DynamicFrames vs DataFrames, Iceberg MERGE INTO in Glue 4.0, and the cost traps that bite teams at scale.</p>
+                <div class="post-meta"><span>📖 14 min read</span><span>☁️ AWS</span><span>🔧 Data Engineering</span></div>
               </a>
             </li>
 
@@ -353,6 +391,24 @@
               </a>
             </li>
 
+            <li class="post-item" data-tags="power-bi,semantic-models,architecture">
+              <a href="vertipaq-internals.html">
+                <h2 class="post-title">VertiPaq Internals: What's Really Happening When Power BI Loads Your Model</h2>
+                <div class="post-date">October 20, 2022</div>
+                <p class="post-excerpt">Every refresh, 200 MB of raw data becomes a 40 MB in-memory structure that answers complex aggregations in milliseconds. The engine behind this is VertiPaq — and understanding its columnar encoding, SE/FE split, relationship hashmaps, and segment architecture turns model optimization from cargo-cult advice into engineering decisions.</p>
+                <div class="post-meta"><span>📖 14 min read</span><span>🏷️ Power BI</span><span>🔧 VertiPaq</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="data-engineering,cloud,architecture,aws">
+              <a href="redshift-schema-design.html">
+                <h2 class="post-title">Redshift Physical Schema Design: Distribution Keys, Sort Keys, Skew, and the Lessons That Cost Us Weeks</h2>
+                <div class="post-date">June 10, 2022</div>
+                <p class="post-excerpt">Choosing DISTKEY based on join patterns, how zone maps make compound sort keys powerful, why skew on a status column can make all queries 20x slower, VACUUM strategies for tables with frequent UPDATEs, compression encoding selection, and the physical schema we ended up with after all the hard lessons.</p>
+                <div class="post-meta"><span>📖 17 min read</span><span>☁️ AWS</span><span>🔧 Data Engineering</span></div>
+              </a>
+            </li>
+
             <!-- 2021 -->
             <li class="post-item" data-tags="data-engineering,cloud,year-review">
               <a href="state-data-engineering-2021.html">
@@ -360,6 +416,16 @@
                 <div class="post-date">December 31, 2021</div>
                 <p class="post-excerpt">The year the MDS trifecta (Snowflake + Fivetran + dbt) stopped being a niche stack and started showing up in CFO budgets. Reverse ETL emerges as a category, the lakehouse concept gets serious, data mesh seeds are planted, and the orchestration wars begin. Annual retrospective on the year everything professionalized.</p>
                 <div class="post-meta"><span>📖 12 min read</span><span>🔧 Data Engineering</span><span>📊 Year Review</span></div>
+              </a>
+            </li>
+
+            <!-- 2020 -->
+            <li class="post-item" data-tags="data-engineering,architecture">
+              <a href="oracle-exadata-vs-teradata.html">
+                <h2 class="post-title">Oracle Exadata vs Teradata: The Enterprise Data Warehouse Showdown</h2>
+                <div class="post-date">March 15, 2020</div>
+                <p class="post-excerpt">Two machines that have powered Fortune 500 data warehouses for decades, now facing cloud-native pressure. A deep comparison of Exadata's Smart Scan and HCC compression vs Teradata's AMP architecture and Primary Index design, where each wins, and the honest verdict on both as cloud alternatives arrive.</p>
+                <div class="post-meta"><span>📖 15 min read</span><span>🏗️ Architecture</span><span>🔧 Data Engineering</span></div>
               </a>
             </li>
 
@@ -374,13 +440,12 @@
             <!-- 2026 — expanded -->
             <div class="timeline-year-group" data-year="2026">
               <button class="timeline-year-btn" aria-expanded="true" aria-controls="year-2026">
-                2026 <span class="timeline-year-badge">3</span>
+                2026 <span class="timeline-year-badge">2</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items" id="year-2026">
                 <div class="timeline-item" data-href="ai-agent-memory.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 8, 2026</div><div class="timeline-title">AI Agent Memory</div></div>
                 <div class="timeline-item" data-href="llm-observability.html"><div class="timeline-dot"></div><div class="timeline-date">May 5, 2026</div><div class="timeline-title">LLM Observability</div></div>
-                <div class="timeline-item" data-href="vertipaq-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Mar 15, 2026</div><div class="timeline-title">VertiPaq Internals</div></div>
               </div>
             </div>
 
@@ -407,7 +472,7 @@
             <!-- 2024 — collapsed -->
             <div class="timeline-year-group" data-year="2024">
               <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2024">
-                2024 <span class="timeline-year-badge">7</span>
+                2024 <span class="timeline-year-badge">10</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items collapsed" id="year-2024">
@@ -415,8 +480,11 @@
                 <div class="timeline-item" data-href="snowflake-cortex.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 12, 2024</div><div class="timeline-title">Snowflake Cortex AI</div></div>
                 <div class="timeline-item" data-href="state-ai-engineering-2024.html"><div class="timeline-dot"></div><div class="timeline-date">Nov 30, 2024</div><div class="timeline-title">AI Eng 2024</div></div>
                 <div class="timeline-item" data-href="finops-data-platforms.html"><div class="timeline-dot"></div><div class="timeline-date">Aug 15, 2024</div><div class="timeline-title">FinOps Data Platforms</div></div>
+                <div class="timeline-item" data-href="cloudera-hadoop-gcp-dataproc.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 20, 2024</div><div class="timeline-title">Cloudera → Dataproc</div></div>
                 <div class="timeline-item" data-href="power-bi-semantic-models.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 8, 2024</div><div class="timeline-title">Power BI Models</div></div>
+                <div class="timeline-item" data-href="azure-synapse-databricks.html"><div class="timeline-dot"></div><div class="timeline-date">Apr 15, 2024</div><div class="timeline-title">Synapse vs Databricks</div></div>
                 <div class="timeline-item" data-href="dbt-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Mar 20, 2024</div><div class="timeline-title">dbt Internals</div></div>
+                <div class="timeline-item" data-href="aws-kinesis-msk.html"><div class="timeline-dot"></div><div class="timeline-date">Mar 5, 2024</div><div class="timeline-title">Kinesis vs MSK</div></div>
                 <div class="timeline-item" data-href="spark-performance.html"><div class="timeline-dot"></div><div class="timeline-date">Feb 10, 2024</div><div class="timeline-title">Spark Performance</div></div>
               </div>
             </div>
@@ -424,12 +492,14 @@
             <!-- 2023 — collapsed -->
             <div class="timeline-year-group" data-year="2023">
               <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2023">
-                2023 <span class="timeline-year-badge">5</span>
+                2023 <span class="timeline-year-badge">7</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items collapsed" id="year-2023">
                 <div class="timeline-item" data-href="state-data-engineering-2023.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 31, 2023</div><div class="timeline-title">Data Eng 2023</div></div>
+                <div class="timeline-item" data-href="azure-data-factory.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 5, 2023</div><div class="timeline-title">Azure Data Factory</div></div>
                 <div class="timeline-item" data-href="state-ai-engineering-2023.html"><div class="timeline-dot"></div><div class="timeline-date">Nov 30, 2023</div><div class="timeline-title">AI Eng 2023</div></div>
+                <div class="timeline-item" data-href="aws-glue.html"><div class="timeline-dot"></div><div class="timeline-date">Nov 8, 2023</div><div class="timeline-title">AWS Glue</div></div>
                 <div class="timeline-item" data-href="ms-fabric-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 9, 2023</div><div class="timeline-title">MS Fabric Internals</div></div>
                 <div class="timeline-item" data-href="data-mesh.html"><div class="timeline-dot"></div><div class="timeline-date">Apr 10, 2023</div><div class="timeline-title">Data Mesh</div></div>
                 <div class="timeline-item" data-href="kafka-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Feb 5, 2023</div><div class="timeline-title">Kafka Internals</div></div>
@@ -439,12 +509,14 @@
             <!-- 2022 — collapsed -->
             <div class="timeline-year-group" data-year="2022">
               <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2022">
-                2022 <span class="timeline-year-badge">2</span>
+                2022 <span class="timeline-year-badge">4</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items collapsed" id="year-2022">
                 <div class="timeline-item" data-href="state-data-engineering-2022.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 31, 2022</div><div class="timeline-title">Data Eng 2022</div></div>
                 <div class="timeline-item" data-href="state-ai-engineering-2022.html"><div class="timeline-dot"></div><div class="timeline-date">Nov 30, 2022</div><div class="timeline-title">AI Eng 2022</div></div>
+                <div class="timeline-item" data-href="vertipaq-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Oct 20, 2022</div><div class="timeline-title">VertiPaq Internals</div></div>
+                <div class="timeline-item" data-href="redshift-schema-design.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 10, 2022</div><div class="timeline-title">Redshift Schema</div></div>
               </div>
             </div>
 
@@ -456,6 +528,17 @@
               </button>
               <div class="timeline-year-items collapsed" id="year-2021">
                 <div class="timeline-item" data-href="state-data-engineering-2021.html"><div class="timeline-dot"></div><div class="timeline-date">Dec 31, 2021</div><div class="timeline-title">Data Eng 2021</div></div>
+              </div>
+            </div>
+
+            <!-- 2020 — collapsed -->
+            <div class="timeline-year-group" data-year="2020">
+              <button class="timeline-year-btn collapsed" aria-expanded="false" aria-controls="year-2020">
+                2020 <span class="timeline-year-badge">1</span>
+                <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
+              </button>
+              <div class="timeline-year-items collapsed" id="year-2020">
+                <div class="timeline-item" data-href="oracle-exadata-vs-teradata.html"><div class="timeline-dot"></div><div class="timeline-date">Mar 15, 2020</div><div class="timeline-title">Exadata vs Teradata</div></div>
               </div>
             </div>
 

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migrating from Cloudera Hadoop to GCP Dataproc: War Stories and Lessons Learned</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Migrating from Cloudera Hadoop to GCP Dataproc: War Stories and Lessons Learned</h1>
+        <div class="article-meta">
+          <span>📅 June 20, 2024</span>
+          <span>📖 16 min read</span>
+          <span>☁️ GCP</span>
+          <span>🔧 Data Engineering</span>
+          <span>☁️ Cloud</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Nobody migrates off Cloudera because they want to. You migrate because the on-premises infrastructure contract expired, the hardware refresh would cost more than the GCP bill, or your CDH license renewal quote arrived and made everyone's eyes water. Whatever the trigger, Cloudera → GCP is a multi-month project with more surprises than most teams expect. This is the article I wish existed when we started.</p>
+
+        <p>The good news: the core migration is technically straightforward. Spark jobs run on Dataproc with minimal changes. Hive Metastore maps to Cloud Dataproc Metastore (managed Hive). HDFS maps to GCS. The bad news: the surrounding assumptions — about data locality, network topology, authentication, scheduling, and performance characteristics — all need revisiting.</p>
+
+        <h2>The Cloudera Assumptions That Don't Survive Contact with GCP</h2>
+
+        <h3>1. Data Locality No Longer Exists</h3>
+
+        <p>On Cloudera, Spark schedulers prioritize running tasks on the node where the data lives (HDFS data locality). On Dataproc with GCS, this concept doesn't apply — data always crosses the network from GCS to compute. The mitigating factor: GCS has far better random read performance than HDFS at scale (Google's Colossus behind it), and Dataproc clusters in the same region as the GCS bucket have 10 Gbps+ network bandwidth between compute and storage. But any Spark code that relied on co-located shuffles will behave differently and may need partition tuning.</p>
+
+        <h3>2. Ephemeral Clusters Change Everything</h3>
+
+        <p>Cloudera clusters are persistent: always running, sized for peak load, provisioned once and maintained. Dataproc enables ephemeral clusters: spin up for a job, tear down when done. This is dramatically cheaper (no idle compute) but requires rethinking:</p>
+        <ul>
+          <li><strong>State management:</strong> No persistent HDFS means all intermediate data must go through GCS. Long multi-stage pipelines that previously used HDFS temp directories need to use GCS paths explicitly.</li>
+          <li><strong>Cold start time:</strong> Dataproc cluster creation takes 60–90 seconds for Standard mode (90–120 seconds for Enhanced Flexibility). Budget this into SLA calculations.</li>
+          <li><strong>Hive Metastore:</strong> On Cloudera, the Hive Metastore is on the persistent cluster. On GCP, use Cloud Dataproc Metastore (managed, decoupled from clusters) so metastore survives cluster deletion.</li>
+        </ul>
+
+        <h3>3. Security Model Is Completely Different</h3>
+
+        <p>Cloudera's Kerberos + Ranger/Sentry security model has no direct GCP equivalent. GCP uses IAM service accounts for authentication and IAM policies for authorization. The migration requires:</p>
+        <ul>
+          <li>Map Kerberos principals to GCP service accounts</li>
+          <li>Replace Ranger/Sentry table-level ACLs with BigQuery/Dataproc IAM policies or (better) migrate to Dataplex for governance</li>
+          <li>Update all Spark jobs that use Kerberos authentication — they need to use ADC (Application Default Credentials) instead</li>
+        </ul>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart LR
+    subgraph Before["Cloudera On-Prem"]
+        CDH["CDH Cluster\n(persistent, HDFS)"]
+        HMS["Hive Metastore\n(on cluster)"]
+        Ranger["Ranger/Sentry\nACLs"]
+        Oozie["Oozie / Cron\nScheduler"]
+    end
+
+    subgraph After["GCP Dataproc"]
+        DP["Dataproc Ephemeral Clusters\n(spin up per job)"]
+        DPMS["Cloud Dataproc Metastore\n(persistent, managed)"]
+        IAM["GCP IAM + Dataplex\nGovernance"]
+        Airflow["Cloud Composer\n(Managed Airflow)"]
+        GCS["Google Cloud Storage\n(replaces HDFS)"]
+    end
+
+    CDH -->|Migrates to| DP
+    HMS -->|Migrates to| DPMS
+    Ranger -->|Migrates to| IAM
+    Oozie -->|Migrates to| Airflow
+    CDH -->|Data migrates to| GCS
+          </pre>
+          <p class="diagram-caption">Component mapping from Cloudera CDH to GCP. Each component has a clear GCP equivalent, but the migration is not a direct swap — the architectural model (persistent vs ephemeral) changes everything downstream.</p>
+        </div>
+
+        <h2>The Migration Playbook: Phase by Phase</h2>
+
+        <h3>Phase 1: Inventory and Classify (4–6 weeks)</h3>
+
+        <p>Before moving anything, understand what you have:</p>
+        <ul>
+          <li><strong>Data inventory:</strong> Total HDFS capacity, data by directory, partition structure, file formats, compression codecs. Use <code>hdfs dfs -du -s -h /</code> and custom scripts to map the full picture. Look for files &gt;1 GB (fine for HDFS, fine for GCS) and masses of tiny files (&lt;128 MB) — GCS and Spark both handle these poorly.</li>
+          <li><strong>Job inventory:</strong> Oozie workflows, Hive queries, Spark jobs, shell scripts in cron. Categorize by: frequency, SLA criticality, Spark version required, dependency on Kerberos, usage of HDFS-specific APIs.</li>
+          <li><strong>Dependency mapping:</strong> Which jobs produce data that other jobs consume? Build the dependency graph before migrating anything.</li>
+        </ul>
+
+        <h3>Phase 2: The Small-File Problem (Parallel track)</h3>
+
+        <p>This one will hurt you if you don't address it before the migration. Cloudera HDFS handles millions of small files reasonably well. GCS is an object store — each file is an API call. A Hive table with 50 million 1 KB files will be brutally slow to query via Dataproc, even with Hive's input format optimization.</p>
+
+        <p><strong>Fix before migration:</strong> Run compaction jobs on all tables with many small files. Target 256 MB – 1 GB per file. Use Hive CONCATENATE for ORC, or a Spark job for Parquet:</p>
+
+        <pre><code class="language-python">from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("compact").getOrCreate()
+
+# Compact a Hive table's partitions
+spark.sql("SET spark.sql.files.maxRecordsPerFile = 5000000")
+
+df = spark.table("analytics.events_raw").filter("event_date = '2024-01-01'")
+df.repartition(8)  # target ~8 files per partition
+  .write \
+  .mode("overwrite") \
+  .insertInto("analytics.events_raw")</code></pre>
+
+        <h3>Phase 3: Data Migration with gsutil/Storage Transfer Service</h3>
+
+        <p>For bulk HDFS → GCS migration:</p>
+
+        <pre><code class="language-bash"># Option 1: distcp (runs as a MapReduce job on the cluster)
+hadoop distcp \
+  -m 50 \
+  -bandwidth 1000 \
+  hdfs://namenode:8020/user/hive/warehouse/analytics.db/orders/ \
+  gs://my-bucket/hive/warehouse/analytics.db/orders/
+
+# Option 2: for smaller datasets, gsutil rsync from edge node
+gsutil -m rsync -r \
+  hdfs://namenode:8020/path/ \
+  gs://my-bucket/path/
+
+# Validate: compare file counts and sizes
+hadoop fs -count /user/hive/warehouse/analytics.db/orders/
+gsutil du -s gs://my-bucket/hive/warehouse/analytics.db/orders/</code></pre>
+
+        <h3>Phase 4: Spark Job Migration and Testing</h3>
+
+        <p>The most common Spark code changes required:</p>
+        <ul>
+          <li>Replace <code>hdfs://namenode:8020/path</code> with <code>gs://bucket-name/path</code></li>
+          <li>Replace <code>sc.textFile("hdfs://...")</code> with <code>sc.textFile("gs://...")</code></li>
+          <li>Remove Kerberos <code>UserGroupInformation</code> calls — use GCS connector's ADC instead</li>
+          <li>Update SparkSession configuration: remove HDFS-specific settings, add GCS connector config</li>
+          <li>Replace <code>spark.sql("LOCATION 'hdfs://...'...")</code> table definitions with GCS paths</li>
+        </ul>
+
+        <h2>Performance Surprises</h2>
+
+        <p><strong>GCS is faster than expected for sequential reads, slower for random access:</strong> Columnar formats (Parquet, ORC) with predicate pushdown work excellently on GCS — the sequential read pattern plays to GCS's strengths. Row-oriented formats (Avro, CSV) that require reading large amounts to extract small subsets are noticeably slower than HDFS for the same query.</p>
+
+        <p><strong>Dataproc Shuffle Service reduces cross-node shuffle traffic:</strong> Enable Dataproc Shuffle Service for shuffle-heavy jobs. It routes shuffle data through GCS rather than direct node-to-node, which sounds slower but is faster at scale because it avoids TCP connection overhead between nodes and supports much larger shuffle sizes than in-memory shuffle.</p>
+
+        <p><strong>Preemptible VMs are dangerous without checkpointing:</strong> Preemptible VMs (80% cheaper) are tempting but will cause job failures if used on tasks that don't checkpoint. Use them for worker nodes only, keep the driver and master on standard VMs, and ensure all Spark jobs use checkpoint directories on GCS for long-running tasks.</p>
+
+        <h2>What Took Twice as Long as Expected</h2>
+
+        <p>Honest accounting of where the time actually went:</p>
+        <ul>
+          <li><strong>Oozie → Cloud Composer (Airflow) migration:</strong> Not technically complex, but every Oozie workflow had quirks, undocumented dependencies, and coordination with teams who had forgotten they owned a workflow. Budget 60% more time than estimated.</li>
+          <li><strong>The undocumented Hive UDFs:</strong> Multiple Hive tables had custom UDFs (in JARs on HDFS) that weren't documented anywhere. Discovery was archaeological.</li>
+          <li><strong>Permission archaeology:</strong> Ranger policies had accumulated years of grants, some of which no longer mapped to active users or services. Re-establishing correct GCP IAM took weeks of back-and-forth with stakeholders.</li>
+          <li><strong>Training the team on ephemeral clusters:</strong> Engineers and data scientists accustomed to always-on Jupyter notebooks on Cloudera had to change how they worked. This is a change management problem, not a technical one.</li>
+        </ul>
+
+        <p>Total migration timeline for a medium-large deployment (1.5 PB HDFS, ~300 Spark jobs, 50-person data team): 8 months from kickoff to full cutover, including 6 weeks of parallel running. The infrastructure cost comparison: ~$180K/year on-prem (hardware + licensing) vs ~$65K/year on GCP (with committed use discounts and ephemeral clusters). The savings were real, but the migration cost was approximately $200K in engineering time. Year-3 payback on the investment.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

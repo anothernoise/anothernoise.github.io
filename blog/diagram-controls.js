@@ -50,12 +50,46 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  overflow: auto;
+  box-sizing: border-box;
 }
 .diagram-wrap:fullscreen .diagram-controls,
-.diagram-wrap:-webkit-full-screen .diagram-controls { opacity: 1; }
+.diagram-wrap:-webkit-full-screen .diagram-controls { opacity: 1; top: 1rem; right: 1rem; }
 
-/* SVG zoom target */
-.diagram-wrap svg { transform-origin: center center; transition: transform 0.2s ease; }
+/* SVG fills the fullscreen viewport — override any inline zoom transform */
+.diagram-wrap:fullscreen svg,
+.diagram-wrap:-webkit-full-screen svg {
+  width: auto !important;
+  height: auto !important;
+  max-width: calc(100vw - 4rem) !important;
+  max-height: calc(100vh - 8rem) !important;
+  transform: none !important;
+  display: block;
+}
+
+/* Diagram caption in fullscreen */
+.diagram-wrap:fullscreen .diagram-caption,
+.diagram-wrap:-webkit-full-screen .diagram-caption {
+  position: fixed;
+  bottom: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #8a9ab0;
+  font-size: 0.82rem;
+  font-style: italic;
+  text-align: center;
+  max-width: 80vw;
+  pointer-events: none;
+}
+
+/* Light mode: keep diagram area readable with a soft blue-white background */
+[data-theme="light"] .diagram-wrap {
+  background: rgba(239, 246, 255, 0.9) !important;
+  border-color: #bfdbfe !important;
+}
+
+/* SVG zoom target (non-fullscreen) */
+.diagram-wrap:not(:fullscreen) svg { transform-origin: center center; transition: transform 0.2s ease; }
 
 /* toast */
 .diag-toast {

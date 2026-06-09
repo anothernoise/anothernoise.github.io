@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redshift Physical Schema Design: Distribution Keys, Sort Keys, Skew, and the Lessons That Cost Us Weeks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Redshift Physical Schema Design: Distribution Keys, Sort Keys, Skew, and the Lessons That Cost Us Weeks</h1>
+        <div class="article-meta">
+          <span>📅 June 10, 2022</span>
+          <span>📖 17 min read</span>
+          <span>☁️ AWS</span>
+          <span>🔧 Data Engineering</span>
+          <span>🏗️ Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Redshift is one of those systems where the defaults will let you build something that appears to work — queries run, dashboards load — until the data grows to a real scale and you discover that your schema was quietly working against you the whole time. Amazon has done an admirable job adding automatic table optimization (ATO) in recent years, but understanding the physical design decisions Redshift makes (or that you need to make) is still essential if you want predictable, cost-efficient performance.</p>
+
+        <p>This is a post-mortem and best-practices article. We built a production Redshift-backed analytics platform over 18 months, hit several significant performance walls, and spent weeks diagnosing and redesigning tables. What follows is everything we learned the hard way.</p>
+
+        <h2>Redshift's Physical Data Model: The Mental Model You Need</h2>
+
+        <p>Redshift is a columnar, MPP database. Data is stored column-by-column (allowing queries to read only needed columns), compressed per-column, and distributed across multiple compute nodes (slices). A 2-node ra3.4xlarge cluster has 8 slices — 4 per node. Each row of every table lives on exactly one slice, determined by the distribution style and key.</p>
+
+        <p>The query execution model: for most queries, all slices work in parallel on their local data. Aggregations and joins are performed in parallel per slice, then results are combined on the leader node. The performance goal: minimize the amount of data that must move between slices during a query (called a broadcast or redistribution), and maximize work done locally on each slice.</p>
+
+        <h2>Distribution Styles: The Most Important Physical Decision</h2>
+
+        <p>Redshift offers four distribution styles:</p>
+
+        <h3>KEY Distribution</h3>
+        <p>Rows with the same DISTKEY value are stored on the same slice. If you join two large tables on a column, and both tables have that column as their DISTKEY, the join can happen entirely on each slice without any data movement between nodes — a <strong>colocated join</strong>. This is the best possible join performance in Redshift.</p>
+
+        <p>The golden rule: if Table A and Table B frequently join on <code>customer_id</code>, both should use <code>DISTKEY(customer_id)</code>. A query joining 100M-row orders and 50M-row sessions both distributed on <code>customer_id</code> runs entirely on local data — fast and no inter-node traffic.</p>
+
+        <h3>EVEN Distribution</h3>
+        <p>Rows are distributed round-robin across slices, ensuring even data distribution regardless of data content. Good for tables that don't have a clear join key, or that you never join to other large tables. Queries on EVEN-distributed tables require data redistribution during joins — Redshift broadcasts the smaller table to all slices, which works fine as long as one of the join tables is small.</p>
+
+        <h3>ALL Distribution</h3>
+        <p>A full copy of the table exists on every slice. Great for small dimension tables (under 1–2M rows) that are frequently joined to large fact tables. If the dimension is on ALL, the join needs no data movement — each slice's portion of the fact table can join directly with its local copy of the dimension. Poor choice for large tables — the storage cost multiplies by the number of slices.</p>
+
+        <h3>AUTO Distribution</h3>
+        <p>Amazon's automatic table optimization. For small tables, Redshift starts with ALL distribution. As tables grow, it automatically migrates to EVEN distribution. It's a reasonable default but doesn't choose KEY distribution for you — you need to specify that explicitly if you want colocated joins.</p>
+
+        <h2>Skew: The Silent Performance Killer</h2>
+
+        <p>Skew happens when one or more slices hold significantly more data than others due to a poorly chosen DISTKEY. A query on a skewed table is only as fast as the slowest (most loaded) slice — the other slices finish early and wait.</p>
+
+        <p><strong>The skew trap we fell into:</strong> We chose <code>status</code> as a DISTKEY on our orders table because most queries filtered by status. There were 5 statuses: 'COMPLETED' held 94% of rows. Result: one or two slices were 20x more loaded than others. All queries touching the orders table were bottlenecked on those slices.</p>
+
+        <p>Diagnosing skew:</p>
+
+        <pre><code class="language-sql">-- Check skew by looking at row distribution across slices
+SELECT
+    trim(name) AS table_name,
+    slice,
+    COUNT(*) AS row_count,
+    AVG(COUNT(*)) OVER (PARTITION BY name) AS avg_rows,
+    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (PARTITION BY name), 2) AS pct
+FROM stv_tbl_perm
+JOIN pg_class ON pg_class.oid = stv_tbl_perm.id
+WHERE name = 'orders'
+GROUP BY name, slice
+ORDER BY name, slice;
+
+-- Or use SVV_TABLE_INFO for quick skew check
+SELECT
+    table_name,
+    diststyle,
+    skew_rows,
+    skew_sortkey1
+FROM svv_table_info
+WHERE table_name = 'orders';</code></pre>
+
+        <p>A <code>skew_rows</code> value above 1.05 indicates some skew; above 1.5 is problematic; above 4.0 is a serious performance issue.</p>
+
+        <div class="callout warning">
+          <p><strong>The DISTKEY selection test:</strong> Before choosing a DISTKEY, run <code>SELECT distkey_column, COUNT(*) FROM table GROUP BY 1 ORDER BY 2 DESC LIMIT 20</code>. If the top 5 values account for &gt;50% of rows, that column will create skew. Good DISTKEY candidates have high cardinality and roughly uniform distribution — user IDs, order IDs, customer IDs. Bad candidates: status columns, boolean flags, small-cardinality categorical columns.</p>
+        </div>
+
+        <h2>Sort Keys: Zone Maps and the Block-Skip Magic</h2>
+
+        <p>Sort keys determine the physical sort order of rows on disk within each slice. Redshift maintains per-block statistics called <strong>zone maps</strong>: for each 1 MB data block, Redshift stores the min and max value of the sort key column. When a query has a WHERE clause on the sort key, Redshift skips entire blocks where the queried value falls outside the block's min-max range. For a table sorted by <code>event_date</code>, a query filtering for last 7 days skips all blocks outside that range — dramatically reducing I/O.</p>
+
+        <h3>Compound vs Interleaved Sort Keys</h3>
+
+        <p>Redshift supports two sort key types:</p>
+
+        <p><strong>Compound sort key</strong> (<code>SORTKEY(col1, col2, col3)</code>): Works like a composite index — zone maps are most effective when filtering on the leading column(s). Filtering on col2 alone (without col1) gets poor zone map benefit. Use compound sort keys when your queries consistently filter on the same leading column (e.g., always filter by date first).</p>
+
+        <p><strong>Interleaved sort key</strong> (<code>INTERLEAVED SORTKEY(col1, col2, col3)</code>): Provides roughly equal zone map benefit for any of the sort key columns individually. More flexible for diverse query patterns, but has higher VACUUM cost — interleaved keys must be rebuilt during VACUUM REINDEX, which is much more expensive than standard VACUUM.</p>
+
+        <div class="callout">
+          <p><strong>Practical guidance:</strong> In our experience, Compound sort keys are the right choice for 90% of tables. If 80% of queries filter by <code>event_date</code>, sort by <code>event_date</code> and the zone map benefit is excellent. Interleaved sort keys sound appealing for multi-pattern access, but the VACUUM REINDEX cost is high enough that we stopped using them entirely after one table with 2B rows took 6 hours to VACUUM REINDEX.</p>
+        </div>
+
+        <h2>The VACUUM Problem</h2>
+
+        <p>Unlike PostgreSQL (which Redshift is based on), Redshift does not auto-vacuum by default (though Amazon added automatic vacuum in 2019 for clusters running in maintenance windows). The problem: Redshift marks deleted and updated rows as ghost rows rather than immediately reclaiming space. Over time, tables accumulate ghost rows that are included in scans — you're scanning rows that contribute nothing to the result.</p>
+
+        <pre><code class="language-sql">-- Find tables with high ghost row percentage (unsorted / deleted rows)
+SELECT
+    trim(pgn.nspname) AS schema,
+    trim(a.name) AS table_name,
+    a.rows AS live_rows,
+    a.rows_pre_filter AS total_rows_scanned,
+    ROUND(
+      (a.rows_pre_filter - a.rows) * 100.0 / NULLIF(a.rows_pre_filter, 0),
+      2
+    ) AS ghost_row_pct,
+    a.unsorted_pct
+FROM svv_table_info a
+JOIN pg_namespace pgn ON pgn.oid = a.schema_id
+WHERE (a.rows_pre_filter - a.rows) > 0
+  AND a.rows > 100000
+ORDER BY ghost_row_pct DESC;</code></pre>
+
+        <p>Tables with ghost_row_pct above 20% benefit significantly from VACUUM. For INSERT-only workloads (new data appended, nothing deleted), VACUUM is less necessary. For tables with frequent UPDATEs or DELETEs (SCD Type 2 updates, CDC-applied changes), VACUUM regularly.</p>
+
+        <h2>The Physical Schema We Ended Up With</h2>
+
+        <p>After all the lessons, here's the schema pattern that works well for our largest fact table:</p>
+
+        <pre><code class="language-sql">CREATE TABLE fact_orders (
+    order_id      BIGINT NOT NULL,
+    customer_id   BIGINT NOT NULL,
+    product_id    INT NOT NULL,
+    order_date    DATE NOT NULL,
+    status        VARCHAR(20) NOT NULL ENCODE zstd,
+    amount_cents  BIGINT NOT NULL ENCODE az64,
+    region        VARCHAR(50) ENCODE zstd,
+    -- ...other columns...
+    CONSTRAINT pk_fact_orders PRIMARY KEY (order_id)
+)
+DISTKEY(customer_id)            -- colocated with customer dimension
+COMPOUND SORTKEY(order_date, customer_id)  -- date first (most queries), then customer
+ENCODE AUTO;                    -- let Redshift choose compression per column
+
+-- The companion dimension table
+CREATE TABLE dim_customer (
+    customer_id   BIGINT NOT NULL,
+    customer_name VARCHAR(200) ENCODE zstd,
+    segment       VARCHAR(50) ENCODE zstd,
+    country       CHAR(2) ENCODE bytedict,
+    CONSTRAINT pk_dim_customer PRIMARY KEY (customer_id)
+)
+DISTSTYLE KEY DISTKEY(customer_id)   -- colocated with fact table
+SORTKEY(customer_id)
+ENCODE AUTO;</code></pre>
+
+        <h2>Compression: Use ENCODE AUTO (But Understand the Alternatives)</h2>
+
+        <p>Redshift offers per-column compression: <code>RAW</code>, <code>BYTEDICT</code>, <code>DELTA</code>, <code>LZO</code>, <code>ZSTD</code>, <code>AZ64</code>, <code>RUNLENGTH</code>. The right encoding depends on the column's data distribution:</p>
+        <ul>
+          <li><code>AZ64</code> — Amazon's proprietary numeric encoding; best for numeric (INT, BIGINT, DECIMAL, DATE) columns. Better compression and faster decompression than LZO for numerics.</li>
+          <li><code>ZSTD</code> — Good general-purpose for variable-length text with mixed distributions</li>
+          <li><code>BYTEDICT</code> — Excellent for low-cardinality categoricals (status, country, type) — stores a dictionary instead of repeated strings</li>
+          <li><code>DELTA</code>/<code>DELTA32K</code> — For monotonically increasing sequences (timestamps, IDs in order) — stores differences rather than values</li>
+        </ul>
+
+        <p>In practice: specify <code>ENCODE AUTO</code> at table creation and run <code>ANALYZE COMPRESSION table_name</code> after loading a representative data sample. Redshift samples the data and recommends optimal encodings. Apply the recommendations with an ALTER TABLE or CREATE TABLE AS SELECT.</p>
+
+        <h2>What We'd Do Differently</h2>
+
+        <p>If we rebuilt the warehouse from scratch, knowing what we know now:</p>
+        <ol>
+          <li><strong>Choose DISTKEY based on join patterns from day one.</strong> Map out all major joins before schema design. The most frequent large-to-large table join determines the DISTKEY. Don't change your mind later without a full table rebuild.</li>
+          <li><strong>Use COMPOUND sort keys with date as the leading column</strong> for all fact tables with time-based filtering. Interleaved sort keys are theoretically attractive but the VACUUM REINDEX overhead is real.</li>
+          <li><strong>Test for skew before launch.</strong> Generate a representative data volume, load it, and check skew_rows in SVV_TABLE_INFO. Fix it before you're operating at 50B rows.</li>
+          <li><strong>Plan the VACUUM schedule explicitly.</strong> For tables with regular UPDATEs, schedule VACUUM in maintenance windows. For INSERT-only tables, occasional ANALYZE is sufficient.</li>
+          <li><strong>Set ENCODE AUTO everywhere.</strong> Then run ANALYZE COMPRESSION after initial load and apply recommendations. The default encoding when you forget to specify is RAW, which is uncompressed — an easy way to spend 3x more on storage than necessary.</li>
+        </ol>
+
+        <p>Redshift is a genuinely excellent analytical database for the right workloads. The physical design decisions matter more than in most modern systems because Redshift doesn't hide them from you — it gives you the knobs and expects you to turn them correctly. That's a double-edged sword: you can optimize aggressively, but you can also build yourself a slow-burning performance problem that doesn't show up until 100 million rows later.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2022 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

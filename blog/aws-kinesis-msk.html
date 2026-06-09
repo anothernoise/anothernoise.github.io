@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Kinesis vs Apache Kafka (MSK): Streaming Data on AWS Without the Regret</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Amazon Kinesis vs Apache Kafka (MSK): Streaming Data on AWS Without the Regret</h1>
+        <div class="article-meta">
+          <span>📅 March 5, 2024</span>
+          <span>📖 13 min read</span>
+          <span>☁️ Cloud</span>
+          <span>🔧 Data Engineering</span>
+          <span>🏗️ Architecture</span>
+          <span>☁️ AWS</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Every AWS data team eventually faces this question: Kinesis Data Streams or Apache Kafka (via MSK)? Both ingest real-time data at scale. Both integrate with the AWS ecosystem. The choice matters, because migrating between them later is painful. Kinesis is an AWS proprietary service with simple operational model and Kafka-incompatible APIs. Kafka (MSK) is the open standard with a richer ecosystem, more complex operations, and far more flexibility. The right choice depends heavily on your throughput patterns, consumer diversity, and operational tolerance.</p>
+
+        <h2>Kinesis Data Streams: The AWS Native Choice</h2>
+
+        <p>Kinesis Data Streams is built around <strong>shards</strong> — fixed units of throughput capacity. Each shard provides 1 MB/s inbound and 2 MB/s outbound (with Enhanced Fan-Out, each consumer gets their own 2 MB/s). You provision shards explicitly, and scaling means adding or splitting shards. The pricing model: $0.015/shard-hour + $0.014/GB ingested.</p>
+
+        <h3>The Kinesis Retention and Replay Model</h3>
+
+        <p>Default retention is 24 hours (configurable up to 365 days for extra cost). Records are stored by shard, ordered within a shard, and consumed via sequence number position. Consumers can replay from any sequence number within the retention window — this is Kinesis's answer to Kafka's offset replay model.</p>
+
+        <p>The Enhanced Fan-Out feature (EFO) is critical for multi-consumer scenarios. Without EFO, all consumers share the 2 MB/s per-shard read limit — add a third consumer and each gets ~670 KB/s max. With EFO, each registered consumer gets a dedicated 2 MB/s. EFO costs ~$0.015/consumer-shard-hour extra but is essential when multiple independent services consume the same stream.</p>
+
+        <h3>Kinesis Data Firehose: The Delivery Partner</h3>
+        <p>Firehose is Kinesis's built-in sink layer — it batches records and delivers to S3, Redshift, OpenSearch, Splunk, or Snowflake with optional Lambda transformation. For the "stream events to S3 for batch processing" pattern, Firehose handles buffering, compression, and retry automatically. A very common pattern: Kinesis Data Streams → Firehose → S3 Parquet (with Firehose doing the Parquet conversion). No custom consumer code, no cluster to manage.</p>
+
+        <h2>Amazon MSK: Kafka Without the ZooKeeper Nightmares</h2>
+
+        <p>Amazon Managed Streaming for Apache Kafka (MSK) runs a managed Apache Kafka cluster on your behalf — you specify broker type, number of brokers, storage, and MSK handles provisioning, patching, monitoring, and broker replacement. You get full Kafka API compatibility: any Kafka producer library, Kafka Streams, Kafka Connect, Flink with Kafka connector, and ksqlDB all work against MSK exactly as they do against self-managed Kafka.</p>
+
+        <h3>MSK Serverless</h3>
+        <p>MSK Serverless (GA 2022) removes the broker management entirely — you pay per GB ingested/egressed with no shard or partition provisioning. The trade-off: limited configurability (max 200 partitions per topic, max 200 MB/s total throughput) and potentially higher per-GB cost at high volumes compared to provisioned MSK. Best for variable, unpredictable throughput where you want zero infrastructure management.</p>
+
+        <h3>MSK Connect</h3>
+        <p>MSK Connect is a managed Kafka Connect service — run Kafka connectors (Debezium for CDC, S3 Sink Connector, JDBC Source Connector) without managing a Connect cluster. This is particularly useful for CDC pipelines: Debezium on MSK Connect reading from RDS/Aurora PostgreSQL and writing to MSK, then consumed by Flink or Spark.</p>
+
+        <h2>The Decision Table</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Factor</th><th>Kinesis Data Streams</th><th>MSK (Kafka)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>API compatibility</td><td>AWS proprietary</td><td>Apache Kafka (open standard)</td></tr>
+              <tr><td>Consumer types</td><td>KCL, Lambda, Firehose, KDA</td><td>Any Kafka client (Python, Java, Flink, Spark, ksqlDB...)</td></tr>
+              <tr><td>Max throughput per shard/partition</td><td>1 MB/s write, 2 MB/s read</td><td>Up to ~50 MB/s per partition (broker-dependent)</td></tr>
+              <tr><td>Scaling model</td><td>Add/split shards (minutes)</td><td>Add partitions (fast) or brokers (minutes)</td></tr>
+              <tr><td>Retention max</td><td>365 days (extra cost)</td><td>Unlimited (limited by storage)</td></tr>
+              <tr><td>Operational overhead</td><td>Very low (fully managed)</td><td>Low-medium (provisioned) / Low (serverless)</td></tr>
+              <tr><td>Ecosystem lock-in</td><td>High (AWS-specific)</td><td>Low (open standard)</td></tr>
+              <tr><td>CDC (Debezium) support</td><td>Via Lambda workaround</td><td>✅ Native (MSK Connect)</td></tr>
+              <tr><td>Cost at 100 MB/s sustained</td><td>~$300–450/month</td><td>~$200–400/month (provisioned)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <p><strong>The practical decision rule:</strong> Choose Kinesis if your consumers are primarily AWS services (Lambda, Firehose, Kinesis Data Analytics) and you don't need Kafka API compatibility. Choose MSK if you need CDC (Debezium), Kafka Streams for stateful processing, Flink with native Kafka connectors, or portability across clouds. The ecosystem argument is real: if you later need ksqlDB, Kafka MirrorMaker, or Flink's exactly-once Kafka sink, you'll be glad you chose Kafka.</p>
+        </div>
+
+        <h2>Real-World Cost Comparison</h2>
+
+        <p>Let's use a concrete example: 50 MB/s average inbound throughput, 3 consumers, 7-day retention, us-east-1.</p>
+
+        <p><strong>Kinesis:</strong></p>
+        <ul>
+          <li>Shards needed: 50 MB/s ÷ 1 MB/s = 50 shards</li>
+          <li>Shard cost: 50 × $0.015 × 24 × 30 = $540/month</li>
+          <li>Ingestion: 50 MB/s × 86,400s × 30 = ~129 TB/month × $0.014 = $1,805/month</li>
+          <li>EFO (3 consumers): 3 × 50 × $0.015 × 24 × 30 = $1,620/month</li>
+          <li>7-day retention extension: ~$240/month</li>
+          <li><strong>Total: ~$4,205/month</strong></li>
+        </ul>
+
+        <p><strong>MSK Provisioned (kafka.m5.2xlarge, 3 brokers):</strong></p>
+        <ul>
+          <li>Broker cost: 3 × $0.476/hr × 24 × 30 = $1,026/month</li>
+          <li>Storage (7 days × 129 TB incoming ≈ ~900 GB stored compressed): ~$90/month</li>
+          <li>Data transfer: minimal within VPC</li>
+          <li><strong>Total: ~$1,116/month</strong></li>
+        </ul>
+
+        <p>At significant throughput (50 MB/s+), MSK is dramatically cheaper than Kinesis, primarily because Kinesis's per-GB ingestion charge dominates. At low throughput (&lt;5 MB/s), Kinesis is often cheaper and simpler. The crossover is roughly at 10–15 MB/s sustained throughput.</p>
+
+        <pre><code class="language-python">from confluent_kafka import Consumer, KafkaError
+import json
+
+# MSK consumer with TLS (same code works against any Kafka)
+conf = {
+    'bootstrap.servers': 'b-1.mycluster.kafka.us-east-1.amazonaws.com:9096',
+    'security.protocol': 'SASL_SSL',
+    'sasl.mechanism': 'SCRAM-SHA-512',
+    'sasl.username': 'service_account',
+    'sasl.password': 'SECRET',
+    'group.id': 'analytics-consumer',
+    'auto.offset.reset': 'earliest',
+    'enable.auto.commit': False  # manual commit for exactly-once semantics
+}
+
+consumer = Consumer(conf)
+consumer.subscribe(['orders-topic'])
+
+while True:
+    msg = consumer.poll(1.0)
+    if msg and not msg.error():
+        record = json.loads(msg.value().decode('utf-8'))
+        process_order(record)
+        consumer.commit()  # commit after successful processing</code></pre>
+
+        <p>Kinesis for simple AWS-native event routing; MSK for complex streaming architectures with diverse consumers. The portability and ecosystem richness of Kafka become increasingly valuable as your streaming architecture matures — it's much easier to add a Flink job to an existing MSK cluster than to migrate a Kinesis-native architecture to Kafka three years later.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

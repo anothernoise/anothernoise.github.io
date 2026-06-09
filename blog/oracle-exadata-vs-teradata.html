@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oracle Exadata vs Teradata: The Enterprise Data Warehouse Showdown (Circa 2020)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Oracle Exadata vs Teradata: The Enterprise Data Warehouse Showdown</h1>
+        <div class="article-meta">
+          <span>📅 March 15, 2020</span>
+          <span>📖 15 min read</span>
+          <span>🏗️ Architecture</span>
+          <span>🔧 Data Engineering</span>
+          <span>🗄️ Data Warehousing</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Two machines that have eaten more enterprise DBA careers than almost anything else in the industry: Oracle Exadata and Teradata. Both are engineered-to-order appliances that arrive at your data center on pallets, cost more than a small house per rack unit, and come with their own ecosystems of vendor consultants, certification programs, and support contracts. Both have been the backbone of Fortune 500 data warehouses for decades.</p>
+
+        <p>If your organization is evaluating which of these two to bet on (or whether to migrate off one of them), this comparison is for you. I've worked extensively with both in large enterprise environments, and the honest verdict is that they're different in ways the marketing materials obscure. Understanding the architectural differences helps explain the very different performance characteristics you'll see in production — and the very different pain points you'll accumulate over years of operation.</p>
+
+        <h2>Oracle Exadata: The Engineered System</h2>
+
+        <p>Oracle Exadata is not just a database — it's a purpose-built hardware/software stack optimized for Oracle Database workloads. The key innovation: compute nodes run Oracle Database, but the storage nodes (called <strong>storage cells</strong>) are not dumb disks. They run Oracle software that can perform SQL processing at the storage layer, offloading work from the database servers.</p>
+
+        <h3>Smart Scan: The Secret Weapon</h3>
+
+        <p>Smart Scan is Exadata's most important feature. In a conventional Oracle deployment, a full table scan reads blocks from storage to the database server, which then applies predicates. On Exadata, the storage cells process predicates and return only matching rows — the database servers receive far less data. For analytical queries on large tables with selective WHERE clauses, this dramatically reduces I/O and network traffic between storage and compute.</p>
+
+        <p>Smart Scan also enables <strong>storage index</strong>: each storage cell maintains an in-memory min/max index for data regions. Before reading blocks, the storage cell checks whether the queried value could exist in that region. This is similar in concept to zone maps (Redshift) or file-level statistics (Parquet) but implemented at the hardware level, transparently, for all Oracle workloads.</p>
+
+        <h3>Hybrid Columnar Compression (HCC)</h3>
+
+        <p>Exadata supports HCC — Oracle's columnar compression scheme. HCC stores data in compression units (CUs) of approximately 64 rows each, organized by column internally. This achieves very high compression ratios (10:1 to 30:1 for analytical data) while enabling Smart Scan to skip compressed CUs that don't contain matching values. The trade-off: DML operations on HCC tables are slower because inserting or updating a row requires decompressing the entire CU, modifying it, and recompressing. HCC is designed for read-heavy warehouse data, not for tables with frequent updates.</p>
+
+        <h3>Exadata Architecture</h3>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph Compute["Database Servers (Compute)"]
+        DBS1["DB Server 1\nOracle Database Instance"]
+        DBS2["DB Server 2\nOracle Database Instance"]
+        DBS3["DB Server N\nOracle Database Instance"]
+        RAC["Oracle RAC\n(Shared Cache / Active-Active)"]
+    end
+
+    subgraph Fabric["InfiniBand Fabric (40 Gbps)"]
+        IB["High-Speed Interconnect"]
+    end
+
+    subgraph Storage["Storage Cells (Smart Storage)"]
+        SC1["Storage Cell 1\nSmart Scan + Storage Index\nFlash Cache + HDD"]
+        SC2["Storage Cell 2\nSmart Scan + Storage Index\nFlash Cache + HDD"]
+        SC3["Storage Cell N\nSmart Scan + Storage Index\nFlash Cache + HDD"]
+    end
+
+    DBS1 --> IB
+    DBS2 --> IB
+    DBS3 --> IB
+    IB --> SC1
+    IB --> SC2
+    IB --> SC3
+    DBS1 <-->|RAC Interconnect| DBS2
+    DBS2 <-->|RAC Interconnect| DBS3
+          </pre>
+          <p class="diagram-caption">Exadata architecture: Database servers connected via InfiniBand to storage cells running Smart Scan. The storage cells push SQL processing down to the I/O layer, reducing data movement to compute.</p>
+        </div>
+
+        <h2>Teradata: MPP Native from the Start</h2>
+
+        <p>Teradata's architecture is fundamentally different from Exadata. While Exadata is Oracle Database on specialized hardware, Teradata was designed from the ground up as a Massively Parallel Processing (MPP) database. Every component of Teradata's architecture reflects the goal of parallelizing relational queries across many nodes, each handling a subset of the data.</p>
+
+        <h3>The AMP Architecture</h3>
+
+        <p>The core of Teradata is the <strong>AMP</strong> (Access Module Processor) — a virtual processor responsible for managing a portion of the database. Each AMP owns and manages a subset of the rows in every table. When a query runs, all AMPs participate in parallel, each processing their portion of the data. The result is assembled by the Parsing Engine (PE). In a modern Teradata system, there may be hundreds or thousands of AMPs distributed across physical nodes.</p>
+
+        <h3>The Primary Index: Everything Revolves Around It</h3>
+
+        <p>The single most important design decision in Teradata is the <strong>Primary Index (PI)</strong>. When you insert a row, Teradata hashes the PI column(s) to determine which AMP stores that row. Every subsequent query that filters or joins on the PI column can go directly to the correct AMP — this is the fastest possible access path in Teradata, equivalent to an indexed lookup.</p>
+
+        <p>Choose the PI poorly and you get <strong>skew</strong>: some AMPs store far more rows than others. A skewed table means some AMPs do 10x more work per query — the query is only as fast as the slowest AMP. Getting PI selection right requires understanding your query patterns upfront. Changing a PI in production requires recreating the table, which for a multi-terabyte table is a significant operation.</p>
+
+        <h3>NUSI and Join Indexes</h3>
+
+        <p>Beyond the Primary Index, Teradata supports:</p>
+        <ul>
+          <li><strong>Non-Unique Secondary Index (NUSI):</strong> Enables fast lookups on non-PI columns. Maintained as a subtable on each AMP. Useful for common WHERE clause columns that aren't the PI.</li>
+          <li><strong>Join Index:</strong> A precomputed, materialized join result stored as a permanent table-like structure. Teradata can automatically use Join Indexes to satisfy queries — similar in concept to materialized views, but more deeply integrated into the query optimizer.</li>
+          <li><strong>Aggregate Join Index (AJI):</strong> Like a Join Index but also pre-aggregates results. If a common report groups by customer and sums orders, an AJI can make that query nearly instantaneous regardless of underlying table size.</li>
+        </ul>
+
+        <h2>Architectural Comparison</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Dimension</th><th>Oracle Exadata</th><th>Teradata</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Architecture origin</td><td>Oracle DB on specialized hardware</td><td>MPP-native, built for DW from day one</td></tr>
+              <tr><td>Primary parallelism mechanism</td><td>Smart Scan offload to storage cells</td><td>AMP-level data partitioning across nodes</td></tr>
+              <tr><td>Data distribution</td><td>Oracle ASM with Exadata striping</td><td>Hash distribution via Primary Index</td></tr>
+              <tr><td>Compression</td><td>HCC (10:1–30:1 on analytical data)</td><td>Block-level + MultiValue compression</td></tr>
+              <tr><td>Mixed workload handling</td><td>✅ Strong (OLTP + OLAP via RAC)</td><td>Good, but optimized for OLAP</td></tr>
+              <tr><td>SQL compatibility</td><td>Oracle SQL (PL/SQL ecosystem)</td><td>Teradata SQL (ANSI, BTEQ, FastLoad)</td></tr>
+              <tr><td>Skew risk</td><td>Low (storage cells handle imbalance)</td><td>High if Primary Index is poorly chosen</td></tr>
+              <tr><td>Cost (entry-level full rack)</td><td>$500K–$2M+</td><td>$500K–$3M+</td></tr>
+              <tr><td>Strengths</td><td>Oracle ecosystem, mixed OLTP/OLAP, Smart Scan</td><td>Complex analytical queries, Workload Management, ANSI SQL</td></tr>
+              <tr><td>Weaknesses</td><td>Oracle licensing complexity, HCC DML overhead</td><td>PI-dependent performance, migration complexity</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Where Each One Wins</h2>
+
+        <h3>Exadata Wins When:</h3>
+        <ul>
+          <li>You're already deep in the Oracle ecosystem — Oracle applications, Oracle Forms, PL/SQL packages, Oracle E-Business Suite. Exadata is optimized specifically for Oracle workloads and the integration is seamless.</li>
+          <li>You have mixed OLTP and OLAP in the same system. Exadata with RAC handles concurrent OLTP writes and analytical reads better than Teradata, which is more purely optimized for OLAP.</li>
+          <li>You have DBA teams that are Oracle-certified. The admin model (Oracle DBA + Exadata-specific tuning) builds on existing Oracle expertise.</li>
+          <li>Your queries have selective predicates on large tables — Smart Scan's ability to push predicates to storage cells is a genuine, measurable advantage here.</li>
+        </ul>
+
+        <h3>Teradata Wins When:</h3>
+        <ul>
+          <li>You're running a pure enterprise data warehouse with complex analytical queries, multi-table joins, and diverse reporting workloads from many concurrent users.</li>
+          <li>Workload Management is critical. Teradata's TASM (Teradata Active System Management) is more sophisticated than Exadata's resource management — it can enforce SLAs per workload class, throttle queries by user group, and prioritize interactive vs batch workloads with fine granularity.</li>
+          <li>You need extreme scalability for analytical throughput. A properly designed Teradata system with hundreds of AMPs can achieve query parallelism that Exadata's shared-disk architecture can't match.</li>
+          <li>You have queries that join many large tables — Teradata's colocated join optimization (when join columns match the PI) avoids data redistribution and is very fast.</li>
+        </ul>
+
+        <h2>The Honest Verdict: Both Are Under Pressure in 2020</h2>
+
+        <p>The context you can't ignore: by 2020, both Exadata and Teradata face serious competitive pressure from cloud-native MPP warehouses. Snowflake, BigQuery, and Redshift offer comparable analytical performance, no on-premises hardware to maintain, per-second billing, and far simpler operations. The TCO comparison (including hardware, software licensing, data center space, power, and staff) often favors cloud alternatives by 40–60% over a 5-year horizon.</p>
+
+        <div class="callout warning">
+          <p><strong>Migration reality:</strong> Migrating from Teradata is harder than migrating from most systems. Teradata-specific SQL extensions (BTEQ scripts, FastLoad/MultiLoad utilities, OREPLACE syntax, QUALIFY window function syntax) require rewriting. FastExport/FastLoad/MultiLoad scripts that automate DBA workflows have no direct equivalents and must be rebuilt as dbt models, Spark jobs, or cloud ELT tools. Budget 18–36 months for a full migration and don't underestimate the PL/SQL-equivalent rewriting effort for Teradata Stored Procedures.</p>
+        </div>
+
+        <p>Where Exadata and Teradata still have legitimate advantages over cloud alternatives: regulatory environments requiring on-premises data residency, extremely tight latency requirements for OLTP+OLAP mixed workloads, and organizations with existing significant infrastructure investment where migration cost would exceed 5+ years of cloud savings. For everyone else evaluating a new build or contract renewal, the cloud conversation is worth having seriously.</p>
+
+        <p>Five years ago, picking between Exadata and Teradata was the core enterprise DW architectural decision. Today, the first question is usually whether to stay on-premises at all — and that's a significant shift in how these products compete.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2020 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

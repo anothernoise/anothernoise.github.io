@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Azure Synapse Analytics vs Azure Databricks: Real Architectural Differences and When to Choose</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Azure Synapse Analytics vs Azure Databricks: Real Architectural Differences and When to Choose</h1>
+        <div class="article-meta">
+          <span>📅 April 15, 2024</span>
+          <span>📖 15 min read</span>
+          <span>☁️ Cloud</span>
+          <span>🔧 Data Engineering</span>
+          <span>🏗️ Architecture</span>
+          <span>🏷️ Azure</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>The question "should we use Synapse or Databricks?" comes up in every Azure data platform conversation, and most answers are either "it depends" (useless) or heavily influenced by which Microsoft rep you last spoke to. Let me give you the structural answer: Synapse and Databricks target different primary use cases, have meaningfully different Spark implementations, and the "one platform does everything" framing from both vendors is misleading. Understanding the actual architectural differences helps you make the choice rationally rather than by vibes.</p>
+
+        <h2>Azure Synapse Analytics: The Unified Vision</h2>
+
+        <p>Synapse's pitch is convergence: a single workspace where you can run SQL analytics (Dedicated SQL Pool — the former Azure SQL Data Warehouse), ad-hoc SQL on files (Serverless SQL Pool), Spark notebooks, data pipelines (integrated ADF-equivalent), and connect Power BI — all in one portal with unified security. The OneLake precursor pattern: a single ADLS Gen2 workspace storage container shared across all compute types.</p>
+
+        <h3>Synapse Dedicated SQL Pool</h3>
+        <p>This is the MPP warehouse — the workload Synapse was originally built for. It uses a Massively Parallel Processing architecture with a control node and compute nodes, columnar storage (similar to Redshift), and has specific design requirements (distribution keys, statistics, clustered columnstore indexes). For pure SQL analytics workloads at terabyte-to-petabyte scale that don't need Python or ML, Dedicated SQL Pool is competitive with Redshift and Snowflake. Cost model: DWU (Data Warehouse Units) per hour, pauseable when idle.</p>
+
+        <h3>Synapse Serverless SQL Pool</h3>
+        <p>Query files in ADLS Gen2 or Delta Lake tables using standard T-SQL — no cluster to manage, pay per TB scanned (like BigQuery). This is genuinely useful for exploratory analytics over data lake files without Spark overhead. Limitations: no write operations to regular tables, limited Delta Lake DML support, performance varies significantly based on file size and partitioning.</p>
+
+        <h3>Synapse Spark</h3>
+        <p>Spark pools in Synapse run Apache Spark (currently 3.x) with a Synapse-specific connector layer. They work, but they lag behind Databricks Runtime in several important dimensions: no Photon engine, older Delta Lake support, no MLflow/Unity Catalog integration, and slower adoption of Spark upstream improvements. If your Spark workloads are simple ETL, Synapse Spark is adequate. If you're doing complex Spark optimization, DeltaLake MERGE operations, or ML, the gap with Databricks becomes painful.</p>
+
+        <h2>Azure Databricks: Spark-First, ML-Native</h2>
+
+        <p>Databricks on Azure runs on Azure infrastructure but with the full Databricks control plane — the same product you'd get on AWS or GCP, with Azure-specific connectors (ADLS Gen2, Azure SQL, Synapse Serverless). The differentiation vs Synapse Spark:</p>
+
+        <ul>
+          <li><strong>Photon Engine:</strong> Native C++ vectorized execution engine for Spark SQL, providing 2–5x query speedup for common analytics workloads</li>
+          <li><strong>Delta Lake (latest):</strong> Databricks ships and maintains Delta Lake, so their runtime has Delta features months before they appear in Apache Spark releases</li>
+          <li><strong>Unity Catalog:</strong> Cross-workspace governance with column-level security, lineage, Delta Sharing — significantly more mature than Synapse's security model</li>
+          <li><strong>MLflow + Feature Store:</strong> Best-in-class ML lifecycle tooling built into the platform</li>
+          <li><strong>Job compute vs interactive compute:</strong> Separate billing tiers — much cheaper for scheduled batch jobs</li>
+        </ul>
+
+        <h2>The Actual Decision Framework</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Your Situation</th><th>Lean Synapse</th><th>Lean Databricks</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Primary workload is SQL analytics at scale</td><td>✅ Dedicated SQL Pool</td><td>—</td></tr>
+              <tr><td>Need Python/ML as a first-class citizen</td><td>—</td><td>✅</td></tr>
+              <tr><td>Complex Delta Lake operations (MERGE, time travel, schema evolution)</td><td>—</td><td>✅ Photon + latest Delta</td></tr>
+              <tr><td>Already deep in Microsoft stack (Purview, Power BI Premium)</td><td>✅ Better native integration</td><td>—</td></tr>
+              <tr><td>Need enterprise ML governance (Feature Store, Unity Catalog)</td><td>—</td><td>✅</td></tr>
+              <tr><td>Budget: minimize vendor lock-in risk</td><td>—</td><td>✅ Open formats + Delta</td></tr>
+              <tr><td>Already have ADF pipelines + Synapse investment</td><td>✅ Lower migration cost</td><td>—</td></tr>
+              <tr><td>Serverless ad-hoc SQL on data lake files</td><td>✅ Serverless SQL Pool</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <p><strong>The hybrid pattern most large Azure shops end up running:</strong> Azure Synapse (Dedicated SQL Pool) for the SQL analytics/BI workload where the MPP architecture is a good fit, ADF for data movement and orchestration, and Databricks for the Spark-heavy ETL and all ML/AI work. Synapse Spark sits unused or lightly used because Databricks is better for serious Spark work. This isn't elegant, but it reflects what each product actually does well.</p>
+        </div>
+
+        <h2>Cost Reality Check</h2>
+
+        <p>The pricing comparison is complex because the products bill differently. A rough equivalence for a typical analytics workload:</p>
+
+        <ul>
+          <li><strong>Synapse Dedicated SQL Pool:</strong> DW500c (~$7.20/hr when running). You pause it when idle. For a warehouse running 8 hours/day, 20 days/month: $7.20 × 8 × 20 = $1,152/month. Plus storage.</li>
+          <li><strong>Databricks (Jobs Compute):</strong> A 4-node Standard_DS3_v2 cluster running daily batch jobs for 4 hours/day: ~$0.15/DBU × ~20 DBUs × 4 hrs × 30 days ≈ $360/month in DBU costs + ~$250/month in VM costs = ~$610/month for batch-only workloads.</li>
+          <li><strong>Databricks (All-Purpose):</strong> Add interactive clusters for data science/engineering exploration and the monthly bill can easily reach $3,000–8,000 for a team.</li>
+        </ul>
+
+        <p>The key Databricks cost variable: the ratio of Jobs Compute ($0.10–0.15/DBU) to All-Purpose Compute ($0.30–0.55/DBU) usage. Teams that discipline their workloads onto Jobs Compute get a very different bill than teams that leave All-Purpose clusters running. This is where governance matters most.</p>
+
+        <h2>Microsoft Fabric Changes the Calculus</h2>
+
+        <p>With Microsoft Fabric's GA in November 2023, the question increasingly becomes "Fabric vs Databricks" rather than "Synapse vs Databricks." Fabric effectively replaces Synapse for new Azure projects — it uses OneLake (Delta on ADLS Gen2) as the unified storage layer, includes Synapse-equivalent SQL analytics, has its own Spark environment, and integrates Power BI natively. If you're starting a new Azure data platform today and not already invested in Databricks, Fabric is the right first conversation to have.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2024 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Azure Data Factory Deep Dive: Pipelines, Data Flows, and When to Stop Using ADF</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Azure Data Factory Deep Dive: Pipelines, Data Flows, and When to Stop Using ADF</h1>
+        <div class="article-meta">
+          <span>📅 December 5, 2023</span>
+          <span>📖 14 min read</span>
+          <span>☁️ Cloud</span>
+          <span>🔧 Data Engineering</span>
+          <span>🏗️ Azure</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Azure Data Factory is one of those tools that gets dramatically more useful once you understand its execution model — and dramatically less useful once you try to use it for things it wasn't designed for. ADF is a cloud-native orchestration and ELT service. It's excellent at moving data between heterogeneous systems and applying lightweight transformations at scale. It struggles badly when you try to use it as a general-purpose ETL engine for complex business logic.</p>
+
+        <p>This article covers the ADF architecture and execution model, the key differences between pipelines (orchestration) and Data Flows (Spark-backed transformation), the integration runtime options, practical cost patterns, and the honest assessment of when ADF is the right tool — and when you should reach for Databricks, dbt, or a custom Python pipeline instead.</p>
+
+        <h2>ADF Architecture: Three Layers</h2>
+
+        <p>ADF has three distinct layers that are easy to conflate but have very different properties:</p>
+
+        <p><strong>1. Pipelines and Activities:</strong> The orchestration layer. A pipeline is a logical grouping of activities that perform a unit of work. Activities can copy data (Copy Activity), run transformations (Data Flow), execute code (Azure Function, Databricks Notebook, HDInsight), or control flow (If Condition, ForEach, Until). Pipelines are defined in JSON and are the primary unit of ADF deployment.</p>
+
+        <p><strong>2. Data Flows:</strong> The transformation layer. Data Flows are visually designed, code-free transformation graphs that execute on a managed Spark cluster. They're ADF's answer to "how do I do joins, aggregations, and column derivations without writing code?" Each Data Flow compiles to a Spark job that runs on Azure's managed infrastructure.</p>
+
+        <p><strong>3. Integration Runtimes (IR):</strong> The compute layer. IRs are the actual execution engines. Azure IR (Microsoft-managed) handles cloud-to-cloud data movement. Self-Hosted IR (installed on your VMs/on-prem) handles hybrid scenarios where the source is behind a corporate firewall. Azure-SSIS IR runs legacy SSIS packages in the cloud.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph ADF["Azure Data Factory"]
+        P["Pipeline\n(Orchestration + Control Flow)"]
+        DF["Data Flow\n(Spark transformation)"]
+        CA["Copy Activity\n(Bulk data movement)"]
+    end
+
+    subgraph IR["Integration Runtimes"]
+        AIR["Azure IR\n(cloud-to-cloud)"]
+        SHIR["Self-Hosted IR\n(on-prem / VNet)"]
+        SSISIR["Azure-SSIS IR\n(legacy SSIS)"]
+    end
+
+    subgraph Sources["Data Sources"]
+        ABS["Azure Blob Storage\nADLS Gen2"]
+        SQL["Azure SQL\nSynapse"]
+        OnPrem["On-Prem SQL\nOracle, SAP"]
+        SaaS["Salesforce\nServiceNow, REST APIs"]
+    end
+
+    P --> CA
+    P --> DF
+    CA --> AIR
+    DF --> AIR
+    CA --> SHIR
+    AIR --> ABS
+    AIR --> SQL
+    AIR --> SaaS
+    SHIR --> OnPrem
+          </pre>
+          <p class="diagram-caption">ADF's three-layer architecture: Pipelines orchestrate, Copy Activity moves data, Data Flows transform — all powered by one of three Integration Runtime types.</p>
+        </div>
+
+        <h2>Copy Activity: ADF's Core Strength</h2>
+
+        <p>Copy Activity is what ADF does best: bulk data movement between 100+ supported connectors. The performance architecture is straightforward — Copy Activity uses a parallel read/write model where you specify partition options (physical, dynamic range, or column-based) and ADF parallelizes reads. For loading Azure SQL Database → ADLS Gen2 at high throughput, Copy Activity with <code>parallelCopies: 8-16</code> and appropriate partitioning will outperform custom Python code by a wide margin because it bypasses the Python runtime entirely.</p>
+
+        <pre><code class="language-json">{
+  "name": "CopyFromSQLToADLS",
+  "type": "Copy",
+  "typeProperties": {
+    "source": {
+      "type": "AzureSqlSource",
+      "partitionOption": "DynamicRange",
+      "partitionSettings": {
+        "partitionColumnName": "order_date",
+        "partitionUpperBound": "2023-12-31",
+        "partitionLowerBound": "2023-01-01"
+      }
+    },
+    "sink": {
+      "type": "ParquetSink",
+      "storeSettings": {
+        "type": "AzureBlobFSWriteSettings",
+        "copyBehavior": "PreserveHierarchy"
+      }
+    },
+    "parallelCopies": 16,
+    "enableStaging": false
+  }
+}</code></pre>
+
+        <h2>Data Flows: Spark Without the Cluster Management</h2>
+
+        <p>Data Flows execute on a managed Spark cluster that ADF provisions on demand. You define transformations visually (or via the JSON definition behind the UI). Each Data Flow compiles to a Spark job. The important things to understand:</p>
+
+        <ul>
+          <li><strong>Cold start latency:</strong> The first Data Flow execution in a session incurs a 3–5 minute cluster startup time. Subsequent runs in the same session (Time To Live period) reuse the warm cluster. For pipelines that run Data Flows frequently, setting a 10-minute TTL dramatically reduces per-run overhead.</li>
+          <li><strong>Compute billing:</strong> Data Flows are billed per vCore-hour on the execution cluster. A default Small cluster (8 vCores) costs ~$0.26/vCore-hour. For a Data Flow that runs for 10 minutes on 8 vCores: $0.26 × 10/60 × 8 = ~$0.35. That's cheap per-run but can add up for hourly batch jobs.</li>
+          <li><strong>What Data Flows are good for:</strong> Joins, aggregations, derived columns, pivots, schema drift handling. Complex transformations that would require multiple SQL CTEs are often cleaner to express in a Data Flow graph.</li>
+          <li><strong>What Data Flows are bad for:</strong> Row-by-row business logic (Spark doesn't like that), complex Python UDFs (limited support), anything requiring external API calls per record.</li>
+        </ul>
+
+        <h2>Triggers: Scheduling and Event-Driven Patterns</h2>
+
+        <p>ADF supports four trigger types: Schedule, Tumbling Window, Storage Event, and Custom Event. The one that causes the most confusion is <strong>Tumbling Window</strong>:</p>
+
+        <p>Unlike Schedule triggers (which fire at a point in time and don't track history), Tumbling Window triggers partition time into fixed, non-overlapping windows and guarantee exactly-once execution per window. If your pipeline fails for a window, the trigger retries that specific window without losing track of what ran. For incremental load pipelines where you need to process each time period exactly once — and backfill is possible — Tumbling Window is the right choice. Schedule triggers are for "fire and forget" jobs where you don't need ordered, complete window processing.</p>
+
+        <h2>The ADF vs Alternatives Decision</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Use Case</th><th>Best Tool</th><th>Why Not ADF</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Move data between 100+ connectors (SaaS, on-prem, cloud)</td><td>✅ ADF Copy Activity</td><td>—</td></tr>
+              <tr><td>Light transformation + load to ADLS / Synapse</td><td>✅ ADF Data Flow</td><td>—</td></tr>
+              <tr><td>Complex multi-table SQL transformations</td><td>dbt (via Databricks)</td><td>Data Flow UI gets unwieldy; SQL is cleaner</td></tr>
+              <tr><td>Python-heavy data processing (ML features, NLP)</td><td>Databricks / Azure Functions</td><td>Data Flow Spark UDF support is limited</td></tr>
+              <tr><td>CDC / streaming ingestion</td><td>Azure Event Hubs + Flink</td><td>ADF is batch-only</td></tr>
+              <tr><td>Orchestrating Databricks notebooks / dbt jobs</td><td>✅ ADF Pipeline activities</td><td>— (ADF as orchestrator, not transformer)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <p><strong>The right ADF mental model:</strong> Use ADF as the <em>orchestrator</em>, not the transformer, for complex pipelines. ADF pipelines calling Databricks Notebook Activity (for Spark/ML), Azure Function Activity (for Python logic), and dbt Cloud tasks — with Copy Activity for the actual data movement legs — is a very common and effective production pattern. ADF's strength is its breadth of connectors and managed scheduling, not its transformation expressiveness.</p>
+        </div>
+
+        <h2>Common Production Mistakes</h2>
+
+        <p><strong>1. Debug mode left running:</strong> ADF's Data Flow debug mode spins up a Spark cluster and keeps it running (you control the TTL, up to 4 hours). Developers who forget to turn off debug mode accumulate hundreds of dollars in idle cluster cost per month. Set the default TTL to 30 minutes and turn it off when done.</p>
+
+        <p><strong>2. Source-side filtering in Copy Activity bypassed:</strong> When copying from Azure SQL, always push down filters to the source query (<code>sqlReaderQuery</code>) rather than reading the whole table and filtering in ADF. Reading 500M rows to filter to 10K is 500x more data movement and cost than needed.</p>
+
+        <p><strong>3. No parallelism in ForEach activities:</strong> By default, ForEach activities execute sequentially. Set <code>isSequential: false</code> and a reasonable <code>batchCount</code> (4–8) to parallelize processing across multiple items. A ForEach over 50 tables running sequentially at 2 minutes each = 100 minutes; in parallel at batch count 8 = ~15 minutes.</p>
+
+        <p><strong>4. Not using Managed Virtual Network:</strong> By default, Copy Activity runs in the shared Azure IR environment. For sensitive data or when connecting to private endpoints, enable Managed Virtual Network and managed private endpoints. The tradeoff: it adds provisioning latency but eliminates public internet data paths.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2023 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>
