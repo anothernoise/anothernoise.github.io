@@ -1,70 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Power BI & Semantic Models Deep Dive</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../stylesheets/styles.css">
+  <title>Power BI Semantic Models: What's Actually Happening Under the Hood</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
   <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1e3a5f',
+        primaryTextColor: '#c9d4e0',
+        primaryBorderColor: '#2d5a8e',
+        lineColor: '#4a7aaa',
+        secondaryColor: '#0d1f35',
+        tertiaryColor: '#0a1628',
+        background: '#090d1b',
+        mainBkg: '#0d1f35',
+        nodeBorder: '#2d5a8e',
+        clusterBkg: '#0a1628',
+        titleColor: '#d4a540',
+        edgeLabelBackground: '#0d1f35',
+        stateBkg: '#0d1f35',
+        labelBackgroundColor: '#0d1f35'
+      }
+    });
+  </script>
+
   <style>
-    body {
-      --text-primary: #1a1a1a;
-      --text-secondary: #666;
-      --text-muted: #999;
-      --bg-primary: #fff;
-      --bg-secondary: #f9f9f9;
-      --border-color: #e1e4e8;
-      --accent-primary: #b8860b;
-      --accent-hover: #daa520;
-      --code-bg: #f6f8fa;
+    .blog-article {
+      max-width: 820px;
     }
 
-    body[data-theme="dark"] {
-      --text-primary: #e0e0e0;
-      --text-secondary: #b0b0b0;
-      --text-muted: #808080;
-      --bg-primary: #1a1a1a;
-      --bg-secondary: #242424;
-      --border-color: #404040;
-      --accent-primary: #daa520;
-      --accent-hover: #ffd700;
-      --code-bg: #2d2d2d;
+    .article-header {
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 2rem;
     }
 
-    .wrapper {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2rem 1.5rem;
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
-      font-family: 'Inter', sans-serif;
-      line-height: 1.6;
-    }
-
-    .theme-toggle-container {
-      display: flex;
-      justify-content: flex-end;
+    .article-header h1 {
+      font-size: 2.2rem;
+      line-height: 1.25;
       margin-bottom: 1rem;
     }
 
-    .theme-toggle-btn {
-      background: none;
-      border: 1px solid var(--border-color);
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      border-radius: 4px;
-      color: var(--text-primary);
+    .article-meta {
       display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
     }
 
-    .theme-toggle-btn:hover {
-      background-color: var(--accent-primary);
-      color: white;
+    .article-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .article-content h2 {
+      margin-top: 2.8rem;
+      margin-bottom: 0.9rem;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.4rem;
+    }
+
+    .article-content h3 {
+      margin-top: 1.8rem;
+      margin-bottom: 0.7rem;
+      font-size: 1.1rem;
+      color: var(--accent-primary);
+    }
+
+    .article-content p {
+      line-height: 1.85;
+      margin-bottom: 1.2rem;
+      color: var(--text-secondary);
+    }
+
+    .article-content ul,
+    .article-content ol {
+      margin-left: 1.6rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .article-content li {
+      margin-bottom: 0.6rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .article-content code {
+      background: var(--bg-secondary);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      color: var(--accent-primary);
+    }
+
+    .article-content pre {
+      background: rgba(15, 23, 42, 0.92);
+      padding: 1.4rem 1.6rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border-left: 3px solid var(--accent-primary);
+    }
+
+    .article-content pre code {
+      background: none;
+      padding: 0;
+      color: var(--text-secondary);
+      font-size: 0.87rem;
     }
 
     .back-link {
@@ -72,144 +134,83 @@
       margin-bottom: 2rem;
       color: var(--accent-primary);
       text-decoration: none;
-      font-size: 0.95rem;
-      transition: color 0.3s ease;
+      font-size: 0.92rem;
+      font-weight: 500;
     }
 
     .back-link:hover {
-      color: var(--accent-hover);
-    }
-
-    article {
-      margin-bottom: 3rem;
-    }
-
-    article h1 {
-      font-size: 2.5rem;
-      margin: 2rem 0 1rem;
-      font-family: 'Lora', serif;
-      line-height: 1.2;
-      color: var(--text-primary);
-    }
-
-    article h2 {
-      font-size: 1.8rem;
-      margin: 2rem 0 1rem;
-      font-family: 'Lora', serif;
-      color: var(--text-primary);
-      border-bottom: 2px solid var(--accent-primary);
-      padding-bottom: 0.5rem;
-    }
-
-    article h3 {
-      font-size: 1.3rem;
-      margin: 1.5rem 0 0.75rem;
-      font-family: 'Lora', serif;
-      color: var(--text-secondary);
-    }
-
-    article p {
-      margin-bottom: 1rem;
-      color: var(--text-secondary);
-    }
-
-    article ul, article ol {
-      margin: 1rem 0 1rem 2rem;
-      color: var(--text-secondary);
-    }
-
-    article li {
-      margin-bottom: 0.5rem;
-    }
-
-    article a {
-      color: var(--accent-primary);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.3s ease;
-    }
-
-    article a:hover {
-      border-bottom: 1px solid var(--accent-primary);
-    }
-
-    article code {
-      background-color: var(--code-bg);
-      padding: 0.2rem 0.4rem;
-      border-radius: 3px;
-      font-family: 'Courier New', monospace;
-      font-size: 0.9rem;
-      color: var(--accent-primary);
-    }
-
-    article pre {
-      background-color: var(--code-bg);
-      padding: 1rem;
-      border-radius: 4px;
-      overflow-x: auto;
-      margin: 1rem 0;
-      border-left: 4px solid var(--accent-primary);
-    }
-
-    article pre code {
-      background-color: transparent;
-      padding: 0;
-      color: var(--text-secondary);
-    }
-
-    .article-meta {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-      padding: 1rem;
-      background-color: var(--bg-secondary);
-      border-radius: 4px;
-      font-size: 0.95rem;
-      color: var(--text-muted);
+      text-decoration: underline;
     }
 
     .callout {
-      background-color: var(--bg-secondary);
+      background: var(--accent-secondary);
       border-left: 4px solid var(--accent-primary);
-      padding: 1rem;
-      margin: 1.5rem 0;
-      border-radius: 4px;
+      padding: 1rem 1.5rem;
+      margin: 1.8rem 0;
+      border-radius: 0 6px 6px 0;
     }
 
     .callout p {
       margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .callout.warning {
+      border-left-color: hsl(0, 72%, 51%);
+      background: rgba(239, 68, 68, 0.06);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 1.5rem 0;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 1.5rem 0;
+      font-size: 0.92rem;
     }
 
     th, td {
       border: 1px solid var(--border-color);
-      padding: 0.75rem;
+      padding: 0.7rem 1rem;
       text-align: left;
+      color: var(--text-secondary);
     }
 
     th {
-      background-color: var(--bg-secondary);
+      background: var(--bg-secondary);
       font-weight: 600;
+      color: var(--text-primary);
     }
 
-    footer {
-      margin-top: 4rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border-color);
+    tr:nth-child(even) td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .diagram-wrap {
+      background: rgba(9, 13, 27, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem 1rem;
+      margin: 1.8rem 0;
+      overflow-x: auto;
       text-align: center;
-      color: var(--text-muted);
     }
 
-    footer a {
-      color: var(--accent-primary);
+    .diagram-wrap .mermaid {
+      display: inline-block;
+      min-width: 0;
+      text-align: left;
+    }
+
+    .diagram-caption {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      font-style: italic;
     }
   </style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 </head>
 <body>
   <div class="wrapper">
@@ -224,224 +225,228 @@
 
     <a href="./" class="back-link">← Back to Blog</a>
 
-    <article>
-      <h1>Power BI & Semantic Models Deep Dive</h1>
+    <article class="blog-article">
+      <header class="article-header">
+        <p class="eyebrow">Power BI · Internals</p>
+        <h1>Power BI Semantic Models: What's Actually Happening Under the Hood</h1>
+        <div class="article-meta">
+          <span>📅 June 8, 2024</span>
+          <span>⏱️ 12 min read</span>
+          <span>🏷️ Power BI · VertiPaq · DAX · Performance</span>
+        </div>
+      </header>
 
-      <div class="article-meta">
-        <span>📅 Published: June 8, 2024</span>
-        <span>⏱️ 10 min read</span>
-        <span>🏷️ Power BI</span>
-        <span>🏷️ Semantic Models</span>
+      <div class="article-content">
+
+        <p>Most people treat a Power BI semantic model as a black box. You connect some tables, write a few measures, publish, and occasionally wonder why your dashboard takes nine seconds to load when your colleague's does the same calculation in under one. This post is about opening that box — not to make it seem complicated, but because understanding what's inside makes a lot of previously mysterious behavior suddenly obvious.</p>
+
+        <p>Fair warning: this goes pretty deep. There will be compression algorithms and engine internals. If that's your thing, read on.</p>
+
+        <h2>VertiPaq: Not Just "In-Memory Storage"</h2>
+
+        <p>When people say Power BI loads data "into memory," they're technically correct but slightly misleading. Data doesn't go into memory the way a CSV file gets loaded into a pandas DataFrame. It goes through VertiPaq — a columnar, compressed, in-memory analytical database that Microsoft also uses in Analysis Services and, increasingly, in Microsoft Fabric.</p>
+
+        <p>The columnar part matters. VertiPaq doesn't store your table as rows. It stores each column as a separate, independently compressed array. A fact table with 10 million rows and 20 columns becomes 20 compressed column segments. Analytical queries that touch 3 of those 20 columns only need to decompress those 3 segments. The other 17 are completely ignored. For data warehouse-style workloads where you're almost always aggregating a small number of columns across a large number of rows, this is a massive win over row-based storage.</p>
+
+        <h2>The Compression Tournament Every Column Goes Through</h2>
+
+        <p>Before VertiPaq can apply run-length encoding (RLE) — compressing "New York, New York, New York, New York" into "New York × 4" — it needs to get each column into a numeric form first. This is where the encoding stage happens, and it's worth knowing about.</p>
+
+        <h3>Value encoding (integers only)</h3>
+
+        <p>For integer columns, VertiPaq finds the minimum value in the column and subtracts it from everything. A column containing <code>[1000, 1001, 1002, 1003]</code> becomes <code>[0, 1, 2, 3]</code>. Now you don't need 32-bit integers to represent these values — 2 bits is enough. The engine then applies a bit-packing scheme to pack values as densely as possible into the column segment. The actual compression ratios depend on the data, but for well-behaved integer keys with low cardinality, this is very effective.</p>
+
+        <div class="callout warning">
+          <p><strong>Gotcha:</strong> Columns used in relationships never get value encoding, even if they're integers. VertiPaq needs those key columns in dictionary-encoded form for its join structures. This is often why a surrogate key column looks disproportionately large in VertiPaq Analyzer.</p>
+        </div>
+
+        <h3>Dictionary (hash) encoding — everything else</h3>
+
+        <p>String columns and integers where value encoding isn't efficient get dictionary encoding. VertiPaq builds a lookup table of every unique value in the column, assigns each one an integer ID, then stores only the IDs. "United States" might be ID 42. Instead of storing those two words on 10 million rows, VertiPaq stores 42 ten million times — and a 2-byte integer beats a 13-character string every time.</p>
+
+        <p>The implication you need to internalize: <strong>high-cardinality string columns are expensive</strong>. A column with 8 million unique values needs an 8-million-entry dictionary. There's no meaningful compression on the dictionary itself. This is why GUIDs, hashed tokens, and free-text description fields can balloon your model size — and why you should almost never import a column you don't actually need in a report.</p>
+
+        <h2>The Two Engines and Why You Should Care About Their Ratio</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart LR
+    Q([DAX Query]) --> FE
+
+    subgraph FE ["Formula Engine — single-threaded"]
+        direction TB
+        F1["Parses DAX logic\napplies filter context"]
+        F2["Iterates rows\n(SUMX / FILTER / etc.)"]
+        F1 --> F2
+    end
+
+    FE -->|"datacache request"| SE
+
+    subgraph SE ["Storage Engine — multi-threaded"]
+        direction TB
+        S1["Decompresses\ncolumn segments"]
+        S2["Scans &amp; aggregates\nin parallel threads"]
+        S1 --> S2
+    end
+
+    SE <-->|"reads compressed\ncolumn arrays"| VP[("VertiPaq\nIn-Memory Store")]
+    SE -->|"datacache response"| FE
+    FE --> R([Result])
+          </pre>
+          <p class="diagram-caption">Ideal flow: 80% of work in the multi-threaded SE, 20% in the FE. When an iterator forces the FE to loop row-by-row, that ratio inverts and performance collapses.</p>
+        </div>
+
+        <p>Every DAX query flows through two distinct processing engines. Understanding their different capabilities is the difference between writing DAX that performs and writing DAX that looks right but silently degrades at scale.</p>
+
+        <h3>The Storage Engine (SE)</h3>
+
+        <p>The SE is fast, multi-threaded, and operates directly on compressed column segments. It handles data retrieval, scanning, and simple aggregations. When you call <code>SUM(Sales[Amount])</code>, the SE scans the compressed Amount column, decompresses it, and sums it — all in parallel threads, often using SIMD CPU instructions. It generates "datacache" responses that the FE consumes.</p>
+
+        <h3>The Formula Engine (FE)</h3>
+
+        <p>The FE is where DAX logic lives. It's single-threaded, operates row by row in certain contexts, and handles the complex filtering, calculation, and iteration that DAX is known for. It sends requests to the SE and waits for responses — synchronously, one at a time. That "one at a time" part is important.</p>
+
+        <p>A healthy DAX query looks something like: FE receives the query, generates a few efficient SE requests, SE executes them in parallel and returns datacaches, FE assembles the results. A unhealthy DAX query looks like: FE generates hundreds of individual SE requests (one per row, one per filter combination), SE executes them sequentially, and your visual takes 12 seconds to load on a table with 80K rows.</p>
+
+        <p>In DAX Studio, you can see the SE/FE split in the query trace. If your query is generating more than a handful of SE calls, something is wrong with how the DAX is structured. A good ratio is roughly 80% SE work and 20% FE overhead.</p>
+
+        <h2>Context Transition: The Most Expensive Thing Nobody Warns You About</h2>
+
+        <p>This is the one that gets people. Context transition is the mechanism by which <code>CALCULATE</code> converts an existing row context into a filter context. It sounds abstract until you understand what it costs at scale.</p>
+
+        <p>Every time you reference a measure inside an iterator (<code>SUMX</code>, <code>FILTER</code>, <code>AVERAGEX</code>, etc.), that measure call is automatically wrapped in <code>CALCULATE</code>, which triggers context transition for every row of the iteration. The model is re-filtered for each row individually.</p>
+
+        <pre><code class="language-dax">-- Looks innocent, genuinely isn't on large tables
+Total Margin =
+SUMX(
+    Sales,
+    [Unit Price] - [Unit Cost]   -- measure references inside iterator
+)
+</code></pre>
+
+        <p>On a fact table with 5 million rows, that <code>SUMX</code> creates 5 million filter contexts. The FE evaluates each one individually. Even if each evaluation is microseconds, 5 million of them adds up — and the FE's single-threaded nature means they're serialized. This is the pattern that makes developers say "DAX is slow" when really the DAX is structurally wrong for the workload.</p>
+
+        <div class="callout">
+          <p><strong>The fix:</strong> Rewrite to computed column expressions or use native aggregation functions where possible. <code>SUMX(Sales, Sales[UnitPrice] - Sales[UnitCost])</code> references columns, not measures — no context transition, the SE handles it. The difference in execution time on large tables can be 50x or more.</p>
+        </div>
+
+        <h3>When context transition is intentional</h3>
+
+        <p>Context transition isn't inherently evil — it's the mechanism that makes measures dynamic. When you build a measure that calculates "Sales for the currently selected product," context transition is exactly what you want. The problem is doing it 5 million times inside an iterator when you didn't mean to. The diagnostic is: know where your iterators are, and think carefully before putting measure references inside them.</p>
+
+        <h2>Storage Modes: The Decision That Shapes Everything Else</h2>
+
+        <p>This gets covered a lot, so I'll focus on the parts that usually get glossed over.</p>
+
+        <h3>Import mode — still the benchmark</h3>
+
+        <p>Data loads into VertiPaq at refresh time and stays there. Queries run entirely in memory, which means they're fast, consistent, and not at the mercy of your source database's performance. The tradeoffs are well-known: 64GB model size limit in Fabric capacities (though large models can go higher with Premium), refresh latency, and memory consumption that scales with your data volume.</p>
+
+        <p>What's less appreciated: Import mode lets you write DAX freely. Complex time intelligence, iterators, nested <code>CALCULATE</code> calls — VertiPaq handles them well because it has full control of the data and can use column statistics, result caches, and its compression structures efficiently.</p>
+
+        <h3>DirectQuery — good in theory, humbling in practice</h3>
+
+        <p>Every DAX query gets translated to SQL and sent to your source database. The translation engine is genuinely impressive for simple measures. For complex ones, it can produce SQL that would make a database administrator weep. I once saw a YTD measure generate a 400-line nested subquery against a Snowflake warehouse. The query returned the right answer. It took 38 seconds.</p>
+
+        <p>DirectQuery works well when your source database is fast, your measures are simple, and your users can tolerate some query latency. It falls apart when any of those conditions aren't met, and the failure mode is silent — you get correct results, just very slowly.</p>
+
+        <h3>Direct Lake — the interesting one</h3>
+
+        <p>Direct Lake reads Delta Parquet column segments directly from OneLake and loads them into VertiPaq on demand. No scheduled refresh. Near-Import performance on data that can be updated continuously.</p>
+
+        <p>The model goes through distinct performance states you should understand:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <tr>
+              <th>State</th>
+              <th>What it means</th>
+              <th>Query performance</th>
+            </tr>
+            <tr>
+              <td><strong>Cold</strong></td>
+              <td>No columns loaded into VertiPaq memory</td>
+              <td>First query triggers transcoding from Parquet — noticeable delay</td>
+            </tr>
+            <tr>
+              <td><strong>Semiwarm</strong></td>
+              <td>Some columns loaded, others still on disk</td>
+              <td>Mixed — fast for cached columns, slower for uncached ones</td>
+            </tr>
+            <tr>
+              <td><strong>Warm</strong></td>
+              <td>All required columns in VertiPaq memory</td>
+              <td>Import-equivalent</td>
+            </tr>
+            <tr>
+              <td><strong>Hot</strong></td>
+              <td>Warm + VertiScan result caches from repeated queries</td>
+              <td>Fastest — results may be served from cache</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+stateDiagram-v2
+    direction LR
+    [*] --> Cold : model deployed / long idle
+    Cold --> SemiWarm : first query triggers\nParquet → VertiPaq transcoding
+    SemiWarm --> Warm : all needed columns\nloaded into memory
+    Warm --> Hot : VertiScan cache builds\nfrom repeated queries
+    Hot --> Warm : new query pattern\ncache miss
+    Warm --> SemiWarm : memory pressure\nevicts some columns
+    SemiWarm --> Cold : capacity flush\nor extended idle
+          </pre>
+          <p class="diagram-caption">Direct Lake model states. Framing (picking up new Delta table versions) is near-instant and doesn't reset this state machine — column eviction is the only thing that drops you back toward Cold.</p>
+        </div>
+
+        <p>Under memory pressure, VertiPaq evicts column segments and the model drops back toward cold. This is why a Direct Lake dashboard can feel blazing fast during business hours (when it's been warmed up by 20 report users) and inexplicably sluggish on Monday morning when nobody has touched it since Friday afternoon.</p>
+
+        <h2>Practical Optimization: What Actually Moves the Needle</h2>
+
+        <p>Generic advice like "avoid high-cardinality columns" and "use star schemas" is true but not very actionable. Here's what actually matters in practice.</p>
+
+        <h3>Use DAX Studio before changing anything</h3>
+
+        <p>DAX Studio connects to your semantic model and lets you run DAX queries while capturing a detailed trace. You'll see: every SE call generated, how many there were, how long each took, and the overall FE/SE split. This costs 10 minutes and usually identifies the actual problem immediately. A lot of "optimization work" is really just fixing one badly structured measure that's generating 300 SE callbacks.</p>
+
+        <h3>Run VertiPaq Analyzer on your model</h3>
+
+        <p>VertiPaq Analyzer (also inside DAX Studio) shows your model's memory footprint column by column. Look for: columns where the dictionary is larger than the data column (high-cardinality strings), tables with many more rows than you expected (intermediate tables that should be calculated, not materialized), and calculated columns on large fact tables (every calculated column is evaluated at refresh time and stored for every row).</p>
+
+        <h3>Star schema matters for compression, not just query design</h3>
+
+        <p>Textbooks say star schema improves query performance because simpler joins mean simpler SQL. In VertiPaq land the reason is slightly different. Dimension tables tend to have low-cardinality columns (Status, Category, Region) — these compress extremely well. Fact tables have numeric foreign keys that also compress well. Keeping your dimension attributes separate from your fact table maximizes VertiPaq's ability to compress each column optimally.</p>
+
+        <p>A single wide denormalized table with 40 columns is not just hard to maintain — it actively hurts compression because string attributes that belong to slow-moving dimensions are replicated alongside millions of transaction rows, defeating run-length encoding.</p>
+
+        <h3>Think twice before calculated columns on fact tables</h3>
+
+        <p>A calculated column on a 10-million-row fact table stores 10 million values. It's computed at every refresh and held in RAM indefinitely. A measure computes on demand and is never stored. If the calculation is aggregation-based, a measure is almost always the right choice. Calculated columns earn their keep for things that feed relationships (integer keys), enable slicing, or require row-level categorization logic that's too expensive to repeat at query time — but that's a short list.</p>
+
+        <h2>A Note on DAX and "Context"</h2>
+
+        <p>If you've been writing DAX for a while and still find filter context and row context confusing, you're not alone — the documentation explains the mechanics but rarely explains the intuition. Here's the one-liner that actually helped me: <em>filter context is about which rows are visible; row context is about which row you're currently on</em>. They're separate concerns that interact only through context transition (via <code>CALCULATE</code>). When something behaves unexpectedly, the diagnostic question is usually "what filter context is this measure being evaluated in, and is that what I intended?"</p>
+
+        <h2>Wrapping Up</h2>
+
+        <p>Semantic models aren't magic — they're VertiPaq underneath, with two distinct engines handling your queries, a compression system that rewards good data modeling, and a storage mode choice that determines your entire performance envelope. Understanding those facts won't make you write better-looking DAX, but it will make you write faster DAX — and help you debug it when it isn't.</p>
+
+        <p>The models that perform consistently are usually the ones built by someone who thought deliberately about cardinality, avoided unnecessary columns, structured their star schema to maximize VertiPaq compression, and tested with real query traces rather than guessing. That's a learnable skill, not an artform.</p>
+
       </div>
-
-      <p>Power BI's true power lies not just in visualization, but in the semantic layer that underlies every report. Understanding semantic models—how data flows through them, how queries are optimized, and how to design them for performance—is the difference between a sluggish BI system and a lightning-fast analytics platform. This deep dive explores the architecture, optimization techniques, and best practices you need to master.</p>
-
-      <h2>What is a Semantic Model?</h2>
-      <p>A semantic model is the bridge between raw data and business intelligence. It's a layer of business logic that transforms technical data into meaningful metrics and relationships that non-technical users can work with.</p>
-      <p>In Power BI, a semantic model consists of:</p>
-      <ul>
-        <li><strong>Tables and Columns:</strong> The data entities and their attributes</li>
-        <li><strong>Relationships:</strong> How tables connect (one-to-many, many-to-many, role-based)</li>
-        <li><strong>Measures:</strong> Aggregations and calculations expressed in DAX (Data Analysis Expressions)</li>
-        <li><strong>Calculated Columns:</strong> New columns derived from existing data via DAX formulas</li>
-        <li><strong>Hierarchies:</strong> Parent-child or grouped structures for drill-down analysis</li>
-      </ul>
-      <p>Semantic models exist in Power BI Desktop (.pbix files) and are published to the Power BI Service where they can be shared, refreshed, and governed.</p>
-
-      <h2>Query Folding: The Hidden Performance Multiplier</h2>
-      <p>Query folding is one of the most misunderstood—and powerful—optimization techniques in Power BI. It's the ability of Power Query to push data transformation logic down to the source system, rather than executing transformations in Power BI's engine.</p>
-
-      <h3>How Query Folding Works</h3>
-      <p>When you build a query in Power Query Editor (the data prep layer), each step creates a transformation operation. If the source supports it (SQL Server, Azure SQL, many cloud databases), Power Query translates your steps into native SQL and sends that SQL to the database—the database then performs the filtering, grouping, and joining, returning only the necessary rows.</p>
-
-      <p><strong>Example:</strong> You load 10 million rows from a SQL database, then filter for only 2026 transactions. Without query folding, Power BI loads all 10M rows into memory and filters locally. With query folding, Power BI sends a SQL WHERE clause to the database; the database filters to 100K rows and returns only those.</p>
-
-      <h3>When Query Folding Breaks</h3>
-      <p>Some operations prevent query folding:</p>
-      <ul>
-        <li>Custom functions written in M (Power Query formula language)</li>
-        <li>Pivot/Unpivot operations (with some exceptions)</li>
-        <li>Certain advanced text transformations</li>
-        <li>Referencing tables that don't fold (e.g., Excel files)</li>
-      </ul>
-
-      <p>To check if query folding is working, right-click a query step in Power Query and select "View Native Query." If you see SQL, query folding is active. If you see "native query is not supported," query folding has stopped.</p>
-
-      <h2>Import vs. DirectQuery vs. Direct Lake</h2>
-
-      <h3>Import Mode</h3>
-      <p>Data is loaded into Power BI's in-memory VertiPaq engine (a columnar compressed database). Queries run in-memory against cached data.</p>
-      <ul>
-        <li><strong>Pros:</strong> Fastest queries, no dependency on source connectivity, excellent for complex DAX</li>
-        <li><strong>Cons:</strong> Limited by available memory (typical limit 10GB per dataset), refresh latency, no real-time data</li>
-        <li><strong>Best For:</strong> Historical analysis, smaller datasets, complex metrics</li>
-      </ul>
-
-      <h3>DirectQuery Mode</h3>
-      <p>Queries run directly against the source database in real-time. Power BI translates DAX queries to native SQL/database queries.</p>
-      <ul>
-        <li><strong>Pros:</strong> Real-time data, no size limits, up-to-date information always</li>
-        <li><strong>Cons:</strong> Slower queries (source DB performance matters), reduced DAX functionality, network latency</li>
-        <li><strong>Best For:</strong> Real-time operational dashboards, massive datasets</li>
-      </ul>
-
-      <h3>Direct Lake Mode (Fabric Integration)</h3>
-      <p>Available in Power BI when connected to Microsoft Fabric OneLake, Direct Lake queries Parquet-formatted data directly from the data lake without import or caching, combining speed of import with freshness of DirectQuery.</p>
-
-      <h3>Dual Mode</h3>
-      <p>Mix both: some tables in Import, others in DirectQuery. Useful for blending historical (imported) with real-time (DirectQuery) data.</p>
-
-      <h2>DAX Deep Dive: Measures vs. Calculated Columns</h2>
-
-      <h3>Measures: Dynamic Calculations</h3>
-      <p>Measures calculate results on-the-fly based on the filtering context of the report. They're computed at query time.</p>
-
-      <pre><code>Sales Amount = SUM(Sales[Amount])
-Sales YoY Growth % = 
-  (SUM(Sales[Amount]) - CALCULATE(SUM(Sales[Amount]), YEAR(TODAY())-1)) 
-  / CALCULATE(SUM(Sales[Amount]), YEAR(TODAY())-1)</code></pre>
-
-      <p>Key advantage: Measures respect all filters and slicers on the report. Change a date filter, and measures automatically recalculate.</p>
-
-      <h3>Calculated Columns: Static Values</h3>
-      <p>Calculated columns execute once during data load/refresh and store values in memory. They're like new columns you add to a table.</p>
-
-      <pre><code>Full Name = Customers[FirstName] & " " & Customers[LastName]
-Age Category = 
-  IF(Customers[Age] < 18, "Child", 
-    IF(Customers[Age] < 65, "Working Age", "Senior"))</code></pre>
-
-      <p>Calculated columns consume storage and must be refreshed to update. Use them sparingly.</p>
-
-      <h3>Performance Implications</h3>
-      <table>
-        <tr>
-          <th>Aspect</th>
-          <th>Measures</th>
-          <th>Calculated Columns</th>
-        </tr>
-        <tr>
-          <td>Computation Time</td>
-          <td>At query time (slow for large calcs)</td>
-          <td>At refresh time (one-time cost)</td>
-        </tr>
-        <tr>
-          <td>Storage</td>
-          <td>Minimal (formula only)</td>
-          <td>Full column stored in memory</td>
-        </tr>
-        <tr>
-          <td>Context Sensitivity</td>
-          <td>Fully dynamic, filters applied</td>
-          <td>Static, no filter context</td>
-        </tr>
-        <tr>
-          <td>Best Practice</td>
-          <td>For aggregations & KPIs</td>
-          <td>For categorization & grouping</td>
-        </tr>
-      </table>
-
-      <h2>Semantic Model Architecture Patterns</h2>
-
-      <h3>Star Schema (Recommended)</h3>
-      <p>Center fact table (transactions) surrounded by dimension tables (customers, products, dates).</p>
-      <ul>
-        <li>Fact table: millions of rows, foreign keys to dimensions</li>
-        <li>Dimension tables: thousands of rows, textual attributes</li>
-        <li>All relationships: one-to-many from dimension to fact</li>
-      </ul>
-      <p>Advantages: Simple query patterns, predictable performance, easy to navigate for users.</p>
-
-      <h3>Snowflake Schema</h3>
-      <p>Dimensions are normalized into sub-dimensions (e.g., Date → Year → Quarter → Month). Reduces dimension table redundancy.</p>
-      <p>Trade-off: More tables to join, slightly more complex queries, marginal storage savings in modern BI systems.</p>
-
-      <h3>Flat Model (Avoid)</h3>
-      <p>Everything in one wide table: fact + all dimension attributes denormalized. Looks simple but causes problems:</p>
-      <ul>
-        <li>Cartesian product errors if many-to-many relationships exist</li>
-        <li>Redundant data = larger model size</li>
-        <li>Harder to maintain and update dimensions</li>
-      </ul>
-
-      <h2>Optimization Techniques</h2>
-
-      <h3>1. Minimize Calculated Columns</h3>
-      <p>Replace calculated columns with measures when possible. A 1M-row calculated column stores 1M values; a measure computes on demand.</p>
-
-      <h3>2. Reduce Row-Level Security (RLS) Complexity</h3>
-      <p>RLS applies filters to restrict data visibility per user. Complex RLS logic at model level can slow all queries. Consider:</p>
-      <ul>
-        <li>Using object-level security (hide/show columns) instead where possible</li>
-        <li>Pre-filtering data at the source if row counts are manageable</li>
-        <li>Caching RLS context when users are static</li>
-      </ul>
-
-      <h3>3. Summarize Large Fact Tables</h3>
-      <p>For datasets with billions of rows, create summarized tables at daily or weekly grain. Use DirectQuery for detail, Import for summaries.</p>
-
-      <h3>4. Optimize Relationships</h3>
-      <p>Make relationships one-to-many when possible. Many-to-many relationships create virtual join tables internally, increasing complexity.</p>
-      <p>Use role-based relationships for multiple paths (e.g., "Hire Date" vs. "Termination Date" on Employee table). Activate only the relevant one per report.</p>
-
-      <h3>5. Use Aggregations</h3>
-      <p>Define aggregation tables—small pre-aggregated tables that Power BI uses instead of full fact tables for certain queries.</p>
-
-      <pre><code>Aggregation Example:
-Fact Table: Sales (100M rows)
-Aggregation: Sales_By_Product_Month (5K rows - grouped by Product & Month)</code></pre>
-
-      <p>When a report queries total sales by month, Power BI intercepts and queries the 5K-row aggregation instead.</p>
-
-      <h2>Metadata Management & Governance</h2>
-
-      <h3>Description & Documentation</h3>
-      <p>Add descriptions to every table, column, and measure. In Power BI Desktop, right-click properties and add documentation. This metadata appears in Power BI Service tooltips for users.</p>
-
-      <h3>Certification & Endorsement</h3>
-      <p>In Power BI Service, mark datasets as "Certified" to signal trustworthiness. Users see a badge, encouraging use of official models over shadow BI.</p>
-
-      <h3>Sensitivity Labels</h3>
-      <p>Tag columns with Microsoft Purview sensitivity labels (Public, Internal, Confidential). Power BI enforces downstream restrictions automatically.</p>
-
-      <h2>Performance Analyzer: The Diagnostic Tool</h2>
-      <p>Power BI Desktop's Performance Analyzer shows query execution times and identifies bottlenecks:</p>
-      <ul>
-        <li><strong>Direct Query Time:</strong> Time spent querying the source</li>
-        <li><strong>Engine Time:</strong> Time for Power BI's VertiPaq to compute results</li>
-        <li><strong>Rendering Time:</strong> Time to draw the visual</li>
-      </ul>
-      <p>High engine time suggests DAX optimization is needed. High direct query time suggests source DB tuning or switching to Import mode for historical data.</p>
-
-      <h2>Best Practices Summary</h2>
-      <ul>
-        <li><strong>Design star schemas:</strong> Simple, performant, user-friendly</li>
-        <li><strong>Maximize query folding:</strong> Push transformations to the source when possible</li>
-        <li><strong>Prefer measures over calculated columns:</strong> They're more flexible and lighter-weight</li>
-        <li><strong>Choose the right mode:</strong> Import for speed, DirectQuery for freshness, consider blending</li>
-        <li><strong>Document everything:</strong> Metadata is your BI system's lifeline</li>
-        <li><strong>Monitor with Performance Analyzer:</strong> Profile before optimizing; measure improvements</li>
-        <li><strong>Test RLS and aggregations:</strong> These can dramatically impact query times</li>
-        <li><strong>Keep DAX formulas readable:</strong> Complex nested DAX is hard to debug and maintain</li>
-      </ul>
-
-      <h2>Conclusion</h2>
-      <p>Semantic models are the foundation of effective Power BI systems. Master query folding, understand the Import/DirectQuery trade-off, architect clean star schemas, and optimize with DAX best practices. When you get the semantic layer right, everything else—reports, dashboards, self-service analytics—becomes faster, more reliable, and easier to maintain. The organizations that win with BI are those that invest in semantic model governance and architecture as much as they do in attractive dashboards.</p>
     </article>
 
-    <footer>
-      <p><small>&copy; 2026 Dmitry Shirokov. <a href="../">Return to home</a></small></p>
+    <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted);">
+      <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color: var(--accent-primary);">Return to home</a></small></p>
     </footer>
   </div>
 
-  <script src="../javascripts/theme.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('pre code').forEach(el => {
-        hljs.highlightElement(el);
-      });
+      document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
     });
   </script>
 </body>

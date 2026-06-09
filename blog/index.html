@@ -284,9 +284,12 @@
             <h3>🏷️ Tags</h3>
             <div class="tags-cloud">
               <a href="#" class="tag all" data-tag="all">All Posts</a>
-              <a href="#" class="tag" data-tag="power-bi">Power BI</a>
-              <a href="#" class="tag" data-tag="semantic-models">Semantic Models</a>
+              <a href="#" class="tag" data-tag="ai-agents">AI Agents</a>
               <a href="#" class="tag" data-tag="architecture">Architecture</a>
+              <a href="#" class="tag" data-tag="data-engineering">Data Engineering</a>
+              <a href="#" class="tag" data-tag="power-bi">Power BI</a>
+              <a href="#" class="tag" data-tag="fabric">MS Fabric</a>
+              <a href="#" class="tag" data-tag="semantic-models">Semantic Models</a>
               <a href="#" class="tag" data-tag="cloud">Cloud</a>
             </div>
           </div>
@@ -299,6 +302,66 @@
           </header>
 
           <ul class="post-list">
+          <li class="post-item" data-tags="ai-agents,architecture,memory">
+            <a href="ai-agent-memory.html">
+              <h2 class="post-title">AI Agent Memory: The Infrastructure Layer Nobody Told You About</h2>
+              <div class="post-date">June 8, 2026</div>
+              <p class="post-excerpt">The context window is not memory — it's a scratchpad. For agents that need to persist knowledge across sessions, the architecture choices matter enormously. A deep dive into the four memory types, how AWS Bedrock AgentCore, GCP Vertex Memory Bank, OpenAI, and Claude implement them, the security risks of memory poisoning, and what actually goes wrong in production.</p>
+              <div class="post-meta">
+                <span>📖 16 min read</span>
+                <span>🏷️ AI Agents</span>
+                <span>🔧 Architecture</span>
+              </div>
+            </a>
+          </li>
+          <li class="post-item" data-tags="power-bi,semantic-models,architecture">
+            <a href="vertipaq-internals.html">
+              <h2 class="post-title">VertiPaq Internals: What's Really Happening When Power BI Loads Your Model</h2>
+              <div class="post-date">March 15, 2026</div>
+              <p class="post-excerpt">Every refresh, 200 MB of raw data becomes a 40 MB in-memory structure that answers complex aggregations in milliseconds. The engine behind this is VertiPaq — and understanding its columnar encoding, SE/FE split, relationship hashmaps, and segment architecture turns model optimization from cargo-cult advice into engineering decisions.</p>
+              <div class="post-meta">
+                <span>📖 14 min read</span>
+                <span>🏷️ Power BI</span>
+                <span>🔧 VertiPaq</span>
+              </div>
+            </a>
+          </li>
+          <li class="post-item" data-tags="power-bi,fabric,architecture">
+            <a href="direct-lake-vs-import-vs-directquery.html">
+              <h2 class="post-title">Direct Lake vs Import vs DirectQuery: How to Stop Guessing and Actually Choose</h2>
+              <div class="post-date">October 7, 2025</div>
+              <p class="post-excerpt">Import and Direct Lake both use VertiPaq. DirectQuery usually doesn't. That one fact changes everything about how you reason over performance, freshness, and modeling trade-offs. A practical guide to choosing the right Power BI storage mode — including composite models, the five mistakes that ruin production deployments, and a decision tree that actually leads to an answer.</p>
+              <div class="post-meta">
+                <span>📖 13 min read</span>
+                <span>🏷️ Power BI</span>
+                <span>🔧 MS Fabric</span>
+              </div>
+            </a>
+          </li>
+          <li class="post-item" data-tags="data-engineering,architecture,cloud">
+            <a href="open-table-formats.html">
+              <h2 class="post-title">Open Table Formats: Iceberg, Delta Lake, and Hudi — The War Nobody Told Your Data Team About</h2>
+              <div class="post-date">June 8, 2025</div>
+              <p class="post-excerpt">Three teams at Netflix, Databricks, and Uber independently solved the same problem: how do you get ACID transactions, schema evolution, and row-level deletes on top of object storage? Their solutions — Iceberg, Delta Lake, and Hudi — are now converging in ways nobody predicted. An internals-first guide to how they actually work and how to choose between them.</p>
+              <div class="post-meta">
+                <span>📖 18 min read</span>
+                <span>🏷️ Data Engineering</span>
+                <span>☁️ Cloud</span>
+              </div>
+            </a>
+          </li>
+          <li class="post-item" data-tags="architecture,cloud,fabric">
+            <a href="ms-fabric-azure-migration.html">
+              <h2 class="post-title">Microsoft Fabric in the Azure Ecosystem: Migration, Integration, and the Databricks Question</h2>
+              <div class="post-date">February 12, 2025</div>
+              <p class="post-excerpt">Fabric collapses Azure Synapse, ADF, Power BI Premium, and ADX into one platform — but the migration isn't a checkbox exercise. A technical guide covering the ADF and Synapse migration paths, where the TCO math actually works, the honest Databricks vs Fabric comparison, and the hybrid pattern that most large organizations end up running in practice.</p>
+              <div class="post-meta">
+                <span>📖 17 min read</span>
+                <span>☁️ Azure</span>
+                <span>🔧 MS Fabric</span>
+              </div>
+            </a>
+          </li>
           <li class="post-item" data-tags="power-bi,semantic-models">
             <a href="power-bi-semantic-models.html">
               <h2 class="post-title">Power BI & Semantic Models Deep Dive</h2>
@@ -329,6 +392,31 @@
         <aside class="blog-timeline">
           <h3 style="font-size: 0.9rem; margin: 0 0 1.5rem 0; color: var(--text-primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">📜 Timeline</h3>
           <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-date">June 8, 2026</div>
+              <div class="timeline-title">AI Agent Memory</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-date">Mar 15, 2026</div>
+              <div class="timeline-title">VertiPaq Internals</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-date">Oct 7, 2025</div>
+              <div class="timeline-title">Direct Lake vs Import</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-date">June 8, 2025</div>
+              <div class="timeline-title">Open Table Formats</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-date">Feb 12, 2025</div>
+              <div class="timeline-title">Fabric + Azure Migration</div>
+            </div>
             <div class="timeline-item">
               <div class="timeline-dot"></div>
               <div class="timeline-date">June 8, 2024</div>

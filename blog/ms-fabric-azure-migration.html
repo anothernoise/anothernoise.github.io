@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microsoft Fabric in the Azure Ecosystem: Migration, Integration, and the Databricks Question</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1e3a5f',
+        primaryTextColor: '#c9d4e0',
+        primaryBorderColor: '#2d5a8e',
+        lineColor: '#4a7aaa',
+        secondaryColor: '#0d1f35',
+        tertiaryColor: '#0a1628',
+        background: '#090d1b',
+        mainBkg: '#0d1f35',
+        nodeBorder: '#2d5a8e',
+        clusterBkg: '#0a1628',
+        titleColor: '#d4a540',
+        edgeLabelBackground: '#0d1f35',
+        stateBkg: '#0d1f35',
+        labelBackgroundColor: '#0d1f35'
+      }
+    });
+  </script>
+
+  <style>
+    .blog-article { max-width: 820px; }
+
+    .article-header {
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 2rem;
+    }
+
+    .article-header h1 {
+      font-size: 2.2rem;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+    }
+
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+    }
+
+    .article-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+    .article-content h2 {
+      margin-top: 2.8rem;
+      margin-bottom: 0.9rem;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.4rem;
+    }
+
+    .article-content h3 {
+      margin-top: 1.8rem;
+      margin-bottom: 0.7rem;
+      font-size: 1.1rem;
+      color: var(--accent-primary);
+    }
+
+    .article-content p {
+      line-height: 1.85;
+      margin-bottom: 1.2rem;
+      color: var(--text-secondary);
+    }
+
+    .article-content ul, .article-content ol {
+      margin-left: 1.6rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .article-content li {
+      margin-bottom: 0.6rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .article-content code {
+      background: var(--bg-secondary);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      color: var(--accent-primary);
+    }
+
+    .article-content pre {
+      background: rgba(15, 23, 42, 0.92);
+      padding: 1.4rem 1.6rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border-left: 3px solid var(--accent-primary);
+    }
+
+    .article-content pre code {
+      background: none;
+      padding: 0;
+      color: var(--text-secondary);
+      font-size: 0.87rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 2rem;
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+
+    .back-link:hover { text-decoration: underline; }
+
+    .callout {
+      background: var(--accent-secondary);
+      border-left: 4px solid var(--accent-primary);
+      padding: 1rem 1.5rem;
+      margin: 1.8rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .callout p { margin: 0; font-size: 0.95rem; }
+
+    .callout.warning {
+      border-left-color: hsl(0, 72%, 51%);
+      background: rgba(239, 68, 68, 0.06);
+    }
+
+    .callout.tip {
+      border-left-color: hsl(142, 70%, 45%);
+      background: rgba(34, 197, 94, 0.06);
+    }
+
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 0.7rem 1rem;
+      text-align: left;
+      color: var(--text-secondary);
+    }
+
+    th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+    .diagram-wrap {
+      background: rgba(9, 13, 27, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem 1rem;
+      margin: 1.8rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .diagram-caption {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin: 0.75rem 0 0 0;
+      font-style: italic;
+    }
+
+    .migration-phases {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+      counter-reset: phase;
+    }
+
+    .phase-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      position: relative;
+    }
+
+    .phase-card::before {
+      counter-increment: phase;
+      content: counter(phase);
+      display: block;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+      opacity: 0.5;
+      margin-bottom: 0.4rem;
+      font-family: var(--font-mono);
+    }
+
+    .phase-card h4 {
+      margin: 0 0 0.4rem 0;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .phase-card p { margin: 0; font-size: 0.82rem; line-height: 1.5; }
+
+    @media (max-width: 700px) {
+      .migration-phases { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/>
+        </svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+
+    <a href="./" class="back-link">← Back to Blog</a>
+
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Microsoft Fabric in the Azure Ecosystem: Migration, Integration, and the Databricks Question</h1>
+        <div class="article-meta">
+          <span>📅 February 12, 2025</span>
+          <span>📖 17 min read</span>
+          <span>🏷️ Architecture</span>
+          <span>☁️ Cloud</span>
+          <span>🔧 Microsoft Fabric</span>
+        </div>
+      </header>
+
+      <div class="article-content">
+
+        <p>In November 2023, Microsoft launched Fabric with the tagline "the analytics platform for the era of AI." By early 2025, the honest verdict is: it's genuinely interesting, occasionally messy, and forces a real architectural rethink for anyone who built their data platform on Azure Synapse Analytics, Azure Data Factory, or Power BI Premium. Conveniently, those are most Azure data shops.</p>
+
+        <p>This isn't a product marketing summary. It's a technical walkthrough of what Fabric actually is in the Azure context, how migrations from Synapse and ADF actually go, where the TCO story holds up and where it doesn't, and — perhaps most practically — when you should choose Fabric over Databricks, when you should choose Databricks, and when running both in the same organization is the sanest option.</p>
+
+        <h2>What Microsoft Fabric Actually Is</h2>
+
+        <p>Microsoft Fabric is a SaaS analytics platform that unifies six previously-separate Azure services under one billing model, one identity layer, one storage layer (OneLake), and one governance framework (Microsoft Purview). The six workloads are: Data Engineering (Spark), Data Warehouse (serverless SQL), Data Science (notebooks + ML), Data Factory (pipelines + dataflows), Real-Time Intelligence (formerly Real-Time Analytics, ex-Azure Data Explorer), and Power BI.</p>
+
+        <p>The structural change from the previous Azure data stack is significant. Before Fabric, you had Azure Synapse Analytics (a workspace product that loosely connected dedicated SQL pools, serverless SQL, Spark, and pipelines), Azure Data Factory (separate pipeline service), Power BI Premium (separate capacity billing), and Azure Data Explorer (separate cluster service). All of these stored data separately, billed separately, and integrated through Azure Resource Manager connections and linked services. Governance was stitched together with Purview on top.</p>
+
+        <p>Fabric collapses this into one tenant-scoped platform. The storage unification is the most important architectural change: everything lands in OneLake, which is Azure Data Lake Storage Gen2 under the hood, with a Delta Parquet format as the universal table format. One lake, one format, all workloads reading the same files. No more syncing data between Synapse and Power BI storage. No more lake house data copied into dedicated SQL pool. The data lives once, and all compute reads it in place.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart TB
+    subgraph Old["Pre-Fabric Azure Data Stack (Separate Services)"]
+        direction LR
+        ADF["Azure Data Factory\n(Pipelines / ETL)"]
+        ASA["Azure Synapse Analytics\n(Dedicated SQL Pool + Spark)"]
+        ADE["Azure Data Explorer\n(Streaming / KQL)"]
+        PBIPrem["Power BI Premium\n(Separate capacity)"]
+        ADF & ASA & ADE -->|"data copy / linked services"| PBIPrem
+    end
+
+    subgraph New["Microsoft Fabric (Unified Platform)"]
+        direction LR
+        subgraph OneLake["OneLake — Single ADLS Gen2 layer\nDelta Parquet everywhere"]
+            Bronze2["Bronze"]
+            Silver2["Silver"]
+            Gold2["Gold"]
+        end
+        FDF["Data Factory\nPipelines + Dataflows Gen2"]
+        FSpark["Data Engineering\nSpark Notebooks"]
+        FSQL["Data Warehouse\nServerless SQL endpoint"]
+        FRT["Real-Time Intelligence\nKQL / Eventhouse"]
+        FPurview["Purview\nGovernance + Lineage"]
+        FPowerBI["Power BI\nDirect Lake Semantic Models"]
+        FDF & FSpark & FSQL & FRT --> OneLake
+        OneLake --> FPowerBI
+        FPurview -.->|"governs all"| OneLake
+    end
+
+    Old -->|"migration path"| New
+          </pre>
+          <p class="diagram-caption">Before Fabric, Azure data teams paid for and managed 4–5 separate services with data copied between them. Fabric consolidates billing, storage, and governance into one platform — the architectural shift is real, not cosmetic.</p>
+        </div>
+
+        <h2>The Azure Integration Story</h2>
+
+        <p>Fabric doesn't replace every Azure data service. It integrates with them, and the integration story is more nuanced than Microsoft's marketing suggests.</p>
+
+        <h3>What Fabric Replaces</h3>
+
+        <ul>
+          <li><strong>Azure Synapse Analytics workspaces</strong> — Fabric Workspace covers most Synapse use cases. Dedicated SQL pools are the exception (more on that below).</li>
+          <li><strong>Azure Data Factory standalone</strong> — Fabric Data Factory has feature parity for most ADF scenarios as of 2025, including the migration assistant that automatically converts ADF/Synapse pipeline JSON to Fabric format.</li>
+          <li><strong>Power BI Premium Per Capacity</strong> — Fabric F SKUs replace Power BI Premium P SKUs. The billing model is identical (capacity units), just now shared across all Fabric workloads, not just Power BI.</li>
+          <li><strong>Azure Synapse Real-Time Analytics</strong> — Fabric Real-Time Intelligence (Eventhouse/KQL Database) is the direct successor.</li>
+        </ul>
+
+        <h3>What Fabric Complements (but Doesn't Replace)</h3>
+
+        <ul>
+          <li><strong>Azure SQL Database / SQL Managed Instance</strong> — OLTP workloads stay in SQL. Fabric can ingest from them via pipelines or CDC, but isn't a replacement for transactional databases.</li>
+          <li><strong>Azure Machine Learning</strong> — Fabric Data Science handles notebook-based ML and AutoML, but AML remains the platform for production model registry, MLOps, and complex training pipelines. These coexist.</li>
+          <li><strong>Azure Databricks</strong> — Here it gets interesting. See the dedicated section below.</li>
+          <li><strong>Azure Synapse Dedicated SQL Pools</strong> — Fabric Warehouse is MPP SQL, but it's not a drop-in replacement for DW3000c or larger dedicated pools. Heavy-scale data warehousing workloads with complex concurrency requirements may still need dedicated SQL capacity. Microsoft's guidance is to evaluate on a case-by-case basis.</li>
+        </ul>
+
+        <h3>Key Integration Points</h3>
+
+        <p>For organizations with existing Azure footprint, the most important integrations are:</p>
+
+        <ul>
+          <li><strong>OneLake shortcuts</strong> — Virtual pointers to ADLS Gen2 paths, S3 buckets, GCS, or Databricks Unity Catalog tables. Data stays in place; Fabric workloads see it as a native OneLake table. This is the primary "start using Fabric without migrating data" path.</li>
+          <li><strong>Microsoft Purview integration</strong> — Fabric tables are automatically cataloged in Purview with column-level lineage from pipelines. For organizations with existing Purview governance, Fabric plugs in natively.</li>
+          <li><strong>Azure Active Directory / Entra ID</strong> — All Fabric access control is Entra-based. Existing Azure RBAC and AD group structures can be reused for Fabric workspace roles.</li>
+          <li><strong>Azure DevOps / GitHub Actions</strong> — Fabric items (notebooks, pipelines, semantic models) support Git integration. Changes are tracked in a repo and deployable via CI/CD pipelines using Fabric's Deployment Pipelines or REST API.</li>
+          <li><strong>Azure Monitor + Log Analytics</strong> — Fabric capacity metrics feed into Azure Monitor. You can set up alerts on CU (Capacity Unit) utilization and throttling events using existing Log Analytics workspaces.</li>
+        </ul>
+
+        <h2>Migration Paths</h2>
+
+        <h3>Azure Data Factory → Fabric Data Factory</h3>
+
+        <p>This is the least painful migration. Microsoft provides a built-in migration assistant: open your ADF instance, navigate to "Migrate to Fabric," and the tool assesses pipeline compatibility, flags gaps, and migrates supported pipelines to a target Fabric workspace in minutes. Most standard ADF pipelines (Copy Activity, ForEach loops, Execute Pipeline, Web activities) migrate cleanly. Common gaps include:</p>
+
+        <ul>
+          <li><strong>Custom activities</strong> (ADF's way to run arbitrary Docker containers) — not supported in Fabric Data Factory as of early 2025. Rearchitect as Fabric Spark notebooks or Azure Container Instances called from a Web Activity.</li>
+          <li><strong>Self-hosted integration runtime for legacy on-premises sources</strong> — Fabric uses the Virtual Network Data Gateway instead. Different configuration model; requires network setup changes if you're coming from SHIR-heavy architectures.</li>
+          <li><strong>ADF's Data Flow (Spark-based visual ETL)</strong> — maps to Dataflows Gen2 in Fabric, but with behavioral differences in some transformations. Validate data outputs after migration.</li>
+        </ul>
+
+        <div class="migration-phases">
+          <div class="phase-card">
+            <h4>Assessment</h4>
+            <p>Run ADF migration assistant. Catalog all pipelines, integration runtimes, linked services. Identify unsupported activities and SHIR dependencies.</p>
+          </div>
+          <div class="phase-card">
+            <h4>Target Setup</h4>
+            <p>Create Fabric workspace. Configure OneLake paths. Set up VNet Data Gateway where SHIR existed. Map linked services to Fabric connections.</p>
+          </div>
+          <div class="phase-card">
+            <h4>Parallel Run</h4>
+            <p>Run ADF and Fabric pipelines in parallel for 2–4 weeks. Compare output data for any transformation differences. Keep ADF as fallback.</p>
+          </div>
+          <div class="phase-card">
+            <h4>Cutover</h4>
+            <p>Disable ADF triggers. Enable Fabric schedules. Decommission ADF instance or downscale to pay-as-you-go for any retained non-migratable activities.</p>
+          </div>
+        </div>
+
+        <h3>Azure Synapse Analytics → Fabric</h3>
+
+        <p>Synapse migrations are more complex because Synapse is itself a heterogeneous platform. The migration scope depends on which Synapse components you're actually using:</p>
+
+        <p><strong>Synapse Serverless SQL</strong> → maps to Fabric Lakehouse SQL endpoint or Fabric Warehouse. This is usually straightforward because serverless SQL sits on top of ADLS Delta/Parquet files — the same storage model that OneLake uses. Import the notebooks, recreate the external tables pointing to OneLake paths, and most T-SQL code works with minimal changes.</p>
+
+        <p><strong>Synapse Spark notebooks / Spark pools</strong> → maps to Fabric Data Engineering (Spark). Notebooks can be imported directly; Spark libraries are managed through Fabric Environments instead of Synapse's attached package system. The Spark runtime in Fabric is based on Apache Spark 3.4+, so validate compatibility with any older Spark 2.x code.</p>
+
+        <p><strong>Synapse Dedicated SQL Pools</strong> → this is the hard one. Dedicated pools use a massively parallel processing architecture with a proprietary distribution/shard key model. Fabric Warehouse is serverless, not dedicated, and doesn't have equivalent scale for multi-terabyte tables with complex concurrency. Microsoft recommends exporting DDL via DACPAC and rebuilding in Fabric Warehouse for moderately sized warehouses (&lt; 1 TB compressed), but large enterprise warehouses may need a more careful evaluation or a phased approach where historical data moves first.</p>
+
+        <div class="callout warning">
+          <p><strong>Synapse Dedicated SQL Pool gotcha:</strong> Distribution keys (HASH vs ROUND_ROBIN), table geometry (CLUSTERED COLUMNSTORE INDEX), and concurrency slots are concepts specific to the dedicated pool engine. Fabric Warehouse doesn't expose these — its query optimizer handles distribution internally. T-SQL DDL with <code>WITH (DISTRIBUTION = HASH([key]))</code> will fail on import. Rewrite DDL before migration, and re-benchmark query performance; the optimizer behavior differs enough that some queries are faster in Fabric and some aren't.</p>
+        </div>
+
+        <h3>Power BI Premium → Fabric</h3>
+
+        <p>Power BI Premium P SKUs are being superseded by Fabric F SKUs. The capacity-unit economics are comparable: a P1 (8,192 CUs) maps roughly to an F64. The key change is that F SKU capacity is shared across all Fabric workloads — the same pool covers pipelines, Spark, Warehouse compute, and Power BI semantic model refresh. This is where the TCO story gets compelling: instead of paying for separate ADF, Synapse, and Power BI Premium, one F64 or F128 capacity covers the compute for all of them.</p>
+
+        <p>One organization that migrated a Synapse + ADF + Power BI Premium stack to Fabric reported consolidating 4,500+ data objects across 87 Fabric lakehouses with a 3.2x cost reduction. The gains come from eliminating the dedicated SQL pool always-on cost (a DW200c dedicated pool runs ~$2,800/month just for the SQL capacity) and consolidating licensing. A dedicated pool you're using at 15% average CPU utilization is an expensive idle resource. Fabric's serverless model bills only for what you use.</p>
+
+        <h2>TCO: Where the Math Works and Where It Doesn't</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>Old Azure Stack (monthly est.)</th>
+                <th>Fabric Equivalent</th>
+                <th>TCO verdict</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Small team (5 devs, 10 TB data, 50 users)</td>
+                <td>ADF ~$400 + Synapse Serverless ~$200 + PBI Premium P1 ~$4,995 = ~$5,600</td>
+                <td>Fabric F64 ~$2,760/mo + storage ~$230 + licensing ~$500 = ~$3,490</td>
+                <td>Fabric wins: ~38% saving</td>
+              </tr>
+              <tr>
+                <td>Mid-size DW (dedicated SQL pool DW1000c, heavy ETL)</td>
+                <td>Dedicated pool ~$14,000 + ADF ~$1,200 + PBI P1 ~$4,995 = ~$20,200</td>
+                <td>Fabric F128 ~$5,520 + Warehouse (serverless billing) = depends on workload</td>
+                <td>Variable — evaluate actual query patterns</td>
+              </tr>
+              <tr>
+                <td>Large enterprise (Synapse DW3000c + Databricks)</td>
+                <td>Dedicated pool ~$42,000 + Databricks DBUs + ADF = $60k+</td>
+                <td>Hybrid: Databricks for engineering + Fabric for BI only</td>
+                <td>Hybrid usually wins; full migration cost not justified</td>
+              </tr>
+              <tr>
+                <td>Real-time analytics (ADX cluster)</td>
+                <td>Azure Data Explorer cluster (4CU) ~$2,200/mo</td>
+                <td>Fabric Real-Time Intelligence (Eventhouse) on shared capacity</td>
+                <td>Fabric wins significantly for moderate-scale streaming</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The TCO story is strongest when you're replacing always-on dedicated compute (Dedicated SQL Pools, ADF reserved compute, ADX clusters) with Fabric's shared serverless capacity. It's weakest when your workloads have high and consistent compute demand — dedicated compute becomes competitive at sustained high utilization because you're paying for peak anyway.</p>
+
+        <h2>Fabric vs Databricks: The Real Comparison</h2>
+
+        <p>This question comes up in every Azure data architecture discussion circa 2025, and the answer is genuinely "it depends" — but in a specific and non-evasive way.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart LR
+    subgraph FabricStr["Microsoft Fabric — Strengths"]
+        F1["Unified Microsoft licensing\n(E3/E5 + Fabric capacity)"]
+        F2["Power BI native integration\nDirect Lake semantic models"]
+        F3["Low-code / no-code\nDataflows Gen2, pipelines"]
+        F4["Governance out of box\nPurview lineage, Entra RBAC"]
+        F5["Fabric Real-Time Intelligence\nKQL, Eventhouse, Activator"]
+        F6["SaaS simplicity\nNo cluster management"]
+    end
+
+    subgraph DBStr["Databricks — Strengths"]
+        D1["Photon engine\nbest-in-class Spark performance"]
+        D2["Unity Catalog\nopen lake governance"]
+        D3["ML/AI toolchain\nMLflow, Model Serving, Vector Search"]
+        D4["Delta Sharing\ncross-cloud, cross-org"]
+        D5["Multi-cloud native\nAWS + Azure + GCP"]
+        D6["Open source alignment\nIceberg UniForm, Delta, Arrow"]
+    end
+
+    subgraph Overlap["Overlap (either works)"]
+        O1["Large-scale Spark ETL"]
+        O2["Delta Lake data engineering"]
+        O3["Data Vault / medallion architecture"]
+    end
+
+    FabricStr -.->|"win"| Overlap
+    DBStr -.->|"win"| Overlap
+          </pre>
+          <p class="diagram-caption">Fabric and Databricks have overlapping capability in core data engineering but diverge sharply at the edges — Fabric wins on Power BI integration and Microsoft ecosystem; Databricks wins on ML/AI, multi-cloud, and raw Spark performance.</p>
+        </div>
+
+        <h3>Choose Fabric When</h3>
+
+        <ul>
+          <li>Power BI is your primary analytics consumption layer and you want Direct Lake semantic models with minimal data movement.</li>
+          <li>Your team is Microsoft-centric (M365 E3/E5 licensing, Azure Entra identity, existing Purview investment). Fabric layers on top of existing Microsoft spend rather than adding a net-new vendor.</li>
+          <li>You need a self-service analytics platform for business analysts and data engineers who don't write PySpark daily. Fabric's low-code tools (Dataflows Gen2, Copilot for Data Factory) lower the barrier significantly.</li>
+          <li>Real-time intelligence with KQL is a requirement (Fabric Eventhouse inherits ADX's capabilities).</li>
+          <li>You're replacing Azure Synapse and want a clear migration path with Microsoft support.</li>
+        </ul>
+
+        <h3>Choose Databricks When</h3>
+
+        <ul>
+          <li>Machine learning and AI production workloads are primary. Databricks' MLflow, Model Serving, Agent Bricks, and Vector Search capabilities are years ahead of Fabric's Data Science workload.</li>
+          <li>You're multi-cloud or need cloud-agnostic data architecture. Databricks runs on AWS, Azure, and GCP with a consistent experience. Fabric is Azure-only.</li>
+          <li>You need maximum Spark performance. Databricks' Photon execution engine outperforms standard open-source Spark on most TPC-DS benchmarks by 2–5x. If your pipelines are Spark-compute-bound, this matters.</li>
+          <li>Your engineering team is data-engineering-first with deep Python/Scala/SQL skills. Databricks' developer experience is optimized for this profile.</li>
+          <li>You need enterprise open-source alignment (Iceberg, Delta Sharing, Arrow Flight) as a strategic direction.</li>
+        </ul>
+
+        <h3>The Hybrid Pattern (Most Common in Practice)</h3>
+
+        <p>In practice, most large organizations don't fully replace one with the other. The emerging 2025 pattern is:</p>
+
+        <ol>
+          <li><strong>Databricks for data engineering and ML</strong> — heavy Spark transformations, feature engineering, model training stay in Databricks on Azure.</li>
+          <li><strong>OneLake shortcuts pointing at Databricks Unity Catalog</strong> — Fabric accesses Databricks-managed Delta tables via shortcuts without copying data. Unity Catalog mirroring into OneLake (GA July 2025) makes metadata seamlessly available.</li>
+          <li><strong>Fabric for BI and self-service</strong> — Direct Lake semantic models over OneLake-exposed Databricks tables feed Power BI. Business users stay in Power BI; data engineers stay in Databricks.</li>
+          <li><strong>Purview across both</strong> — Microsoft Purview scans both Fabric OneLake and Databricks Unity Catalog for unified governance and lineage.</li>
+        </ol>
+
+        <p>This pattern avoids the 6–18 month forced migration timeline while capturing Fabric's Power BI integration benefits immediately. The ROI window is months, not years.</p>
+
+        <h2>Common Migration Problems and Solutions</h2>
+
+        <h3>1. The "What Do We Do With Dedicated SQL Pools?" Problem</h3>
+
+        <p>Dedicated SQL pools with distribution keys, table geometry, and concurrency slot management don't translate cleanly to Fabric Warehouse's serverless model. The DDL uses Fabric-incompatible syntax, the optimizer makes different decisions, and query performance is unpredictable until you re-benchmark.</p>
+
+        <p><strong>Solution:</strong> Export DACPAC for metadata, rewrite DDL (strip distribution hints), migrate data via Fabric pipelines, and run both systems in parallel for 4–6 weeks on production query patterns. Use Query Store equivalents in Fabric's monitoring to identify regressions. Don't assume performance parity — budget time for query tuning.</p>
+
+        <h3>2. The Notebook Runtime Mismatch</h3>
+
+        <p>Synapse and ADF notebooks often have implicit dependencies on Spark 2.x behavior, specific library versions, or Synapse-specific magic commands (<code>%%sql</code>, <code>%%pyspark</code>). Fabric's Spark 3.4 runtime is stricter and more modern.</p>
+
+        <p><strong>Solution:</strong> Run a notebook compatibility check before migration. Use Fabric Environments to pin library versions that match your Synapse dependencies. Test all notebooks against representative data slices in a dev workspace before cutover.</p>
+
+        <h3>3. Git Integration Is Different</h3>
+
+        <p>Synapse uses a flat JSON representation for pipelines in Git. Fabric serializes items differently (JSON for pipelines, .ipynb for notebooks, .pbidataset for semantic models). Existing CI/CD pipelines targeting Synapse's Git structure will need rearchitecting for Fabric's Git integration model.</p>
+
+        <p><strong>Solution:</strong> Use Fabric's native deployment pipelines (Dev → Test → Prod promotion) rather than trying to replicate Synapse-style Git workflows directly. Fabric's REST API also supports programmatic workspace management for GitOps patterns.</p>
+
+        <h3>4. Security Model Translation</h3>
+
+        <p>Synapse had its own RBAC on top of Azure RBAC (Synapse Administrator, Synapse SQL Administrator, Synapse Apache Spark Administrator, etc.). Fabric uses Workspace roles (Admin, Member, Contributor, Viewer) plus item-level sharing plus OneLake folder-level access control. The models are different enough that direct permission mapping is impossible.</p>
+
+        <p><strong>Solution:</strong> Re-design access control using Fabric's model from scratch rather than trying to port Synapse RBAC. Fabric workspace roles are coarser; use item-level sharing and OneLake folder permissions for fine-grained access. Crucially: when using Databricks Unity Catalog shortcuts into OneLake, Unity Catalog permissions <em>do not propagate</em> through the shortcut — Fabric applies its own OneLake ACLs independently.</p>
+
+        <h3>5. Capacity Throttling and Burst Behavior</h3>
+
+        <p>Fabric's shared capacity model uses a "smoothed consumption" algorithm: sustained usage above capacity triggers throttling with 24-hour smoothing windows. This behavior surprises teams accustomed to ADF pay-per-activity billing and Synapse's dedicated compute where you get what you paid for.</p>
+
+        <p><strong>Solution:</strong> Monitor CU utilization in Fabric Capacity Metrics. Use scheduled pipeline bursts during off-peak windows. Right-size your F SKU before production load: running an F16 at 80% sustained is better than an F8 at constant throttle. Plan for exponential backoff in pipelines that may hit capacity limits during peak periods.</p>
+
+        <div class="callout tip">
+          <p><strong>Capacity planning rule of thumb:</strong> Audit your Synapse and ADF hourly compute metrics for the last 90 days. Find the 90th-percentile hourly compute consumption. Map that to the Fabric capacity unit equivalent (1 Azure Synapse DWU ≈ 1.5 Fabric CU as a rough guide). Then choose the F SKU one tier above that estimate. Underprovisioned Fabric capacity is the single most common operational complaint from teams in their first 60 days post-migration.</p>
+        </div>
+
+        <h2>Real-World Use Cases</h2>
+
+        <h3>Financial Services: Synapse DW to Fabric Warehouse</h3>
+
+        <p>A mid-sized financial institution running Azure Synapse dedicated SQL DW500c for regulatory reporting migrated to Fabric Warehouse over 4 months. Key result: 42% cost reduction by eliminating the always-on dedicated pool (which ran at ~12% average CPU utilization). The trade-off: two complex DAX reporting queries needed optimization because the Fabric Warehouse query planner distributes data differently. The migration also unlocked Purview lineage tracking for regulatory compliance — a requirement they'd deferred from the Synapse migration for 18 months.</p>
+
+        <h3>Retail: ADF + Power BI Premium to Fabric F128</h3>
+
+        <p>A retail chain with 85 ADF pipelines, 3 Power BI Premium workspaces, and a Synapse Serverless SQL layer migrated to a single F128 Fabric capacity. The ADF migration assistant converted 71 of 85 pipelines automatically. The remaining 14 had custom activities that were rearchitected as Fabric Spark notebooks. Timeline: 3 months. Cost: similar monthly billing, but the platform consolidation reduced operational overhead (one team, one monitoring layer, one identity model instead of three).</p>
+
+        <h3>Healthcare: Fabric + Databricks Hybrid</h3>
+
+        <p>A healthcare analytics platform kept Databricks for PHI data engineering (complex PySpark transformations, strict data lineage requirements managed in Unity Catalog) but added Fabric for self-service analytics. Clinical researchers use Fabric's low-code Dataflows to build personal analytics on de-identified data in OneLake. OneLake shortcuts give Fabric direct read access to Databricks-managed tables without data copying. Outcome: Databricks team doesn't touch the self-service layer; analysts don't touch the clinical pipelines. Clear boundary, no overlap cost.</p>
+
+        <h2>Architecture Reference: Azure-Native Fabric Platform</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart TD
+    subgraph Sources["Source Systems"]
+        SQL["Azure SQL DB\n/ SQL MI (OLTP)"]
+        SaaS["SaaS Systems\n(Salesforce, SAP, etc.)"]
+        Events["Event Hubs / Kafka\n(Streaming)"]
+        Files["Blob Storage / SFTP\n(Files)"]
+    end
+
+    subgraph Fabric["Microsoft Fabric (F64+ Capacity)"]
+        subgraph Ingest["Data Factory (Ingest + Orchestrate)"]
+            Pipelines["Pipelines\n(Copy + Transform)"]
+            DFGen2["Dataflows Gen2\n(Low-code ETL)"]
+            CDC["Mirroring\n(CDC from SQL / Cosmos)"]
+        end
+
+        subgraph Engineering["Data Engineering (Spark)"]
+            Notebooks["Spark Notebooks\n(Python / Scala / SQL)"]
+            Jobs["Spark Job Definitions\n(Scheduled transforms)"]
+        end
+
+        subgraph OneLake["OneLake — Delta Parquet"]
+            Bronze["Bronze\nRaw ingested"]
+            Silver["Silver\nCleaned + conformed"]
+            Gold["Gold\nStar schema + aggregates"]
+        end
+
+        subgraph Serving["Serving Layer"]
+            Wh["Fabric Warehouse\nT-SQL analytics"]
+            RTI["Real-Time Intelligence\nKQL + Eventhouse"]
+            SemModel["Direct Lake\nSemantic Model"]
+        end
+    end
+
+    subgraph Governance["Cross-Cutting"]
+        Purview["Microsoft Purview\nCatalog + Lineage + Sensitivity"]
+        Entra["Entra ID\nRBAC + Row-Level Security"]
+        Monitor["Azure Monitor\nCapacity + Pipeline metrics"]
+        DevOps["Azure DevOps / GitHub\nCI/CD via Git integration"]
+    end
+
+    subgraph Consume["Consumption"]
+        PBI["Power BI Reports\n+ Dashboards"]
+        Excel["Excel\nAnalyze in Excel"]
+        API["Apps / APIs\nEmbedded analytics"]
+    end
+
+    SQL & SaaS --> Pipelines
+    Events --> RTI
+    Files --> DFGen2 & CDC
+    Pipelines & DFGen2 & CDC --> Bronze
+    Bronze --> Notebooks --> Silver --> Jobs --> Gold
+    Gold --> Wh & SemModel
+    SemModel --> PBI & Excel
+    Wh --> API
+    RTI --> PBI
+    Purview -.->|"scans + labels"| OneLake
+    Entra -.->|"controls access"| Fabric
+    Monitor -.->|"alerts + metrics"| Fabric
+    DevOps -.->|"deploys items"| Fabric
+          </pre>
+          <p class="diagram-caption">A complete Azure-native Fabric reference architecture. Purview, Entra, and Azure Monitor are cross-cutting concerns that apply across the entire platform — not just the data layer.</p>
+        </div>
+
+        <h2>The Honest Assessment</h2>
+
+        <p>Microsoft Fabric is a genuine architectural shift, not a rename. The OneLake unification, the shared capacity model, the Direct Lake semantic layer, and the Purview-native governance are all substantive improvements over the previous Azure data stack's fragmentation.</p>
+
+        <p>The migration challenges are real but manageable. Dedicated SQL Pool migrations require the most care. ADF-to-Fabric pipeline migrations are mostly automated. The security model needs a redesign from scratch rather than a mapping. And capacity planning is different enough from Synapse's dedicated compute that teams consistently underestimate what they need in month one.</p>
+
+        <p>On the Databricks question: the right answer in 2025 is almost never "migrate everything to Fabric." It's "use Fabric for what Fabric is genuinely better at — Power BI integration, self-service analytics, Microsoft ecosystem coherence — and keep Databricks where Databricks is genuinely better — ML/AI, multi-cloud, maximum Spark performance." The OneLake shortcut architecture makes this hybrid model operationally clean without the historical pain of two silos that couldn't talk to each other.</p>
+
+        <p>The organizations that will struggle are the ones that try to do a forced full-platform migration on an arbitrary deadline because a procurement decision mandated it. The ones that will succeed are treating Fabric as additive first, replacing incrementally, and being honest about where the platform is still maturing versus where it's production-ready.</p>
+
+      </div>
+    </article>
+
+    <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted);">
+      <p><small>&copy; 2025 Dmitry Shirokov. <a href="../" style="color: var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('pre:not(.mermaid) code').forEach(el => {
+        hljs.highlightElement(el);
+      });
+    });
+  </script>
+</body>
+</html>

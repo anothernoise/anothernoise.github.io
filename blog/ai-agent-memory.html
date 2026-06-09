@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>AI Agent Memory: The Infrastructure Layer Nobody Told You About | Dmitry Shirokov</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+    <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <script type="module" src="../javascripts/theme.js"></script>
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'dark',
+        themeVariables: {
+          primaryColor: '#1e3a5f',
+          primaryTextColor: '#c9d4e0',
+          primaryBorderColor: '#2d5a8e',
+          lineColor: '#4a7aaa',
+          secondaryColor: '#0d1f35',
+          tertiaryColor: '#0a1628',
+          background: '#090d1b',
+          mainBkg: '#0d1f35',
+          nodeBorder: '#2d5a8e',
+          clusterBkg: '#0a1628',
+          titleColor: '#d4a540',
+          edgeLabelBackground: '#0d1f35',
+          actorBkg: '#0d1f35',
+          actorBorder: '#2d5a8e',
+          actorTextColor: '#c9d4e0',
+          signalColor: '#4a7aaa',
+          signalTextColor: '#c9d4e0',
+          noteBkgColor: '#1e3a5f',
+          noteTextColor: '#c9d4e0'
+        }
+      });
+    </script>
+
+    <style>
+      .blog-article {
+        max-width: 820px;
+      }
+
+      .article-header {
+        margin-bottom: 2.5rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 2rem;
+      }
+
+      .article-header h1 {
+        font-size: 2.2rem;
+        line-height: 1.25;
+        margin-bottom: 1rem;
+      }
+
+      .article-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+        font-size: 0.88rem;
+        color: var(--text-muted);
+        margin-top: 1rem;
+      }
+
+      .article-content h2 {
+        margin-top: 2.8rem;
+        margin-bottom: 0.9rem;
+        font-size: 1.5rem;
+        color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.4rem;
+      }
+
+      .article-content h3 {
+        margin-top: 1.8rem;
+        margin-bottom: 0.7rem;
+        font-size: 1.1rem;
+        color: var(--accent-primary);
+      }
+
+      .article-content p {
+        line-height: 1.85;
+        margin-bottom: 1.2rem;
+        color: var(--text-secondary);
+      }
+
+      .article-content ul,
+      .article-content ol {
+        margin-left: 1.6rem;
+        margin-bottom: 1.2rem;
+      }
+
+      .article-content li {
+        margin-bottom: 0.6rem;
+        color: var(--text-secondary);
+        line-height: 1.7;
+      }
+
+      .article-content code {
+        background: var(--bg-secondary);
+        padding: 0.15rem 0.45rem;
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 0.88em;
+        color: var(--accent-primary);
+      }
+
+      .article-content pre {
+        background: rgba(15, 23, 42, 0.92);
+        padding: 1.4rem 1.6rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 1.5rem 0;
+        border-left: 3px solid var(--accent-primary);
+      }
+
+      .article-content pre code {
+        background: none;
+        padding: 0;
+        color: var(--text-secondary);
+        font-size: 0.87rem;
+      }
+
+      .back-link {
+        display: inline-block;
+        margin-bottom: 2rem;
+        color: var(--accent-primary);
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 500;
+      }
+
+      .back-link:hover {
+        text-decoration: underline;
+      }
+
+      .callout {
+        background: var(--accent-secondary);
+        border-left: 4px solid var(--accent-primary);
+        padding: 1rem 1.5rem;
+        margin: 1.8rem 0;
+        border-radius: 0 6px 6px 0;
+      }
+
+      .callout p {
+        margin: 0;
+        font-size: 0.95rem;
+      }
+
+      .callout.warning {
+        border-left-color: hsl(0, 72%, 51%);
+        background: rgba(239, 68, 68, 0.06);
+      }
+
+      .callout.danger {
+        border-left-color: hsl(0, 72%, 51%);
+        background: rgba(239, 68, 68, 0.09);
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        margin: 1.5rem 0;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      th, td {
+        border: 1px solid var(--border-color);
+        padding: 0.7rem 1rem;
+        text-align: left;
+        color: var(--text-secondary);
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--bg-secondary);
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      tr:nth-child(even) td {
+        background: rgba(255,255,255,0.02);
+      }
+
+      .diagram-wrap {
+        background: rgba(9, 13, 27, 0.6);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem 1rem;
+        margin: 1.8rem 0;
+        overflow-x: auto;
+        text-align: center;
+      }
+
+      .diagram-wrap .mermaid {
+        display: inline-block;
+        min-width: 0;
+        text-align: left;
+      }
+
+      .diagram-caption {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 0.75rem;
+        font-style: italic;
+      }
+
+      .platform-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 1.2rem;
+        margin: 1.5rem 0;
+      }
+
+      .platform-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.2rem 1.4rem;
+        transition: border-color 0.25s;
+      }
+
+      .platform-card:hover {
+        border-color: var(--accent-primary);
+      }
+
+      .platform-card h4 {
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 0.6rem;
+      }
+
+      .platform-card p {
+        font-size: 0.87rem;
+        line-height: 1.6;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary);
+      }
+
+      .platform-tag {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 2px 7px;
+        border-radius: 3px;
+        margin-bottom: 0.6rem;
+      }
+
+      .tag-aws { background: rgba(255, 153, 0, 0.12); color: #ff9900; border: 1px solid rgba(255,153,0,0.25); }
+      .tag-gcp { background: rgba(66, 133, 244, 0.12); color: #4285f4; border: 1px solid rgba(66,133,244,0.25); }
+      .tag-openai { background: rgba(16, 163, 127, 0.12); color: #10a37f; border: 1px solid rgba(16,163,127,0.25); }
+      .tag-anthropic { background: rgba(212, 165, 64, 0.12); color: #d4a540; border: 1px solid rgba(212,165,64,0.25); }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <div class="theme-toggle-container">
+        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/>
+          </svg>
+          <span>Toggle Theme</span>
+        </button>
+      </div>
+
+      <a href="./" class="back-link">← Back to Blog</a>
+
+      <article class="blog-article">
+        <header class="article-header">
+          <p class="eyebrow">AI Agents · Architecture</p>
+          <h1>AI Agent Memory: The Infrastructure Layer Nobody Told You About</h1>
+          <div class="article-meta">
+            <span>📅 June 8, 2026</span>
+            <span>⏱️ 16 min read</span>
+            <span>🏷️ AI Agents · Memory · Architecture · Cloud</span>
+          </div>
+        </header>
+
+        <div class="article-content">
+
+          <p>Most agent demos work great. Your agent remembers what you said two messages ago, follows through on a multi-step task, and everyone in the room is suitably impressed. Then you deploy it to production. Your first real user comes back three days later and says: "Didn't I already tell you my name?" And you realize — the context window is not memory. It's a scratchpad. Everything on it disappears when the session ends.</p>
+
+          <p>For agents that need to work with humans over days, weeks, or months — learning preferences, tracking project history, accumulating domain knowledge — this is a fundamental architectural gap, and one that the "just use a bigger context window" crowd has been trying to paper over with varying success. This post is about what agent memory actually is, how the major platforms implement it, what can go wrong in production, and what the security picture looks like heading into 2026.</p>
+
+          <h2>The Four Memory Types (Not One)</h2>
+
+          <p>The CoALA paper (Princeton, 2023) formalized a memory taxonomy for language model agents that maps directly to cognitive science. It's more useful as an architecture decision tool than as academic theory, because each type has different storage and retrieval characteristics that affect your implementation choices.</p>
+
+          <div class="diagram-wrap">
+            <pre class="mermaid">
+flowchart TB
+    U(["User / Tool Input"]) --> W
+
+    subgraph W ["Working Memory — In-Context"]
+        WC["Active context window\nCurrent session only · Ephemeral\nCost scales with every token"]
+    end
+
+    W <-->|"retrieve on session start\nwrite at end async"| EP
+    W <-->|"semantic lookup\nfact injection"| SM
+    W <-->|"skill retrieval\nexample selection"| PR
+
+    subgraph EP ["Episodic Memory"]
+        E1["Past interactions · Conversation logs\nWhat happened and when\n→ Vector store / time-series DB"]
+    end
+
+    subgraph SM ["Semantic Memory"]
+        S1["World knowledge · User facts\nEntity relationships · Domain rules\n→ Knowledge graph / RAG index"]
+    end
+
+    subgraph PR ["Procedural Memory"]
+        P1["Learned workflows · Tool patterns\nHow to do things well\n→ System prompts / Fine-tuning"]
+    end
+            </pre>
+            <p class="diagram-caption">Four memory types, four different storage and retrieval patterns. Most agent architectures only implement one or two. Most production failures trace back to the missing ones.</p>
+          </div>
+
+          <p>In practice, most agents only implement in-context memory (the default, unavoidable) and maybe episodic memory (conversation logs). Semantic memory — the accumulation of structured facts about users, entities, and domain context — is where the interesting personalization and reasoning lives, and it's the type most commonly absent from v1 implementations. Procedural memory is usually baked in as the system prompt rather than being genuinely learned, which is why agents don't actually improve from experience unless someone updates the prompt manually.</p>
+
+          <h2>Why Bigger Context Windows Don't Solve This</h2>
+
+          <p>Gemini 1.5 Pro has a 2M token context window. Claude 3 handles 200K. GPT-4o supports 128K. And every few months someone argues that external memory is a short-term workaround that will become unnecessary as context windows grow. This argument has three problems.</p>
+
+          <p><strong>Cost.</strong> Sending 200K tokens of history in every API call for every user interaction is genuinely expensive. An agent handling 50 daily interactions, each requiring 6 months of context, would burn through a cloud budget faster than an overeager intern with a corporate card. External memory lets you retrieve the 3–5 most relevant memories and inject only those — a fraction of the token cost.</p>
+
+          <p><strong>Recall quality.</strong> Research consistently shows that LLM recall accuracy degrades for information buried in the middle of long contexts — the "lost in the middle" effect (Liu et al., 2023). Bigger context windows make the problem worse, not better: there's just more middle. Structured external retrieval with semantic search outperforms "stuff everything in the prompt" on recall benchmarks.</p>
+
+          <p><strong>Session boundary.</strong> No matter how big the context window, it resets when the session ends. There is no mechanism in a standard LLM API call that persists state forward across sessions without explicit external storage. This is a hard architectural constraint, not a temporary limitation waiting to be engineered away.</p>
+
+          <h2>The Three Retrieval Approaches</h2>
+
+          <h3>Vector store (RAG-based episodic memory)</h3>
+
+          <p>Every conversation turn gets embedded and stored. At session start, the agent embeds the current query, runs a nearest-neighbor search, and retrieves the k most semantically similar memories to inject into context. This is the fastest path from zero to working memory and the most widely deployed approach.</p>
+
+          <p>It works well for unstructured, conversational memories: "user mentioned they prefer Python over Node.js," "user's deadline is end of Q3," "previous attempt at X failed because of Y." The semantic similarity search surfaces relevant memories even when the current query doesn't use the exact same words as the stored memory.</p>
+
+          <p>Where it breaks: vector similarity is not the same as factual relevance. A query about "the billing system" might surface five memories mentioning "billing" from different projects, different time periods, and different contexts — all semantically close, none of them the right one. Multi-hop questions ("what did we decide about the API that connects to the service the user mentioned last month?") are structurally unsolvable by pure vector similarity. And retrieval adds 200–500ms per query before the LLM even starts.</p>
+
+          <h3>Knowledge graph memory</h3>
+
+          <p>Entities and relationships are stored as graph nodes and edges. "User → prefers → dark mode," "Project Alpha → depends_on → billing_service," "billing_service → owned_by → Team B." Graph traversal can answer multi-hop questions by following relationship paths — something flat vector search fundamentally cannot do.</p>
+
+          <p>Benchmarks from 2025 production deployments consistently show graph methods at ~92% recall and ~88% precision versus vector RAG at ~85% recall and ~75% precision. That gap matters when an agent is making consequential decisions based on retrieved context. Zep's time-aware graph architecture (Rasmussen et al., 2025) adds temporal relationships, so the agent can reason about how facts changed over time — not just what's true now, but what was true when.</p>
+
+          <p>The cost: considerably more engineering. Entity extraction at write time, schema design for your relationship types, graph database operations. For purely conversational memory with no entity relationships, it's overkill. For agents that need to reason about interconnected entities over time — customer relationship management, project tracking, medical history — it's the right tool.</p>
+
+          <h3>Hybrid (what mature systems actually use)</h3>
+
+          <p>Vector store for episodic recall plus knowledge graph for entity relationships plus structured storage for explicit user facts. Mem0's architecture runs vector search and graph traversal in parallel and merges the results. All three major cloud platforms have converged on some version of this approach. It's more complex to operate but avoids the failure modes of any single approach.</p>
+
+          <h2>The Read/Write Pipeline Under the Hood</h2>
+
+          <div class="diagram-wrap">
+            <pre class="mermaid">
+sequenceDiagram
+    participant U as User
+    participant A as Agent
+    participant M as Memory Store
+    participant LLM as LLM
+
+    U->>A: New message
+    A->>M: retrieve(query, user_id, top_k=5)
+    M-->>A: relevant memory records
+    Note over A: Build context: memories + recent history + message
+
+    A->>LLM: [system prompt + memories + message]
+    LLM-->>A: response
+    A-->>U: response
+
+    A-)M: extract_and_store(conversation) — async
+    Note over A,M: LLM extracts key facts from the turn.\nADD / UPDATE / DELETE / NOOP.\nDoes not block the response.
+            </pre>
+            <p class="diagram-caption">The read path is synchronous and latency-sensitive. The write path is async — extraction and storage happen in the background after the response is delivered. Most platforms (Bedrock AgentCore, Vertex Memory Bank) follow this pattern exactly.</p>
+          </div>
+
+          <p>The async write design is deliberate. Running an LLM extraction pass over every conversation turn adds latency if done synchronously. By decoupling the write from the response, the memory system can take as long as it needs — including running extraction retries, deduplication, and contradiction resolution — without affecting the user experience. The tradeoff: a user might return slightly before their last conversation has been fully processed into memory. For most use cases this is acceptable. For real-time collaborative agents, it might not be.</p>
+
+          <h2>What Each Platform Actually Does</h2>
+
+          <div class="platform-grid">
+            <div class="platform-card">
+              <span class="platform-tag tag-aws">AWS</span>
+              <h4>Amazon Bedrock AgentCore Memory</h4>
+              <p>Launched at AWS Summit NYC 2025. Fully managed, two-tier architecture: <strong>short-term memory</strong> captures raw interaction context within a session (DynamoDB-backed), while <strong>long-term memory</strong> runs an async extraction pipeline that distills conversations into persistent semantic records.</p>
+              <p>Retrieval via <code>RetrieveMemoryRecords</code> does semantic search across stored records. Compatible with any agent framework — LangGraph, CrewAI, LlamaIndex, OpenAI Agents SDK. AWS selected Mem0 as the default memory provider for the Strands Agent SDK in May 2025.</p>
+              <p><strong>Honest assessment:</strong> Solid managed option if you're already AWS-native. The async extraction means your first query after a session might not yet see the latest memories.</p>
+            </div>
+
+            <div class="platform-card">
+              <span class="platform-tag tag-gcp">GCP</span>
+              <h4>Vertex AI Memory Bank</h4>
+              <p>In public preview since late 2025. Built on methodology from Google AI Research (accepted at ACL 2025). Uses Gemini to extract facts asynchronously with a topic-based indexing approach.</p>
+              <p>Distinct separation between <strong>Sessions</strong> (within-conversation state, like a shopping cart) and <strong>Memory Bank</strong> (cross-session persistence, like a user profile). Memory Bank specifically handles <em>contradiction resolution</em> — if you said one thing six months ago and the opposite last week, it tries to reconcile rather than silently keeping both.</p>
+              <p><strong>Honest assessment:</strong> The contradiction resolution is genuinely useful and differentiating. ADK integration is clean if you're building Google-native. Early preview roughness in the API surface.</p>
+            </div>
+
+            <div class="platform-card">
+              <span class="platform-tag tag-openai">OpenAI</span>
+              <h4>Assistants API / Responses API</h4>
+              <p>OpenAI's approach is more fragmented. <strong>Threads</strong> provide persistent conversation history. <strong>Vector stores</strong> via the File Search tool provide document RAG (up to 100M files as of Nov 2025). There is no first-party long-term semantic memory service equivalent to AgentCore or Memory Bank.</p>
+              <p>The <code>Sessions</code> primitive in the Agents SDK handles within-session state (SQLite or Redis-backed). Cross-session memory is your problem — the ecosystem fills the gap: Mem0, Zep, LangMem, and Hindsight are all common choices for OpenAI agent deployments.</p>
+              <p><strong>Honest assessment:</strong> Flexible but requires more assembly. If you're already using the Assistants API, the thread persistence is convenient. For production agents with real memory requirements, you'll need an external layer.</p>
+            </div>
+
+            <div class="platform-card">
+              <span class="platform-tag tag-anthropic">Anthropic / Claude</span>
+              <h4>Memory Tool + MCP</h4>
+              <p>Anthropic's approach is intentionally minimal and transparent. The <strong>Memory Tool</strong> in the API lets agents read and write a file-based memory directory — plain Markdown files that are auditable, editable, and don't require a vector database. For simpler use cases, this is genuinely sufficient and much easier to reason about than black-box vector retrieval.</p>
+              <p>For production, Claude integrates with external memory systems via <strong>MCP (Model Context Protocol)</strong>. Mem0, Chroma, and other memory stores expose MCP servers. Claude calls them using standard tool use — the same mechanism it uses for any other tool. Composable by design, but you're responsible for the plumbing.</p>
+              <p><strong>Honest assessment:</strong> The file-based approach works well for single-user or small-scale deployments where you want full visibility. Multi-tenant production systems need an external memory layer; MCP makes the integration clean but doesn't build it for you.</p>
+            </div>
+          </div>
+
+          <h2>Platform Comparison at a Glance</h2>
+
+          <div class="table-wrapper">
+            <table>
+              <tr>
+                <th>Platform</th>
+                <th>Short-term memory</th>
+                <th>Long-term memory</th>
+                <th>Contradiction handling</th>
+                <th>Framework support</th>
+              </tr>
+              <tr>
+                <td><strong>AWS AgentCore</strong></td>
+                <td>Session-scoped (DynamoDB)</td>
+                <td>Managed semantic records (async extraction)</td>
+                <td>Limited</td>
+                <td>LangGraph, CrewAI, Strands, OpenAI SDK, LlamaIndex</td>
+              </tr>
+              <tr>
+                <td><strong>GCP Memory Bank</strong></td>
+                <td>Sessions (separate object)</td>
+                <td>Topic-indexed, Gemini-extracted (async)</td>
+                <td>Built-in resolution</td>
+                <td>ADK, LangGraph, CrewAI</td>
+              </tr>
+              <tr>
+                <td><strong>OpenAI Assistants</strong></td>
+                <td>Threads (persistent history)</td>
+                <td>None first-party — ecosystem (Mem0, Zep)</td>
+                <td>None first-party</td>
+                <td>Any via Responses API</td>
+              </tr>
+              <tr>
+                <td><strong>Claude + MCP</strong></td>
+                <td>Context window / Session tool</td>
+                <td>File-based or MCP-connected external store</td>
+                <td>External system dependent</td>
+                <td>Any via MCP servers</td>
+              </tr>
+            </table>
+          </div>
+
+          <h2>The Security Problem Everyone Underestimates</h2>
+
+          <p>Memory persistence introduces an attack surface that most teams aren't thinking about yet. The threat is called <strong>memory poisoning</strong>, and it's more sophisticated than it sounds.</p>
+
+          <div class="callout danger">
+            <p><strong>MINJA Attack (NeurIPS 2025):</strong> Researchers demonstrated >95% injection success rates against production agents using only query-level interaction — no direct access to the memory store required. The attack crafts inputs designed to be stored in memory as "plausible learnings," which then influence future agent behavior when semantically triggered. Temporally decoupled: poison planted day 1 may not execute until day 40. OWASP lists this as a top agentic risk (ASI06, 2026).</p>
+          </div>
+
+          <p>What makes memory poisoning particularly nasty is the temporal decoupling. Traditional prompt injection attacks execute immediately and are visible in the response. Memory poisoning is a sleeper: the attack gets stored, the conversation ends, and the malicious influence only activates when a future conversation matches the right semantic trigger. Between October 2025 and January 2026, honeypots captured over 91,000 attack sessions actively probing agent memory endpoints.</p>
+
+          <p>The defense landscape is thin. Detection-based moderation is partially effective but can be bypassed by attacks that embed plausible reasoning within contextually harmless content. More robust mitigations are architectural:</p>
+
+          <ul>
+            <li><strong>Write-time validation:</strong> Apply a separate LLM call (or rule-based filter) to proposed memory writes before storing them. Anything that looks like an instruction rather than a fact should be rejected.</li>
+            <li><strong>Scope limits:</strong> Don't give every agent access to the full memory store. User-scoped memory, workspace-scoped memory, not global agent memory. The blast radius of a poisoned record should be bounded.</li>
+            <li><strong>TTL on stored records:</strong> Memory records that expire naturally limit the window during which a poisoned record can cause harm.</li>
+            <li><strong>Audit logging:</strong> Every memory write should be logged with the session, timestamp, and source. Forensics after an incident are impossible without this.</li>
+            <li><strong>Human review for high-stakes writes:</strong> For agents operating in sensitive domains, require human approval before certain categories of memory are persisted.</li>
+          </ul>
+
+          <h2>Production Failure Modes</h2>
+
+          <p>Security aside, the patterns that appear consistently in production deployments:</p>
+
+          <h3>Memory entropy</h3>
+
+          <p>Over time, the memory store fills with outdated, contradictory, and low-quality records. "User prefers dark mode" from 18 months ago, "user prefers light mode" from last month. Without explicit contradiction handling or TTL policies, the agent starts reasoning from stale state. This looks like hallucination to users but is actually a retrieval problem — and users almost never file a bug report that says "your agent retrieved an outdated memory."</p>
+
+          <h3>Retrieval noise</h3>
+
+          <p>Semantic similarity retrieval is good at finding related memories, not always the right memories. An agent helping with a Python data pipeline might retrieve memories from a previous Python project that ended two years ago — different stack, different constraints, no longer relevant. Now the context window has outdated assumptions baked in. The agent doesn't know the memories are old. It just uses them.</p>
+
+          <h3>Over-confident memory use</h3>
+
+          <p>Agents with memory systems start using them for everything. Instead of asking the user a clarifying question — which a memoryless agent would do — the agent retrieves something from six months ago and acts on it confidently. The memory was correct then. It's stale now. The failure looks like the agent is making things up; the actual cause is a retrieved fact that's no longer valid. Agents need uncertainty signals on memories, not just retrieval scores.</p>
+
+          <h3>Cross-user contamination</h3>
+
+          <p>In multi-tenant systems, memory isolation is a hard requirement. A memory store scoped at the system level rather than the user level isn't just a privacy violation waiting to happen — it means User A's preferences, projects, and history can surface in User B's session. This is both a GDPR problem and a correctness problem. Scope your memory stores at user or workspace level from day one. Retrofitting isolation into a production system is painful.</p>
+
+          <h2>On-Premises and Hybrid Deployments</h2>
+
+          <p>Regulated industries — healthcare, finance, defense — often can't use managed cloud memory services for long-term user data. The on-premises story is more fragmented than the cloud offerings, but it works.</p>
+
+          <p><strong>Self-hosted vector store:</strong> Chroma, Weaviate, or Qdrant running in your own infrastructure. Pair with a custom extraction pipeline (LLM call on each conversation turn to extract facts, structured output, write to store). More engineering than a managed service, but full control over data residency and retention.</p>
+
+          <p><strong>PostgreSQL + pgvector:</strong> If you're already running Postgres, the <code>pgvector</code> extension adds vector similarity search. Combined with a metadata schema for memory records (user_id, created_at, expires_at, content, embedding), this handles both episodic retrieval and structured fact storage with a single operational stack. Don't underestimate this option — it's simpler to operate than a dedicated vector database and the performance at moderate scale is entirely adequate.</p>
+
+          <p><strong>Self-hosted Mem0:</strong> Mem0 supports self-hosted deployment and integrates natively with LangGraph, CrewAI, and the OpenAI Agents SDK. The Open Memory Protocol (OMP) standard they're developing aims to make memory store implementations interchangeable — useful if you expect to migrate later.</p>
+
+          <p><strong>Graph database (Neo4j or Neptune):</strong> For agents with heavy entity-relationship reasoning requirements, a self-hosted Neo4j instance or Amazon Neptune gives you the graph traversal capabilities that pure vector search can't provide. Higher operational overhead, but the right tool for knowledge-graph-heavy use cases.</p>
+
+          <p>The honest assessment of on-prem: more engineering effort, less mature tooling than cloud offerings, no managed extraction pipeline. For regulated workloads where data residency is non-negotiable, that tradeoff is correct. For everyone else, start with a managed cloud service and move on-prem if you hit a compliance wall.</p>
+
+          <h2>Best Practices: What the Production Deployments Agree On</h2>
+
+          <p><strong>Don't start with memory.</strong> Build the agent without it first. Understand exactly where it fails because of missing persistence. Then design the memory layer for those specific failure cases rather than adding a generic memory system and hoping it improves things. Memory that doesn't fix a real problem adds latency, complexity, and attack surface for no benefit.</p>
+
+          <p><strong>Separate sessions from memory.</strong> Short-term within-session state and long-term cross-session memory are different objects with different lifecycle requirements. Keep them architecturally separate from the start. Session state is ephemeral. Memory is persistent. They need different storage backends, different TTL policies, and different access controls.</p>
+
+          <p><strong>Write TTLs, not just inserts.</strong> Every memory record should have an expiration policy. User preferences change. Project contexts become stale. Memory stores without TTLs turn into archaeological sites — layers of outdated facts that confuse the agent and quietly degrade performance over months.</p>
+
+          <p><strong>Validate before storing.</strong> Run a quality filter on memory writes. A confidence threshold, a validation prompt checking that the extracted fact is actually a fact (not an instruction, not a hallucination, not something ambiguous). Don't store raw LLM outputs as ground truth without verification.</p>
+
+          <p><strong>Treat memory as an attack surface.</strong> Input validation, access controls scoped to user/workspace, audit logging on reads and writes, scope limits per agent. The same security hygiene you'd apply to a user database applies to an agent memory store. Probably more so, because the impact of poisoned memory is subtle and hard to detect.</p>
+
+          <h2>The Bigger Picture</h2>
+
+          <p>Memory is what separates an agent that can complete tasks from an agent that can build a working relationship. The former is genuinely useful. The latter is transformative — an agent that actually knows your codebase, your preferences, your constraints, the decisions you made three months ago and why. That's not demo territory anymore; it's production-ready in 2026 if you architect it carefully.</p>
+
+          <p>The technical ingredients exist: managed cloud memory services from AWS, Google, and the OpenAI ecosystem, mature third-party libraries like Mem0 and Zep, and a growing understanding in the community of what the failure modes look like and how to avoid them. The hard part isn't the technology anymore. It's deciding what your agent should remember, for how long, and who gets to see it — which turns out to be mostly a governance problem wearing a technical costume.</p>
+
+        </div>
+      </article>
+
+      <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted);">
+        <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color: var(--accent-primary);">Return to home</a></small></p>
+      </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('pre:not(.mermaid) code').forEach(el => hljs.highlightElement(el));
+      });
+    </script>
+  </body>
+</html>

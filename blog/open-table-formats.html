@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Table Formats: Iceberg, Delta Lake, and Hudi — The War Nobody Told Your Data Team About</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1e3a5f',
+        primaryTextColor: '#c9d4e0',
+        primaryBorderColor: '#2d5a8e',
+        lineColor: '#4a7aaa',
+        secondaryColor: '#0d1f35',
+        tertiaryColor: '#0a1628',
+        background: '#090d1b',
+        mainBkg: '#0d1f35',
+        nodeBorder: '#2d5a8e',
+        clusterBkg: '#0a1628',
+        titleColor: '#d4a540',
+        edgeLabelBackground: '#0d1f35',
+        stateBkg: '#0d1f35',
+        labelBackgroundColor: '#0d1f35'
+      }
+    });
+  </script>
+
+  <style>
+    .blog-article {
+      max-width: 820px;
+    }
+
+    .article-header {
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 2rem;
+    }
+
+    .article-header h1 {
+      font-size: 2.2rem;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+    }
+
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+    }
+
+    .article-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .article-content h2 {
+      margin-top: 2.8rem;
+      margin-bottom: 0.9rem;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.4rem;
+    }
+
+    .article-content h3 {
+      margin-top: 1.8rem;
+      margin-bottom: 0.7rem;
+      font-size: 1.1rem;
+      color: var(--accent-primary);
+    }
+
+    .article-content p {
+      line-height: 1.85;
+      margin-bottom: 1.2rem;
+      color: var(--text-secondary);
+    }
+
+    .article-content ul,
+    .article-content ol {
+      margin-left: 1.6rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .article-content li {
+      margin-bottom: 0.6rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .article-content code {
+      background: var(--bg-secondary);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      color: var(--accent-primary);
+    }
+
+    .article-content pre {
+      background: rgba(15, 23, 42, 0.92);
+      padding: 1.4rem 1.6rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border-left: 3px solid var(--accent-primary);
+    }
+
+    .article-content pre code {
+      background: none;
+      padding: 0;
+      color: var(--text-secondary);
+      font-size: 0.87rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 2rem;
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .callout {
+      background: var(--accent-secondary);
+      border-left: 4px solid var(--accent-primary);
+      padding: 1rem 1.5rem;
+      margin: 1.8rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .callout p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .callout.warning {
+      border-left-color: hsl(0, 72%, 51%);
+      background: rgba(239, 68, 68, 0.06);
+    }
+
+    .callout.tip {
+      border-left-color: hsl(142, 70%, 45%);
+      background: rgba(34, 197, 94, 0.06);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 1.5rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 0.7rem 1rem;
+      text-align: left;
+      color: var(--text-secondary);
+    }
+
+    th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    tr:nth-child(even) td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .diagram-wrap {
+      background: rgba(9, 13, 27, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem 1rem;
+      margin: 1.8rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .diagram-caption {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin: 0.75rem 0 0 0;
+      font-style: italic;
+    }
+
+    .format-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .format-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+
+    .format-card h4 {
+      margin: 0 0 0.3rem 0;
+      font-size: 1rem;
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+
+    .format-card .origin {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 0.8rem;
+    }
+
+    .format-card p {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .cloud-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .cloud-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+
+    .cloud-card h4 {
+      margin: 0 0 0.6rem 0;
+      font-size: 0.95rem;
+      color: var(--accent-primary);
+      font-weight: 600;
+    }
+
+    .cloud-card ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+
+    .cloud-card li {
+      font-size: 0.84rem;
+      margin-bottom: 0.3rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 600px) {
+      .format-grid { grid-template-columns: 1fr; }
+      .cloud-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/>
+        </svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+
+    <a href="./" class="back-link">← Back to Blog</a>
+
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Open Table Formats: Iceberg, Delta Lake, and Hudi — The War Nobody Told Your Data Team About</h1>
+        <div class="article-meta">
+          <span>📅 June 8, 2025</span>
+          <span>📖 18 min read</span>
+          <span>🏷️ Data Engineering</span>
+          <span>🔧 Architecture</span>
+          <span>☁️ Cloud</span>
+        </div>
+      </header>
+
+      <div class="article-content">
+
+        <p>Somewhere around 2016, the data engineering world collectively realized that storing data as flat files in S3 was a great idea but came with a catastrophic flaw: you couldn't update a row. You could append. You could overwrite entire partitions. But GDPR showed up, users wanted their data deleted, and "sorry, we'd need to rewrite 50 TB of Parquet" wasn't an acceptable answer.</p>
+
+        <p>Three separate engineering teams at Netflix, Databricks, and Uber reached the same conclusion at roughly the same time: what if we added a metadata layer on top of object storage that gave you ACID transactions, schema evolution, time travel, and row-level updates — without a server? What if the "database" was just a set of files and a spec for reading them?</p>
+
+        <p>The result was Apache Iceberg, Delta Lake, and Apache Hudi — three open table formats that spent several years trying to kill each other and are now converging in ways nobody predicted. This is the story of what they actually are, how they work internally, and how to pick one without regretting it two years from now.</p>
+
+        <h2>Why This Matters: The Hive Problem</h2>
+
+        <p>Before open table formats, the standard approach to analytical data on object storage was Hive tables — a metadata store that tracked which Parquet files belonged to which partition. It worked, barely, until it didn't. Hive tables had no concept of atomic transactions: two writers could corrupt each other's output. Schema changes were painful and often required rewriting the entire dataset. There was no time travel — once you overwrote a partition, the old data was gone. And reading a table required listing all the files in all the partitions, which on S3 means expensive and slow list API calls that scale linearly with the number of partitions.</p>
+
+        <p>Open table formats solve all of these problems with a metadata layer — a set of manifest files that tell readers exactly which data files constitute a snapshot of the table, without directory listing. This is the core architectural insight: <strong>tracking files via metadata rather than inferring them from directory structure</strong>. It sounds simple. The consequences are profound.</p>
+
+        <h2>Apache Iceberg: The Spec-First Format</h2>
+
+        <p>Netflix open-sourced Iceberg in 2018. The defining characteristic of Iceberg isn't any particular feature — it's that Iceberg is a <em>specification first, implementation second</em>. The spec defines exactly how metadata must be structured, and any engine that implements the spec can read any Iceberg table written by any other engine. This portability is what's driven Iceberg's adoption in 2025: it's genuinely format-neutral.</p>
+
+        <h3>Metadata Architecture</h3>
+
+        <p>Every Iceberg table has a three-level metadata hierarchy:</p>
+
+        <ul>
+          <li><strong>Table metadata file</strong> — the entry point, a JSON file that points to the current snapshot and all historical snapshots. This is what gets updated atomically when you commit a transaction.</li>
+          <li><strong>Manifest list</strong> — one per snapshot, lists all the manifest files that together describe the snapshot's data files.</li>
+          <li><strong>Manifest files</strong> — each manifest file lists a subset of the data (Parquet) files, along with column-level statistics: min/max per column, null count, row count. These statistics are what enable partition pruning without reading any data files.</li>
+        </ul>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart TD
+    Catalog["Iceberg Catalog\n(Glue / Nessie / REST)\nCurrent metadata pointer"] --> MetaJSON
+
+    subgraph Metadata["Metadata Layer (JSON files in S3)"]
+        MetaJSON["table-metadata-v3.json\nSchema, partition spec, snapshots list"]
+        ManifestList["manifest-list-snap-001.avro\nOne entry per manifest file"]
+        Manifest1["manifest-file-A.avro\nData files + column stats\n(partition group A)"]
+        Manifest2["manifest-file-B.avro\nData files + column stats\n(partition group B)"]
+        MetaJSON --> ManifestList
+        ManifestList --> Manifest1
+        ManifestList --> Manifest2
+    end
+
+    subgraph Data["Data Layer (Parquet files)"]
+        P1["data-000001.parquet"]
+        P2["data-000002.parquet"]
+        P3["data-000003.parquet"]
+        P4["data-000004.parquet"]
+        Manifest1 --> P1 & P2
+        Manifest2 --> P3 & P4
+    end
+
+    subgraph Deletes["Delete Files (v2 spec)"]
+        PD["position-delete-file.parquet\nfile path + row offset"]
+        ED["equality-delete-file.parquet\ncolumn value = deleted row id"]
+        Manifest1 -.->|"associated"| PD
+        Manifest2 -.->|"associated"| ED
+    end
+          </pre>
+          <p class="diagram-caption">Iceberg's three-level metadata hierarchy. Queries scan only the manifests whose column statistics overlap the query predicate — never the underlying data files unless necessary. Delete files (spec v2) enable merge-on-read without rewriting data.</p>
+        </div>
+
+        <p>The critical optimization here is that readers can prune at every level. If your query filters on <code>event_date = '2025-06-01'</code>, Iceberg checks the partition specification to skip entire manifests, then checks per-file column statistics to skip individual Parquet files. For a well-partitioned table, a query touching one day of data might read 0.01% of the physical files. This is called <strong>manifest-level pruning</strong>, and it's why Iceberg queries are often dramatically faster than equivalent Hive queries on the same data.</p>
+
+        <h3>Concurrency Control: Optimistic and Atomic</h3>
+
+        <p>Iceberg's concurrency model is optimistic: multiple writers can prepare commits simultaneously, and the commit itself is a single atomic CAS (compare-and-swap) operation on the catalog entry — "change the current metadata pointer from version N to version N+1." If two writers try to commit simultaneously, one wins and one retries. On S3 with a catalog like AWS Glue or Apache Nessie, this is both safe and lock-free. On S3 without a catalog (using the legacy S3 file system catalog), it requires careful configuration but remains safer than Hive.</p>
+
+        <p>Iceberg Spec v2 added row-level deletes through delete files rather than data file rewrites. When you delete a row, Iceberg writes a small "delete file" that records which rows to ignore during reads. This is a merge-on-read approach: readers apply the deletes at query time, which is slightly more CPU work but vastly cheaper than rewriting a 10 GB Parquet file to remove three rows. Spec v3 (in progress as of 2025) replaces position delete files with deletion vectors — compact bitmaps representing deleted row positions — borrowed from Delta Lake's design.</p>
+
+        <h2>Delta Lake: The Databricks Native</h2>
+
+        <p>Delta Lake was open-sourced by Databricks in 2019. If Iceberg is spec-first, Delta is implementation-first: it was built to work brilliantly with Spark, and it does. The trade-off is that Delta's design decisions reflect Spark's architecture in ways that occasionally show when using other engines.</p>
+
+        <h3>Transaction Log Architecture</h3>
+
+        <p>Delta Lake's metadata is a transaction log stored in <code>_delta_log/</code> at the table root. Each committed transaction writes a numbered JSON file: <code>000000000000000000001.json</code>, <code>000000000000000000002.json</code>, and so on. These files record what was added, what was removed, and what statistics were gathered. Every 10 commits (by default), Delta writes a Parquet checkpoint file that consolidates all preceding JSON log entries — reading the checkpoint is much faster than replaying thousands of individual JSON files.</p>
+
+        <p>This design is elegantly simple and gives Delta native time travel: to read the table at any point in history, just replay the log up to that transaction. The downside is the JSON log files themselves — on high-throughput tables with thousands of small transactions, the log can grow into tens of thousands of files, making log replay slow and increasing the metadata overhead. Aggressive checkpointing and log compaction are operational necessities for busy Delta tables.</p>
+
+        <h3>The S3 Locking Problem</h3>
+
+        <p>Here's the thing nobody mentions until you're in production: Delta Lake on S3 requires a locking service for safe concurrent writes. S3 doesn't provide atomic rename operations (unlike HDFS), so Delta uses an external lock table — DynamoDB by default with the AWS Delta connector — to serialize concurrent writers. Without this, two simultaneous writes can corrupt the log.</p>
+
+        <div class="callout warning">
+          <p><strong>The hidden operational cost:</strong> Every Delta write on S3 touches DynamoDB for lock acquisition and release. At 100 writes/second, that's 200 DynamoDB operations/second per Delta table — plus the write units for the log entries themselves. On very high-throughput tables, DynamoDB costs can rival storage costs. Iceberg avoids this with its CAS-based catalog model; Hudi uses its own optimistic concurrency mechanism. Plan your cost model accordingly.</p>
+        </div>
+
+        <p>Delta Lake's strength is Spark integration depth. Auto-optimize, auto-compaction, Z-Order clustering, data skipping via column statistics, VACUUM for old snapshot cleanup — all of these are polished and battle-tested. If your entire stack is Databricks, Delta Lake is the obvious choice. You get excellent performance, great tooling, and a team with billions of investment dollars maintaining it.</p>
+
+        <h2>Apache Hudi: Updates as a First-Class Citizen</h2>
+
+        <p>Hudi (Hadoop Upserts Deletes and Incrementals) was built by Uber in 2016 and open-sourced in 2019. While Iceberg and Delta started from the "how do we make big reads fast?" angle, Hudi started from "how do we update individual records efficiently?" — because Uber had 10 billion trip records and needed GDPR deletes to complete in minutes, not days.</p>
+
+        <h3>Copy-on-Write vs Merge-on-Read</h3>
+
+        <p>Hudi gives you an explicit choice between two write modes:</p>
+
+        <ul>
+          <li><strong>Copy-on-Write (CoW):</strong> When you update or delete a row, Hudi rewrites the entire Parquet file containing that row. Reads are fast — there are no delta files to merge. Writes are expensive because file rewrites are expensive. Good for tables with infrequent updates and read-heavy workloads.</li>
+          <li><strong>Merge-on-Read (MoR):</strong> Updates are written to small Avro delta log files alongside the base Parquet files. Reads merge the base files with the delta logs at query time. Writes are fast; reads are slightly slower and more complex. Good for tables with frequent updates and near-real-time ingestion requirements.</li>
+        </ul>
+
+        <p>The MoR approach is where Hudi genuinely shines over competitors. For CDC (Change Data Capture) ingestion from transactional databases — think Debezium writing Kafka events, Hudi consuming them in micro-batches — MoR enables near-real-time landing of updates with manageable write amplification. Uber, Amazon, Walmart, and Robinhood all run Hudi at scale for exactly this pattern.</p>
+
+        <p>Hudi 1.0 (released January 2025) added native Iceberg output — a Hudi table can now expose itself as an Iceberg table via catalog integration, giving you Hudi's write performance with Iceberg's read ecosystem compatibility. This is a significant architectural convergence that's worth tracking.</p>
+
+        <h2>Head-to-Head Comparison</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Dimension</th>
+                <th>Apache Iceberg</th>
+                <th>Delta Lake</th>
+                <th>Apache Hudi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Origin</strong></td>
+                <td>Netflix (2018)</td>
+                <td>Databricks (2019)</td>
+                <td>Uber (2016, OSS 2019)</td>
+              </tr>
+              <tr>
+                <td><strong>Metadata format</strong></td>
+                <td>JSON + Avro manifests</td>
+                <td>JSON log + Parquet checkpoints</td>
+                <td>Timeline (JSON) + Avro logs</td>
+              </tr>
+              <tr>
+                <td><strong>Concurrency on S3</strong></td>
+                <td>CAS via catalog, lock-free</td>
+                <td>Requires external lock (DynamoDB)</td>
+                <td>Optimistic concurrency, OCC</td>
+              </tr>
+              <tr>
+                <td><strong>Row-level deletes</strong></td>
+                <td>Delete files (spec v2) / DVs (v3)</td>
+                <td>Deletion vectors (Delta 3.0+)</td>
+                <td>Native MoR delta logs</td>
+              </tr>
+              <tr>
+                <td><strong>Read performance</strong></td>
+                <td>Excellent (manifest pruning)</td>
+                <td>Excellent (Z-Order, data skipping)</td>
+                <td>Good CoW; MoR adds merge cost</td>
+              </tr>
+              <tr>
+                <td><strong>Write performance</strong></td>
+                <td>Good (copy-on-write by default)</td>
+                <td>Good (auto-optimize helps)</td>
+                <td>Excellent for updates (MoR)</td>
+              </tr>
+              <tr>
+                <td><strong>Engine support</strong></td>
+                <td>Spark, Flink, Trino, DuckDB, Snowflake, BigQuery</td>
+                <td>Spark, Flink, Trino (via Delta connector)</td>
+                <td>Spark, Flink (Trino support improving)</td>
+              </tr>
+              <tr>
+                <td><strong>Schema evolution</strong></td>
+                <td>Full: add/rename/reorder/widen</td>
+                <td>Add columns, limited other changes</td>
+                <td>Add columns, evolution with caveats</td>
+              </tr>
+              <tr>
+                <td><strong>Governance / catalog</strong></td>
+                <td>REST catalog, Nessie, Unity, Polaris</td>
+                <td>Unity Catalog (Databricks), HMS</td>
+                <td>HMS, Hive Metastore</td>
+              </tr>
+              <tr>
+                <td><strong>Industry momentum 2025</strong></td>
+                <td>Winning new adoptions; AWS/GCP/Snowflake native</td>
+                <td>Dominant at existing Databricks customers</td>
+                <td>Strong in CDC/streaming use cases</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>How They Fit Into a Modern Data Stack</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart LR
+    subgraph Sources["Data Sources"]
+        DB["Transactional DB\n(Postgres/MySQL)"]
+        Events["Event Streams\n(Kafka)"]
+        APIs["SaaS APIs\n(Salesforce, etc.)"]
+    end
+
+    subgraph Ingest["Ingestion Layer"]
+        Debezium["Debezium CDC"]
+        Flink["Apache Flink\nStreaming"]
+        Airbyte["Airbyte / Fivetran\nBatch"]
+    end
+
+    subgraph Lake["Data Lake (Object Storage)"]
+        Bronze["Bronze Layer\nRaw / append-only\nHudi MoR or Iceberg"]
+        Silver["Silver Layer\nCleaned + conformed\nIceberg or Delta"]
+        Gold["Gold Layer\nAggregate / serving\nIceberg or Delta"]
+    end
+
+    subgraph Compute["Query / Transform"]
+        Spark["Apache Spark"]
+        Trino["Trino / Athena"]
+        dbt["dbt (incremental models)"]
+        Airflow["Airflow DAGs\n(orchestration)"]
+    end
+
+    subgraph Serve["Serving / Consumers"]
+        BI["BI Tools\n(Power BI, Tableau)"]
+        DS["Data Science\n(Notebooks)"]
+        Apps["Operational\nApplications"]
+    end
+
+    DB --> Debezium --> Flink --> Bronze
+    Events --> Flink
+    APIs --> Airbyte --> Bronze
+    Bronze --> Silver --> Gold
+    Spark & Trino & dbt --> Silver & Gold
+    Airflow -.->|"orchestrates"| dbt & Spark
+    Gold --> BI & DS & Apps
+          </pre>
+          <p class="diagram-caption">Open table formats as the persistence layer across a medallion architecture. Hudi's MoR excels at the Bronze ingest layer for CDC workloads; Iceberg and Delta are typically preferred for Silver/Gold where read performance dominates.</p>
+        </div>
+
+        <h2>Real-Time and Streaming: The Flink Story</h2>
+
+        <p>One of the more exciting developments in 2024–2025 is first-class Flink support for all three formats. Flink can write to Iceberg, Delta, and Hudi tables in mini-batch mode (every 1–5 minutes), effectively bringing near-real-time data into analytical tables without a separate Lambda architecture.</p>
+
+        <p>The streaming write story differs between formats:</p>
+
+        <ul>
+          <li><strong>Iceberg + Flink:</strong> Flink uses Iceberg's streaming writer API that batches records into row groups and commits snapshots atomically. Kafka topic → Iceberg table with 60-second latency is a standard production pattern at companies like Netflix and Apple. The Iceberg spec's multi-table transaction support (in progress) will enable atomic cross-table commits — important for maintaining referential consistency in streaming ETL.</li>
+          <li><strong>Delta + Flink:</strong> Flink-Delta connector is maintained by Delta's open-source contributors. Works well but historically lagged behind the Spark connector in feature parity. In 2025, the connector has caught up significantly. Still worth validating specific features (change data feed, schema evolution) before committing to this stack.</li>
+          <li><strong>Hudi + Flink:</strong> This is arguably Hudi's strongest story. Hudi's MoR mode was designed for streaming upserts, and Flink + Hudi is a mature, production-tested combination used by Uber and others. The Hudi Flink writer handles late-arriving records, deduplication, and partition management automatically — things you'd otherwise build yourself.</li>
+        </ul>
+
+        <p>Confluent's Tableflow service (launched 2024) automatically mirrors Kafka topics to Iceberg tables, managed entirely in the Confluent Cloud platform. For teams already on Confluent, this eliminates the operational burden of managing Flink streaming jobs just to land events in object storage.</p>
+
+        <h2>Cloud Platform Integration</h2>
+
+        <div class="cloud-grid">
+          <div class="cloud-card">
+            <h4>AWS</h4>
+            <ul>
+              <li><strong>S3 Tables</strong> (2024): Native Iceberg tables managed in S3, accessed via standard Iceberg REST API. Includes automatic compaction, snapshot management, optimistic concurrency — no DynamoDB lock service needed.</li>
+              <li><strong>Glue Data Catalog</strong>: Iceberg catalog for cross-service access (Athena, EMR, Glue ETL). Delta support via Glue connector with DynamoDB locking.</li>
+              <li><strong>Athena</strong>: Native Iceberg reads with partition pruning and time travel. Write support via CTAS and INSERT INTO.</li>
+              <li><strong>EMR</strong>: All three formats supported; Iceberg and Delta have first-class connectors in EMR 6.x+.</li>
+            </ul>
+          </div>
+          <div class="cloud-card">
+            <h4>Azure / Microsoft Fabric</h4>
+            <ul>
+              <li><strong>ADLS Gen2</strong>: Underlying storage for all formats. Delta Lake is the native format for Microsoft Fabric (OneLake).</li>
+              <li><strong>Microsoft Fabric</strong>: Lakehouse uses Delta Parquet natively. Iceberg support via shortcuts to external ADLS paths.</li>
+              <li><strong>Azure Databricks</strong>: Full Delta Lake + Unity Catalog stack; best-in-class Delta experience on Azure.</li>
+              <li><strong>Azure Synapse Analytics</strong>: Delta and Parquet support via Spark pools; Iceberg support in external tables.</li>
+            </ul>
+          </div>
+          <div class="cloud-card">
+            <h4>GCP</h4>
+            <ul>
+              <li><strong>BigQuery managed Iceberg</strong> (GA 2024): Iceberg tables natively in BigQuery, read via BigQuery SQL and external Iceberg engines. Includes auto-compaction and lifecycle management.</li>
+              <li><strong>Dataproc</strong>: Spark on GCS; all three formats supported. Iceberg Catalog via BigQuery Metastore.</li>
+              <li><strong>Dataplex</strong>: Data governance layer with Iceberg table discovery and lineage tracking.</li>
+              <li><strong>Cloud Storage</strong>: Standard GCS buckets as data lake storage for all formats.</li>
+            </ul>
+          </div>
+          <div class="cloud-card">
+            <h4>Databricks &amp; Snowflake</h4>
+            <ul>
+              <li><strong>Databricks + Unity Catalog</strong>: Delta Lake as primary format; Iceberg read/write support via Delta UniForm (a Delta table that exposes Iceberg metadata). Tabular acquisition ($1B+, 2024) brought Iceberg catalog leadership in-house.</li>
+              <li><strong>Snowflake Iceberg Tables</strong> (GA 2024): Iceberg tables with Snowflake as external catalog. Customer-managed storage in S3/GCS/ADLS; Snowflake provides the compute and catalog. Cost model differs from managed Snowflake tables.</li>
+              <li><strong>Snowflake + dbt</strong>: Iceberg tables as dbt incremental model targets. Requires configuring the Iceberg table properties in dbt model configs.</li>
+            </ul>
+          </div>
+        </div>
+
+        <h2>dbt Integration: Incremental Models on Open Table Formats</h2>
+
+        <p>dbt's incremental model strategy maps directly to the open table format's merge/upsert capability. On Iceberg and Delta Lake, you can use the <code>merge</code> incremental strategy to upsert new and changed rows efficiently:</p>
+
+        <pre><code class="language-sql">-- models/silver/customer_profiles.sql
+{{
+  config(
+    materialized='incremental',
+    incremental_strategy='merge',
+    unique_key='customer_id',
+    file_format='iceberg',
+    partition_by=[{'field': 'updated_date', 'data_type': 'date'}],
+    properties={
+      "write.target-file-size-bytes": "134217728",  -- 128 MB target
+      "write.parquet.compression-codec": "zstd"
+    }
+  )
+}}
+
+select
+    customer_id,
+    email,
+    country,
+    cast(updated_at as date) as updated_date,
+    updated_at
+from {{ source('bronze', 'customers_raw') }}
+
+{% if is_incremental() %}
+where updated_at > (select max(updated_at) from {{ this }})
+{% endif %}</code></pre>
+
+        <p>The <code>merge</code> strategy on Iceberg generates a proper MERGE INTO SQL statement that the Iceberg engine executes atomically. This is dramatically better than the append + deduplication pattern that pre-Iceberg dbt users had to implement manually. For Hudi, dbt support requires the dbt-hudi adapter which has reached production maturity in 2025 — though it's still less widely used than dbt-spark with Iceberg/Delta.</p>
+
+        <div class="callout tip">
+          <p><strong>dbt + Iceberg small files problem:</strong> dbt generates one file per dbt run partition unless you configure compaction. After 30 days of daily runs, a table partitioned by date will have 30 small files per date partition — exactly the small files problem Iceberg is designed to solve, recreated by your orchestration pattern. Set up a compaction job (via <code>CALL iceberg.system.rewrite_data_files()</code> in Spark SQL or use Flink's background compaction) to coalesce files after dbt runs. Aim for 128 MB–512 MB Parquet files; smaller is a query performance tax.</p>
+        </div>
+
+        <h2>Common Problems and How to Avoid Them</h2>
+
+        <h3>1. Small Files Proliferation</h3>
+
+        <p>This is the most common operational problem with all three formats. Streaming writers, frequent micro-batch commits, and partition-per-day strategies all generate small files. A table with 100,000 files of 1 MB each reads slower than the same data in 100 files of 1 GB each, because metadata enumeration overhead dominates.</p>
+
+        <p><strong>Fix:</strong> Schedule regular compaction. For Iceberg: <code>CALL iceberg.system.rewrite_data_files(table => 'db.table', strategy => 'sort', sort_order => 'zorder(user_id, event_date)')</code>. For Delta: enable <code>spark.databricks.delta.autoCompact.enabled = true</code>. For Hudi: configure <code>hoodie.compact.inline=true</code> for MoR tables. Aim to run compaction after every 10–20 streaming commits.</p>
+
+        <h3>2. Too Many Snapshots / Log Growth</h3>
+
+        <p>Every commit creates a new snapshot (Iceberg/Hudi) or log entry (Delta). Without cleanup, metadata can grow to millions of files and metadata reads become the bottleneck. This is particularly severe on Iceberg tables with frequent streaming writes — after a week of 5-minute commits, you have 2,016 snapshots and their associated manifest files.</p>
+
+        <p><strong>Fix:</strong> Run expire_snapshots regularly. For Iceberg: <code>CALL iceberg.system.expire_snapshots(table => 'db.table', older_than => TIMESTAMP '2025-05-01 00:00:00')</code>. For Delta: <code>VACUUM delta.`/path/to/table` RETAIN 168 HOURS</code>. Keep at least 7 days of history for time travel; expire beyond that.</p>
+
+        <h3>3. Partition Evolution Nightmares</h3>
+
+        <p>Changing partition strategy mid-table is painful in all formats. If you start with daily partitioning and later need hourly, you have two options: rewrite the entire table (expensive) or live with mixed partition granularity (confusing for query planners). Iceberg's partition evolution (spec-level feature) handles this more gracefully than Delta or Hudi — it tracks which partition spec each data file was written with, so the reader knows how to apply each file's partition information. But it still generates operational complexity.</p>
+
+        <p><strong>Fix:</strong> Think carefully about partition strategy before writing the first row. For event data: partition by event_date (day granularity), not by timestamp. For dimension tables: don't partition at all unless the table exceeds 100 GB. Wrong partitioning decisions are expensive to undo.</p>
+
+        <h3>4. Catalog Sprawl</h3>
+
+        <p>Iceberg especially suffers from catalog fragmentation: you might have the same table registered in Glue, a Hive Metastore, and a REST catalog simultaneously — and they can drift. Table metadata updates through one catalog path won't be visible through another until resync.</p>
+
+        <p><strong>Fix:</strong> Pick one catalog per environment and treat it as authoritative. In 2025, the REST catalog spec (Apache Polaris / Project Nessie / Databricks Unity Catalog) is becoming the standard interface. Federate access through a single catalog endpoint rather than registering tables in multiple systems.</p>
+
+        <h2>Data Governance and Data Quality</h2>
+
+        <p>Open table formats enable governance capabilities that were difficult or impossible with flat Hive tables:</p>
+
+        <ul>
+          <li><strong>Column-level lineage:</strong> Because every transaction is logged with file-level and column-level statistics, lineage tools (OpenLineage, Apache Atlas, DataHub) can track which source data contributed to which output table and which columns were involved. This is table-format-agnostic but works best with Iceberg's rich metadata.</li>
+          <li><strong>Table versioning as audit trail:</strong> Iceberg's snapshot history gives you a full audit log of who wrote what data when. For regulated industries (financial services, healthcare), this is directly usable as a data change audit trail without additional tooling.</li>
+          <li><strong>Schema enforcement:</strong> All three formats support schema enforcement on write — rejecting records that don't match the registered schema. This catches data quality issues at ingestion time rather than at query time. Combine with Great Expectations or dbt tests for column-level quality checks after each write.</li>
+          <li><strong>GDPR right-to-erasure:</strong> Row-level deletes (Iceberg delete files, Delta deletion vectors, Hudi MoR logs) make GDPR-compliant deletion feasible at scale. Issue a DELETE statement targeting the customer's rows, then compact to physically remove the data. Track deletion jobs in your compliance system.</li>
+        </ul>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart LR
+    subgraph Governance["Data Governance Layer"]
+        direction TB
+        Catalog["Iceberg REST Catalog\n(Apache Polaris / Nessie)\nSchema registry + access control"]
+        Lineage["OpenLineage Collector\nColumn-level lineage events"]
+        DQ["Data Quality\n(Great Expectations / dbt tests)\nPost-write validation"]
+        Audit["Snapshot History\nAudit trail: who wrote what, when"]
+    end
+
+    subgraph Platform["Data Platform"]
+        Writers["Flink / Spark / dbt\nWrite transactions"] --> IceTable["Iceberg Table\n(manifests + Parquet)"]
+        IceTable --> Readers["Athena / Trino / BI Tools\nRead via catalog"]
+    end
+
+    Writers -->|"lineage events"| Lineage
+    Writers -->|"register schema"| Catalog
+    IceTable -->|"post-write check"| DQ
+    IceTable -->|"snapshot log"| Audit
+    Catalog -->|"access policy"| Readers
+          </pre>
+          <p class="diagram-caption">Governance as a cross-cutting concern around the table format layer. The catalog enforces access control; lineage is emitted by writers; data quality runs post-commit; the snapshot log provides the audit trail.</p>
+        </div>
+
+        <h2>The 2025 Industry Landscape: Who's Winning?</h2>
+
+        <p>The honest answer is: Iceberg is winning for new projects, Delta Lake is deeply entrenched at existing Databricks customers, and Hudi maintains a strong position in CDC/streaming use cases.</p>
+
+        <p>The biggest 2025 signal was Databricks acquiring Tabular (the company founded by Iceberg's original authors at Netflix) for over $1 billion. The stated goal was to bring Iceberg and Delta closer together through Delta UniForm — a format compatibility layer where a Delta table transparently exposes Iceberg metadata. Whether this convergence genuinely arrives or remains a marketing story is the most interesting question in the data engineering space right now.</p>
+
+        <p>AWS's launch of S3 Tables (native Iceberg with automatic management) is a strong signal that Amazon is betting on Iceberg as the default open format. GCP's BigQuery managed Iceberg, Snowflake's Iceberg Tables GA, and Confluent Tableflow all pointed the same direction. For new cloud-native data stacks started in 2025, Iceberg is the default unless you have a specific reason to choose otherwise.</p>
+
+        <p>That said, "picking the winner" is somewhat academic if you're a Databricks-heavy shop. Delta Lake's performance, tooling, and Unity Catalog integration are genuinely excellent. The switching cost of migrating a 50-table Delta lakehouse to Iceberg is significant, and Delta UniForm is a plausible path to ecosystem interoperability without a rewrite.</p>
+
+        <h2>How to Choose</h2>
+
+        <ul>
+          <li><strong>New project on AWS, GCP, or multi-cloud:</strong> Apache Iceberg. Native support from every major cloud, engine, and tool. The REST catalog spec is maturing. You won't regret it.</li>
+          <li><strong>Existing Databricks investment:</strong> Delta Lake. The tooling (auto-optimize, Z-Order, Unity Catalog) is excellent. Consider UniForm for cross-engine reads if Trino or non-Databricks Spark access is needed.</li>
+          <li><strong>CDC / near-real-time upserts are your primary pattern:</strong> Apache Hudi MoR, especially with Flink. The architecture was designed for this. After Hudi 1.0, you can also expose Iceberg metadata for read compatibility.</li>
+          <li><strong>Already on Snowflake:</strong> Snowflake Iceberg Tables give you the open format benefits (customer-managed storage, cross-engine access) while keeping Snowflake's SQL engine and governance. Useful for cost control on large cold datasets.</li>
+        </ul>
+
+        <p>The worst mistake isn't picking the "wrong" format — it's not picking any format and defaulting back to raw Hive tables because the decision felt too hard. Raw Hive tables are why people end up with GDPR deletion backlogs, stale partition data, and incremental refresh pipelines held together with shell scripts. Any of the three formats is a vast improvement over the status quo.</p>
+
+        <p>Pick one. Understand its internals well enough to set up compaction and snapshot expiry properly. Run it for six months. Then you'll have informed opinions about where it falls short for your specific workload — and those opinions will be worth more than any comparison table including this one.</p>
+
+      </div>
+    </article>
+
+    <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted);">
+      <p><small>&copy; 2025 Dmitry Shirokov. <a href="../" style="color: var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('pre:not(.mermaid) code').forEach(el => {
+        hljs.highlightElement(el);
+      });
+    });
+  </script>
+</body>
+</html>

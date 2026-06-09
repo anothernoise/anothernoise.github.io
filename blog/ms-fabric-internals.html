@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Understanding MS Fabric Internals | Dmitry Shirokov</title>
+    <title>Microsoft Fabric Internals: A Field Guide | Dmitry Shirokov</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,88 +15,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
     <script type="module" src="../javascripts/theme.js"></script>
-    <script type="module" src="../javascripts/tabs.js"></script>
-
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'dark',
+        themeVariables: {
+          primaryColor: '#1e3a5f',
+          primaryTextColor: '#c9d4e0',
+          primaryBorderColor: '#2d5a8e',
+          lineColor: '#4a7aaa',
+          secondaryColor: '#0d1f35',
+          tertiaryColor: '#0a1628',
+          background: '#090d1b',
+          mainBkg: '#0d1f35',
+          nodeBorder: '#2d5a8e',
+          clusterBkg: '#0a1628',
+          titleColor: '#d4a540',
+          edgeLabelBackground: '#0d1f35'
+        }
+      });
+    </script>
 
     <style>
       .blog-article {
-        max-width: 900px;
+        max-width: 820px;
       }
 
       .article-header {
-        margin-bottom: 3rem;
+        margin-bottom: 2.5rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 2rem;
+      }
+
+      .article-header h1 {
+        font-size: 2.2rem;
+        line-height: 1.25;
+        margin-bottom: 1rem;
       }
 
       .article-meta {
         display: flex;
-        gap: 1.5rem;
-        font-size: 0.9rem;
+        flex-wrap: wrap;
+        gap: 1.2rem;
+        font-size: 0.88rem;
         color: var(--text-muted);
         margin-top: 1rem;
       }
 
-      .article-meta span {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
       .article-content h2 {
-        margin-top: 2.5rem;
-        margin-bottom: 1rem;
+        margin-top: 2.8rem;
+        margin-bottom: 0.9rem;
         font-size: 1.5rem;
         color: var(--text-primary);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.4rem;
       }
 
       .article-content h3 {
         margin-top: 1.8rem;
-        margin-bottom: 0.8rem;
-        font-size: 1.2rem;
+        margin-bottom: 0.7rem;
+        font-size: 1.1rem;
         color: var(--accent-primary);
       }
 
       .article-content p {
-        line-height: 1.8;
+        line-height: 1.85;
         margin-bottom: 1.2rem;
         color: var(--text-secondary);
       }
 
       .article-content ul,
       .article-content ol {
-        margin-left: 2rem;
+        margin-left: 1.6rem;
         margin-bottom: 1.2rem;
       }
 
       .article-content li {
         margin-bottom: 0.6rem;
         color: var(--text-secondary);
-        line-height: 1.6;
+        line-height: 1.7;
       }
 
       .article-content code {
         background: var(--bg-secondary);
-        padding: 0.2rem 0.5rem;
+        padding: 0.15rem 0.45rem;
         border-radius: 4px;
         font-family: var(--font-mono);
-        font-size: 0.9em;
+        font-size: 0.88em;
         color: var(--accent-primary);
       }
 
       .article-content pre {
-        background: var(--bg-secondary);
-        padding: 1.5rem;
+        background: rgba(15, 23, 42, 0.92);
+        padding: 1.4rem 1.6rem;
         border-radius: 8px;
         overflow-x: auto;
-        margin-bottom: 1.5rem;
+        margin: 1.5rem 0;
+        border-left: 3px solid var(--accent-primary);
       }
 
       .article-content pre code {
         background: none;
         padding: 0;
-        color: var(--text-primary);
+        color: var(--text-secondary);
+        font-size: 0.87rem;
       }
 
       .back-link {
@@ -104,7 +127,8 @@
         margin-bottom: 2rem;
         color: var(--accent-primary);
         text-decoration: none;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
+        font-weight: 500;
       }
 
       .back-link:hover {
@@ -115,254 +139,84 @@
         background: var(--accent-secondary);
         border-left: 4px solid var(--accent-primary);
         padding: 1rem 1.5rem;
-        margin: 1.5rem 0;
-        border-radius: 4px;
+        margin: 1.8rem 0;
+        border-radius: 0 6px 6px 0;
       }
 
       .callout p {
         margin: 0;
+        font-size: 0.95rem;
       }
 
-      .mermaid-diagram {
-        display: flex;
-        flex-direction: column;
-        margin: 2rem 0;
-        padding: 1.5rem;
-        background: var(--bg-secondary);
-        border-radius: 8px;
+      .callout.warning {
+        border-left-color: hsl(0, 72%, 51%);
+        background: rgba(239, 68, 68, 0.06);
+      }
+
+      .table-wrapper {
         overflow-x: auto;
-        position: relative;
+        margin: 1.5rem 0;
       }
 
-      .diagram-controls {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-        justify-content: flex-end;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        pointer-events: none;
-      }
-
-      .mermaid-diagram:hover .diagram-controls {
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      .diagram-btn {
-        background: var(--accent-primary);
-        color: var(--bg-card);
-        border: none;
-        padding: 0.25rem 0.5rem;
-        border-radius: 3px;
-        cursor: pointer;
-        font-size: 0.7rem;
-        font-weight: 500;
-        transition: background 0.3s ease;
-        white-space: nowrap;
-      }
-
-      .diagram-btn:hover {
-        background: var(--accent-hover);
-      }
-
-      .diagram-btn:active {
-        opacity: 0.8;
-      }
-
-      .diagram-container {
-        display: flex;
-        justify-content: center;
-        overflow-x: auto;
-        padding: 1rem 0;
-      }
-
-      .diagram-container svg {
-        max-width: 100%;
-        height: auto;
-        transition: transform 0.2s ease;
-      }
-
-      .mermaid-fullscreen {
-        position: fixed;
-        top: 0;
-        left: 0;
+      table {
         width: 100%;
-        height: 100%;
-        background: var(--bg-primary);
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        padding: 2rem;
-        overflow: auto;
+        border-collapse: collapse;
+        font-size: 0.92rem;
       }
 
-      .mermaid-fullscreen .diagram-controls {
-        margin-bottom: 2rem;
-        position: sticky;
-        top: 0;
-        z-index: 10000;
-        opacity: 1;
-        pointer-events: auto;
+      th, td {
+        border: 1px solid var(--border-color);
+        padding: 0.7rem 1rem;
+        text-align: left;
+        color: var(--text-secondary);
       }
 
-      .mermaid-fullscreen .diagram-container {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+      th {
+        background: var(--bg-secondary);
+        font-weight: 600;
+        color: var(--text-primary);
       }
 
-      .mermaid-fullscreen .diagram-container svg {
-        max-width: none;
+      tr:nth-child(even) td {
+        background: rgba(255,255,255,0.02);
       }
 
-      .close-btn {
-        background: var(--text-muted);
+      .arch-diagram {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 1.8rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        overflow-x: auto;
+        line-height: 1.7;
       }
 
-      .close-btn:hover {
-        background: var(--text-secondary);
+      .diagram-wrap {
+        background: rgba(9, 13, 27, 0.6);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem 1rem;
+        margin: 1.8rem 0;
+        overflow-x: auto;
+        text-align: center;
+      }
+
+      .diagram-wrap .mermaid {
+        display: inline-block;
+        min-width: 0;
+        text-align: left;
+      }
+
+      .diagram-caption {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 0.75rem;
+        font-style: italic;
       }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-    <script>
-      mermaid.initialize({ startOnLoad: true, theme: 'dark' });
-      mermaid.contentLoaded();
-
-      let currentZoom = 1;
-
-      function setupDiagramControls() {
-        const diagrams = document.querySelectorAll('.mermaid-diagram');
-        diagrams.forEach((diagram, index) => {
-          const container = diagram.querySelector('.diagram-container');
-          if (!container) return;
-
-          // Get or create controls
-          let controls = diagram.querySelector('.diagram-controls');
-          if (!controls) {
-            controls = document.createElement('div');
-            controls.className = 'diagram-controls';
-            diagram.insertBefore(controls, container);
-          }
-
-          // Create buttons
-          const zoomInBtn = document.createElement('button');
-          zoomInBtn.className = 'diagram-btn';
-          zoomInBtn.textContent = '🔍+ Zoom In';
-          zoomInBtn.onclick = () => zoomDiagram(container, 1.2);
-
-          const zoomOutBtn = document.createElement('button');
-          zoomOutBtn.className = 'diagram-btn';
-          zoomOutBtn.textContent = '🔍- Zoom Out';
-          zoomOutBtn.onclick = () => zoomDiagram(container, 0.8);
-
-          const resetBtn = document.createElement('button');
-          resetBtn.className = 'diagram-btn';
-          resetBtn.textContent = '↺ Reset';
-          resetBtn.onclick = () => resetZoom(container);
-
-          const fullscreenBtn = document.createElement('button');
-          fullscreenBtn.className = 'diagram-btn';
-          fullscreenBtn.textContent = '⛶ Fullscreen';
-          fullscreenBtn.onclick = () => toggleFullscreen(diagram, index);
-
-          const archgramBtn = document.createElement('button');
-          archgramBtn.className = 'diagram-btn';
-          archgramBtn.textContent = '🔗 ArchGram';
-          archgramBtn.title = 'Open architecture diagrams in ArchGram';
-          archgramBtn.onclick = () => window.open('https://archgram.io/', '_blank');
-
-          controls.appendChild(zoomInBtn);
-          controls.appendChild(zoomOutBtn);
-          controls.appendChild(resetBtn);
-          controls.appendChild(fullscreenBtn);
-          controls.appendChild(archgramBtn);
-        });
-      }
-
-      function zoomDiagram(container, factor) {
-        const svg = container.querySelector('svg');
-        if (!svg) return;
-        currentZoom *= factor;
-        currentZoom = Math.max(0.5, Math.min(currentZoom, 3));
-        svg.style.transform = `scale(${currentZoom})`;
-      }
-
-      function resetZoom(container) {
-        const svg = container.querySelector('svg');
-        if (!svg) return;
-        currentZoom = 1;
-        svg.style.transform = 'scale(1)';
-      }
-
-      function toggleFullscreen(diagram, index) {
-        const fullscreenDiv = document.getElementById(`diagram-fullscreen-${index}`);
-        if (fullscreenDiv) {
-          fullscreenDiv.remove();
-          currentZoom = 1;
-          return;
-        }
-
-        const diagramClone = diagram.cloneNode(true);
-        diagramClone.classList.add('mermaid-fullscreen');
-        diagramClone.id = `diagram-fullscreen-${index}`;
-        diagramClone.innerHTML = '';
-
-        const controls = document.createElement('div');
-        controls.className = 'diagram-controls';
-
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'diagram-btn close-btn';
-        closeBtn.textContent = '✕ Close';
-        closeBtn.title = 'Exit fullscreen';
-        closeBtn.onclick = () => toggleFullscreen(diagram, index);
-
-        const zoomInBtn = document.createElement('button');
-        zoomInBtn.className = 'diagram-btn';
-        zoomInBtn.textContent = '🔍+';
-        zoomInBtn.title = 'Zoom in';
-        zoomInBtn.onclick = () => {
-          const container = diagramClone.querySelector('.diagram-container');
-          zoomDiagram(container, 1.2);
-        };
-
-        const zoomOutBtn = document.createElement('button');
-        zoomOutBtn.className = 'diagram-btn';
-        zoomOutBtn.textContent = '🔍-';
-        zoomOutBtn.title = 'Zoom out';
-        zoomOutBtn.onclick = () => {
-          const container = diagramClone.querySelector('.diagram-container');
-          zoomDiagram(container, 0.8);
-        };
-
-        const resetBtn = document.createElement('button');
-        resetBtn.className = 'diagram-btn';
-        resetBtn.textContent = '↺';
-        resetBtn.title = 'Reset zoom';
-        resetBtn.onclick = () => {
-          const container = diagramClone.querySelector('.diagram-container');
-          resetZoom(container);
-        };
-
-        controls.appendChild(zoomInBtn);
-        controls.appendChild(zoomOutBtn);
-        controls.appendChild(resetBtn);
-        controls.appendChild(closeBtn);
-
-        const diagramContainer = document.createElement('div');
-        diagramContainer.className = 'diagram-container';
-        diagramContainer.innerHTML = diagram.querySelector('.diagram-container').innerHTML;
-
-        diagramClone.appendChild(controls);
-        diagramClone.appendChild(diagramContainer);
-        document.body.appendChild(diagramClone);
-
-        currentZoom = 1;
-      }
-
-      document.addEventListener('DOMContentLoaded', setupDiagramControls);
-    </script>
   </head>
 
   <body>
@@ -376,334 +230,225 @@
         </button>
       </div>
 
-      <a href="../" class="back-link">← Back to Home</a>
+      <a href="./" class="back-link">← Back to Blog</a>
 
       <article class="blog-article">
         <header class="article-header">
-          <h1>Understanding MS Fabric Internals</h1>
+          <p class="eyebrow">Microsoft Fabric · Architecture</p>
+          <h1>Microsoft Fabric Internals: A Field Guide to What's Really Going On</h1>
           <div class="article-meta">
-            <span>📅 Published</span>
-            <span>⏱️ 8 min read</span>
+            <span>📅 June 9, 2023</span>
+            <span>⏱️ 14 min read</span>
+            <span>🏷️ Fabric · OneLake · Delta Lake · Architecture</span>
           </div>
         </header>
 
         <div class="article-content">
-          <p>Microsoft Fabric represents a unified analytics platform that brings together data engineering, data warehousing, analytics, and AI workloads under a single, integrated experience. Understanding its internals is critical for architects designing modern lakehouse solutions.</p>
 
-          <h2>What is MS Fabric?</h2>
-          <p>MS Fabric is a Software-as-a-Service (SaaS) analytics platform built on Azure cloud infrastructure. It consolidates five major workloads:</p>
-          <ul>
-            <li><strong>Data Engineering:</strong> ETL/ELT pipelines using Spark and Delta Lake</li>
-            <li><strong>Data Warehouse:</strong> SQL-based analytics on structured data</li>
-            <li><strong>Lakehouse:</strong> Open format data lake supporting both unstructured and structured analytics</li>
-            <li><strong>Real-Time Analytics:</strong> Event streaming and KQL-based time-series analysis</li>
-            <li><strong>Power BI:</strong> Business intelligence and visualization layers</li>
-          </ul>
+          <p>When Microsoft announced Fabric at Build 2023, the headline was "unified analytics platform." That's true, and also about as descriptive as calling a car "a vehicle." What Fabric actually is at the infrastructure level is more interesting — and more specific — than the marketing suggests. After spending significant time in its internals, here are the things I wish someone had explained to me at the start.</p>
 
-          <h2>Core Architecture</h2>
-          <p>Fabric's architecture revolves around a few fundamental concepts:</p>
+          <h2>OneLake: ADLS Gen2 with Strong Opinions</h2>
 
-          <div class="mermaid-diagram">
-            <div class="diagram-container">
-              <div class="mermaid">
-graph TB
-    subgraph Workspaces["Workspaces (Capacity-bound)"]
-        Lakehouse["🏠 Lakehouse"]
-        Warehouse["📊 Warehouse"]
-        Semantics["📈 Semantic Model"]
-        Pipeline["⚙️ Data Factory"]
+          <p>OneLake is built on top of Azure Data Lake Storage Gen2. That's not a criticism — ADLS Gen2 is excellent object storage and the right foundation. What Fabric adds is a strong, deliberate opinion about data organization and format.</p>
+
+          <p>Every Fabric item — lakehouses, warehouses, semantic models, real-time eventstreams — stores its data in OneLake. Automatically, without you doing anything. And by default, that data lands in <strong>Delta Parquet format</strong>. This design choice is load-bearing. The reason a Spark notebook, a SQL warehouse, and a Power BI Direct Lake report can all read the same table without copying it is that they all speak Delta Lake. There's one physical copy of the data and multiple engines pointing at it.</p>
+
+          <p>The organization within OneLake follows a hierarchy: <code>tenant / workspace / item / data</code>. Items are things like lakehouses or warehouses. Within a lakehouse, you get a <code>Tables/</code> area for managed Delta tables and a <code>Files/</code> area for raw files. Simple, but enforced consistently across the entire platform.</p>
+
+          <div class="diagram-wrap">
+            <pre class="mermaid">
+flowchart TB
+    subgraph COMP ["Compute Layer"]
+        direction LR
+        SP["🔥 Spark\nNotebooks / Jobs"]
+        WH["📋 SQL Warehouse\nT-SQL queries"]
+        PBI["📊 Power BI\nDirect Lake"]
+        RT["⚡ Real-Time\nAnalytics / KQL"]
     end
 
-    subgraph Compute["Compute Layer"]
-        Spark["🔥 Spark Engine"]
-        SQL["📋 SQL Engine"]
-        KQL["🎯 KQL Engine"]
+    subgraph OL ["OneLake — single storage tier (ADLS Gen2 underneath)"]
+        direction LR
+        DT["Delta Parquet files\n+ V-Order optimization"]
+        LOG["_delta_log/\ntransaction log"]
+        DT --- LOG
     end
 
-    subgraph Storage["OneLake Storage"]
-        DeltaLake["Δ Delta Format"]
-        Metadata["Metadata & Lineage"]
-    end
+    SP <-->|"read / write"| OL
+    WH <-->|"read / write"| OL
+    PBI -->|"frame + lazy\ncolumn load"| OL
+    RT <-->|"read / write"| OL
 
-    Lakehouse --> Spark
-    Lakehouse --> SQL
-    Warehouse --> SQL
-    Pipeline --> Spark
-    Semantics --> SQL
-    
-    Spark --> DeltaLake
-    SQL --> DeltaLake
-    KQL --> DeltaLake
-    
-    DeltaLake --> Metadata
-              </div>
-            </div>
+    EXT["External data\nADLS · S3 · GCS"] -. "Shortcut\n(virtual pointer,\nno data copy)" .-> OL
+            </pre>
+            <p class="diagram-caption">One physical copy of each Delta table. Every compute engine reads from the same place. Shortcuts let external data participate without moving it.</p>
           </div>
 
-          <h3>1. Workspaces & Capacity</h3>
-          <p>Fabric organizes all resources within <strong>Workspaces</strong>, similar to folders or projects. Each workspace is associated with a <strong>Capacity</strong>—a reserved pool of compute and storage resources measured in Fabric Units (FU).</p>
-          <ul>
-            <li>A workspace can contain multiple items: lakehouses, warehouses, pipelines, and semantic models</li>
-            <li>Capacity is shared across all workspaces assigned to it</li>
-            <li>Bursting is possible up to 4x capacity for short-duration spikes</li>
-          </ul>
+          <h2>The Delta Transaction Log: How Time Travel Actually Works</h2>
 
-          <h3>2. Lakehouses: The Central Data Hub</h3>
-          <p>The Lakehouse is Fabric's most fundamental data construct, combining the benefits of data lakes and warehouses:</p>
-          <ul>
-            <li><strong>Open Format Storage:</strong> Built on Delta Lake format, enabling compatibility with Apache Spark, Python, and SQL</li>
-            <li><strong>Dual Endpoints:</strong> Each lakehouse exposes both a Lake endpoint (Spark/Notebooks) and SQL endpoint (T-SQL queries)</li>
-            <li><strong>Automatic Indexing:</strong> Fabric creates hidden indexes on parquet files for query optimization</li>
-            <li><strong>Versioning & Time Travel:</strong> Delta Lake provides ACID transactions and historical data access</li>
-          </ul>
+          <p>A lot of people know Delta Lake provides ACID transactions and time travel. Fewer understand the mechanism, which matters when you start hitting performance problems.</p>
+
+          <p>Every Delta table has a <code>_delta_log/</code> directory alongside its Parquet data files. Inside are numbered JSON files — one per transaction — each recording what happened: which Parquet files were added, which were removed, any schema changes. A query like <code>SELECT * FROM table VERSION AS OF 5</code> doesn't reach into the past; it replays the transaction log to version 5, identifying the exact set of Parquet files that constituted the table at that point, and scans those.</p>
+
+          <pre><code class="language-text">lakehouse/Tables/orders/_delta_log/
+  00000000000000000000.json   ← initial table creation
+  00000000000000000001.json   ← first INSERT batch
+  00000000000000000002.json   ← UPDATE
+  00000000000000000003.json   ← another INSERT
+  00000000000000000010.checkpoint.parquet  ← checkpoint (compacted log)
+</code></pre>
+
+          <p>Every 10 transactions (by default), Delta writes a checkpoint file — a Parquet snapshot of the entire log state up to that point. Subsequent reads only need to replay from the most recent checkpoint forward, not from transaction 0.</p>
+
+          <p>Why this matters practically: small, frequent writes are a problem in two ways. First, you accumulate lots of small Parquet data files, and each query has to open and scan more of them. Second, your transaction log grows steadily. Delta's <code>OPTIMIZE</code> command (or Fabric's automatic table maintenance) rewrites many small files into fewer large ones and rewrites the log. Skipping this on busy tables eventually shows up as slower-than-expected query times — the culprit isn't your data volume, it's your file count.</p>
+
+          <h2>V-Order: Microsoft's Write-Time Secret</h2>
+
+          <p>This is one of the least-discussed features of Fabric and one of the most impactful for Direct Lake workloads.</p>
+
+          <p>V-Order is an optimization Fabric applies at write time when creating Parquet files. It rearranges column data within the file to improve run-length encoding quality and to match the reading patterns of VertiPaq (Power BI's in-memory engine). The result: Parquet files that can be loaded into VertiPaq significantly faster than standard Parquet, with meaningfully better compression.</p>
+
+          <p>The performance difference is real — up to 50% faster for typical Power BI analytical queries on V-Ordered vs. standard Parquet. Fabric enables V-Order by default for all writes from native Fabric experiences: Spark notebooks, Data Factory pipelines, Warehouse operations.</p>
+
+          <div class="callout warning">
+            <p><strong>The V-Order gap:</strong> Parquet files written by external tools — Databricks, Azure Data Factory pointed at external storage, anything writing to ADLS Gen2 that isn't Fabric-native — don't get V-Order applied. Direct Lake performance on those files will be noticeably worse. The fix is to run <code>OPTIMIZE</code> on those tables within Fabric after ingestion, which rewrites the files with V-Order applied. This trips up a lot of hybrid architectures where data engineering happens outside Fabric.</p>
+          </div>
+
+          <h2>Direct Lake Framing: The Part Nobody Explains Clearly</h2>
+
+          <p>Direct Lake gets described as "reads from OneLake without importing." Technically accurate, but the interesting part is what "framing" means — because it's fundamentally different from a Power BI refresh and understanding the difference matters for architecture decisions.</p>
+
+          <p>A Direct Lake semantic model holds a pointer to a specific version of each Delta table. <strong>Framing</strong> is the operation that updates those pointers to the latest Delta version. Fabric reads the <code>_delta_log</code>, identifies the current file set, and updates the metadata references. That's it. No data movement, no transcoding. It takes seconds even for large tables because it's a pure metadata operation.</p>
+
+          <p>What framing is <em>not</em> is loading data into memory. That happens lazily, as queries need column segments. The model progresses through states:</p>
+
+          <div class="table-wrapper">
+            <table>
+              <tr>
+                <th>State</th>
+                <th>Description</th>
+                <th>What happens on query</th>
+              </tr>
+              <tr>
+                <td><strong>Cold</strong></td>
+                <td>No columns in VertiPaq memory</td>
+                <td>First query transcodes Parquet → VertiPaq on the fly. Noticeable delay.</td>
+              </tr>
+              <tr>
+                <td><strong>Semiwarm</strong></td>
+                <td>Some columns cached, others not</td>
+                <td>Fast for cached columns, cold-load delay for anything uncached</td>
+              </tr>
+              <tr>
+                <td><strong>Warm</strong></td>
+                <td>All needed columns in memory</td>
+                <td>Import-equivalent speed</td>
+              </tr>
+              <tr>
+                <td><strong>Hot</strong></td>
+                <td>Warm + VertiScan result caches</td>
+                <td>Fastest possible — repeated identical queries served from cache</td>
+              </tr>
+            </table>
+          </div>
+
+          <p>When a framing event occurs (because the underlying Delta table was updated), Fabric doesn't evict your cached column segments. The old segments stay in memory and expire lazily as new data gets loaded on demand. This means Direct Lake handles continuously-updating tables very gracefully — there's no "refresh window" during which reports are slow or unavailable.</p>
+
+          <p>The cold state is the one to design around. A model that nobody has accessed in a while will be cold. The first user to hit it after a long idle period eats the transcoding latency. For business-critical dashboards, some teams warm their models proactively by triggering queries on a schedule — essentially keeping the model from going fully cold during expected usage hours.</p>
+
+          <h2>Shortcuts: Virtual Pointers, Not Data Copies</h2>
+
+          <p>Shortcuts are one of the most architecturally interesting features in Fabric, and also one of the most underused in practice.</p>
+
+          <p>A shortcut in a lakehouse appears as a table or folder. Queries treat it like any other lakehouse table. But the data doesn't actually live in that lakehouse — the shortcut is a virtual pointer to data stored elsewhere: another OneLake workspace, an Azure Data Lake Storage Gen2 container, an Amazon S3 bucket, or Google Cloud Storage. When a query touches a shortcut, Fabric reaches through the pointer to the source in real time. No copy is made, no ETL is involved, no storage is duplicated.</p>
+
+          <div class="arch-diagram">
+Workspace A (Data Engineering)        Workspace B (Analytics)
+┌─────────────────────────┐           ┌──────────────────────────┐
+│  lakehouse/             │           │  analytics_lakehouse/    │
+│    Tables/              │           │    Tables/               │
+│      orders/  ←─────────┼───────────┼──  orders  (shortcut)   │
+│      customers/ ←───────┼───────────┼──  customers (shortcut) │
+└─────────────────────────┘           │    revenue_gold/         │
+                                      │      (managed table)     │
+                                      └──────────────────────────┘
+  One physical copy.  Two logical access points.  Zero pipelines.
+          </div>
+
+          <p>The practical architecture shift: instead of building pipelines to copy data from your engineering lakehouse into an analytics workspace, you create shortcuts. The analytics team gets a read view of the engineering team's data as it exists right now. Lineage is maintained. Storage costs stay flat. When data engineers update a table, the change is immediately visible through the shortcut.</p>
+
+          <p>Where shortcuts have limits: they're read-only. You can query through a shortcut but you can't write to it. Governance is also trickier — shortcuts don't automatically inherit sensitivity labels from their source. For Gold-layer tables that need active Spark writes or require fine-grained access control, managed tables in the workspace are the right call. Use shortcuts for cross-team data sharing; use managed tables for data you own and actively modify.</p>
+
+          <h2>Medallion Architecture: The Standard Playbook (and Where Teams Go Wrong)</h2>
+
+          <div class="diagram-wrap">
+            <pre class="mermaid">
+flowchart LR
+    SRC["Source Systems\nAPIs · DBs · Files · Streams"] --> B
+
+    subgraph B ["🥉 Bronze — Raw"]
+        B1["Exact copy of source\nAppend-only · No transforms\nGround truth for replays"]
+    end
+
+    B -->|"deduplicate\nschema conform\nquality checks"| S
+
+    subgraph S ["🥈 Silver — Clean"]
+        S1["Source-agnostic\nTechnically correct\nNo business rules yet"]
+    end
+
+    S -->|"apply business logic\naggregate · join domains\nencode definitions"| G
+
+    subgraph G ["🥇 Gold — Business-Ready"]
+        G1["Dimensional model\nFact + dimension tables\nSingle definition of truth"]
+    end
+
+    G --> BI["Power BI\nSemantic Models"]
+    G --> ML["ML / AI\nPipelines"]
+            </pre>
+            <p class="diagram-caption">The Silver layer is where teams most often cut corners — and where they pay for it six months later when five Gold tables disagree on the same metric.</p>
+          </div>
+
+          <p>Bronze-Silver-Gold has become the default answer to "how should we structure our lakehouse?" It's a good answer. But there are a few failure modes that appear with enough consistency to be worth naming explicitly.</p>
+
+          <h3>Bronze: the historical record, full stop</h3>
+
+          <p>Raw data goes to Bronze exactly as it arrives. No transformations, no business rules, no "fixing obvious errors." The entire point of Bronze is that it's the faithful record of what you received from the source system, when you received it. When an upstream system had a bug and you need to replay six months of history with corrected logic, Bronze is the ground truth you replay from. The moment you start cleaning data in Bronze, you lose that. Teams that skip "just obvious quality issues" in Bronze regret it the first time a data definition changes retroactively.</p>
+
+          <h3>Silver: where trust gets built</h3>
+
+          <p>Schema conformance, deduplication, basic quality checks, key lookups, null handling. Silver isn't analysis-ready data — it's technically clean, source-agnostic data. The consumers of Silver are Gold-layer jobs, not report users. If your Silver tables are feeding reports directly, you probably skipped building a proper Gold layer, and you're encoding business logic in your BI tool instead of the lakehouse.</p>
+
+          <h3>Gold: expensive to change, so be deliberate</h3>
+
+          <p>Gold tables encode business logic. Once reports and semantic models are built on Gold, changing a Gold table's definition means changing every downstream consumer. Be conservative about what business logic lives here, document it clearly, and resist the temptation to keep adding "one more business rule" until Gold becomes a place where six slightly different definitions of "active customer" coexist peacefully. They won't coexist peacefully. Six months later someone will write a seventh.</p>
 
           <div class="callout">
-            <p><strong>Key Insight:</strong> The lakehouse SQL endpoint creates implicit views over Delta tables, making Spark-written data immediately queryable via SQL without format conversion.</p>
+            <p><strong>The failure mode I see most:</strong> Teams build Bronze and Gold but treat Silver as optional ("we can clean data in the semantic model or in Power Query"). Then, a year later, they have five Gold tables each with their own implementation of the same <code>is_valid_order</code> logic, and they disagree on the answer by about 3%. Which one is right? Nobody knows. Silver is where you make that decision once.</p>
           </div>
 
-          <h3>3. Data Organization: Tables & Shortcuts</h3>
-          <p>Within a lakehouse, data is organized into two zones:</p>
-          <ul>
-            <li><strong>Managed Tables:</strong> Data stored within the lakehouse's default storage account</li>
-            <li><strong>External Tables:</strong> Data stored outside the lakehouse, referenced via shortcuts (similar to symbolic links)</li>
-            <li><strong>Shortcuts:</strong> Enable cross-workspace and cross-cloud data federation</li>
-          </ul>
+          <h2>The Copy Storm Problem</h2>
 
-          <h3>4. OneLake: Unified Storage</h3>
-          <p>Fabric's storage layer, <strong>OneLake</strong>, provides:</p>
-          <ul>
-            <li>Automatic data serialization to Parquet format for optimization</li>
-            <li>Built-in compression and columnar storage</li>
-            <li>Shortcut-based federation across workspaces</li>
-            <li>Compliance and governance at the storage layer</li>
-          </ul>
+          <p>Enterprise Fabric deployments develop a predictable failure pattern I think of as the copy storm. It goes like this: Team A needs the customer dimension. They copy it into their workspace. Team B also needs it and doesn't know about Team A's copy, so they make their own. Six months later there are four copies of the customer dimension in four workspaces, each refreshed on a different schedule, each with subtly different column names, and each with a different business owner's definition of <code>customer_status</code>. Reports disagree. Stakeholders are confused. Finance stops trusting the numbers.</p>
 
-          <h2>Compute Execution</h2>
+          <p>The solution isn't a governance committee (though good luck explaining that to a large org). The practical answer is shortcuts and centralized certified semantic models: a central data team owns and publishes Gold tables in a shared lakehouse, other teams access those tables via shortcuts or build on certified semantic models rather than creating their own copies. This requires organizational buy-in that's often harder to get than the technical implementation, but the architecture should make copying the data harder than using the shared source.</p>
 
-          <h3>Spark Pools & Notebooks</h3>
-          <p>When you execute notebooks or Spark jobs in Fabric:</p>
-          <ul>
-            <li>Fabric provisions serverless Spark clusters on-demand</li>
-            <li>Clusters auto-scale based on workload and shut down when idle</li>
-            <li>Execution is metered in Fabric Units; you pay for actual compute time</li>
-            <li>Data locality is optimized: Spark workers co-locate with OneLake data</li>
-          </ul>
+          <h2>Capacity, Fabric Units, and Why Your Dashboard Suddenly Froze</h2>
 
-          <h3>SQL Compute (Warehouse & Lakehouse SQL)</h3>
-          <p>SQL workloads run on dedicated SQL compute engines:</p>
-          <ul>
-            <li>Warehouses use MPP (Massively Parallel Processing) architecture</li>
-            <li>Lakehouse SQL endpoints are read-only optimized views over Delta tables</li>
-            <li>Query pushdown: Filters and projections are applied at the storage layer</li>
-            <li>Caching is automatic; frequently accessed data is kept in memory</li>
-          </ul>
+          <p>Fabric bills by Capacity Units (CU), and the throttling model is worth understanding before you encounter it under production load.</p>
 
-          <h2>Data Flow & Pipelines</h2>
-          <p>Fabric provides <strong>Data Factory</strong> for orchestrating ETL workflows:</p>
-          <ul>
-            <li><strong>Dataflows Gen2:</strong> Cloud-based data transformation using Power Query (M language)</li>
-            <li><strong>Spark Jobs:</strong> Custom PySpark or Scala jobs for complex transformations</li>
-            <li><strong>Pipeline Activities:</strong> Orchestrate copying, transforming, and loading data</li>
-            <li><strong>Scheduling:</strong> Built-in scheduling with trigger-based and time-based execution</li>
-          </ul>
+          <p>Fabric smooths usage across a rolling 24-hour window. Interactive operations (report loads, query execution) get a burst allowance — they can consume capacity above the provisioned rate for short periods. Background operations (pipeline runs, scheduled Spark jobs, model refreshes) consume from the same capacity pool. When the pool is exhausted, interactive queries start queuing. They wait up to 10 minutes before Fabric starts rejecting them with throttling errors.</p>
 
-          <h2>Governance & Metadata</h2>
+          <p>The retry mechanism uses exponential backoff with jitter. First retry after 1 second, then 2 seconds, 4, 8 — with randomization at each step to prevent a thundering herd when capacity releases and every queued request tries to proceed simultaneously. This is sensible design, but the user experience when it kicks in is "my dashboard is just... hanging." If you see that pattern, check the Capacity Utilization report in the Fabric admin portal. A large scheduled Spark job consuming burst capacity during business hours is a common and fixable culprit.</p>
 
-          <h3>Semantic Models & Power BI Integration</h3>
-          <p>Fabric seamlessly integrates with Power BI:</p>
-          <ul>
-            <li>Create semantic models (formerly datasets) directly from lakehouse tables</li>
-            <li>Models support DirectQuery and Import modes</li>
-            <li>Row-Level Security (RLS) can be applied at the model level</li>
-          </ul>
+          <p>Right-sizing capacity is more nuanced than picking a SKU. You need to understand your concurrency patterns (how many users are hitting reports simultaneously), your background job schedule (are Spark jobs competing with peak dashboard usage?), and whether you're using Direct Lake (which amortizes transcoding costs across queries) vs. Import (which front-loads all compute at refresh time). The Metrics App in Fabric gives you historical utilization data — use it before you decide whether to scale up or just reschedule your overnight pipelines.</p>
 
-          <h3>Purview Integration & Lineage</h3>
-          <p>Fabric integrates with Microsoft Purview for governance:</p>
-          <ul>
-            <li>Automatic data lineage tracking across pipelines and transformations</li>
-            <li>Data classification and sensitivity labeling</li>
-            <li>Access reviews and audit logging</li>
-          </ul>
+          <h2>What Makes Fabric's Architecture Actually Coherent</h2>
 
-          <h2>Partitioning & Transaction Isolation</h2>
-          <p>Fabric leverages Delta Lake's ACID transaction model with sophisticated partitioning strategies:</p>
-          <ul>
-            <li><strong>Partition Pruning:</strong> Queries automatically prune partitions based on filters, reducing I/O by 80%+</li>
-            <li><strong>Z-Ordering:</strong> Multi-dimensional clustering of data for faster sorted access</li>
-            <li><strong>Liquid Clustering:</strong> Dynamic, self-optimizing clustering without explicit partition schemas</li>
-            <li><strong>Snapshot Isolation:</strong> Readers never see uncommitted writes; writers don't block readers</li>
-            <li><strong>Conflict Resolution:</strong> Optimistic concurrency control with automatic retries on conflicts</li>
-          </ul>
+          <p>A lot of data platform stacks are coherent in the slide deck and fragmented in practice — you end up with Kafka here, a data warehouse there, a separate ML platform over here, and six different teams responsible for moving data between them. Fabric's architecture is coherent at a deeper level because of a few genuine design decisions rather than just branding.</p>
 
-          <h2>Query Execution & Optimization</h2>
+          <p>Delta Parquet as the universal format means no translation layer between compute engines. Spark and SQL and Power BI Direct Lake all speak the same language. OneLake as the single storage tier means there's one place to configure governance, one place to check lineage, one billing surface for storage. V-Order as a write-time optimization means the system is optimized for the most common analytical access pattern without requiring any configuration from the developer.</p>
 
-          <h3>SQL Query Path</h3>
-          <p>When you submit a SQL query to a lakehouse SQL endpoint:</p>
-          <ol>
-            <li><strong>Parser:</strong> T-SQL syntax validation and transformation</li>
-            <li><strong>Planner:</strong> Cost-based optimizer creates execution plan using statistics</li>
-            <li><strong>Rewriter:</strong> Applies rule-based optimizations (predicate pushdown, join reordering, aggregate elimination)</li>
-            <li><strong>Executor:</strong> Distributes plan to worker nodes; results streamed to client</li>
-            <li><strong>Cache Layer:</strong> Result set cached for identical queries (15-min TTL by default)</li>
-          </ol>
-          <p>Fabric's SQL engine uses <strong>Vectorized Query Execution</strong>, processing data in batches rather than row-by-row, yielding 10-100x speedups on analytics workloads.</p>
+          <p>The rough edges are real — the V-Order gap for external-origin data, governance complexity around shortcuts, capacity planning that requires more understanding than a spreadsheet — but they're the rough edges of a coherent design, not the fundamental incoherence of a cobbled-together platform. For teams building new data infrastructure in 2025–2026, that distinction matters.</p>
 
-          <h3>Spark Execution Model</h3>
-          <p>Spark jobs in Fabric follow a resilient distributed dataset (RDD) execution model:</p>
-          <ul>
-            <li><strong>DAG Execution:</strong> Lazy evaluation—transformations build a DAG; only actions trigger compute</li>
-            <li><strong>Stage Optimization:</strong> Spark groups operations into stages; stages execute in parallel when dependencies allow</li>
-            <li><strong>Task Distribution:</strong> Each partition in an RDD maps to a task; tasks distribute across worker cores</li>
-            <li><strong>Fault Tolerance:</strong> Lineage tracking enables recomputation on node failures; no expensive checkpointing needed</li>
-          </ul>
-
-          <h2>Fabric APIs & SDK</h2>
-          <p>Fabric exposes several programmatic interfaces for integrations:</p>
-          <ul>
-            <li><strong>REST APIs:</strong> CRUD operations on items, metadata, and capacity management</li>
-            <li><strong>Python SDK:</strong> <code>fabric-sdk</code> for automation, workspace management, and item deployment</li>
-            <li><strong>Azure SDK:</strong> Identity and RBAC integration for enterprise governance</li>
-            <li><strong>JDBC/ODBC Drivers:</strong> SQL endpoint connectivity from BI tools (Tableau, Looker, etc.)</li>
-            <li><strong>Synapse Spark APIs:</strong> Direct PySpark and Scala job submission with workspace isolation</li>
-          </ul>
-
-          <h2>Multi-Cloud & Hybrid Capabilities</h2>
-          <p>Fabric supports federation across cloud boundaries:</p>
-          <ul>
-            <li><strong>AWS S3 Shortcuts:</strong> Query S3 data as if it were in OneLake without copying</li>
-            <li><strong>Google Cloud Storage Integration:</strong> Federated queries across GCS and OneLake</li>
-            <li><strong>On-Premises Data Gateway:</strong> Secure tunneling for on-prem SQL Server, Oracle, and Teradata</li>
-            <li><strong>Cross-Cloud Lineage:</strong> Automatic lineage tracking across cloud boundaries for compliance</li>
-          </ul>
-
-          <h2>Advanced Security & Compliance</h2>
-
-          <h3>Encryption & Key Management</h3>
-          <ul>
-            <li><strong>At-Rest Encryption:</strong> AES-256 encryption for all data in OneLake; customer-managed keys (CMK) supported</li>
-            <li><strong>In-Transit Encryption:</strong> TLS 1.2+ for all network communication</li>
-            <li><strong>Column-Level Encryption:</strong> Encrypt sensitive columns at ingest; queries decrypt on-the-fly with proper credentials</li>
-          </ul>
-
-          <h3>Access Control</h3>
-          <ul>
-            <li><strong>Role-Based Access Control (RBAC):</strong> Workspace admin, member, contributor, viewer roles</li>
-            <li><strong>Item-Level Permissions:</strong> Granular read/edit/delete controls on individual lakehouses and semantic models</li>
-            <li><strong>Row-Level Security (RLS):</strong> Dynamic row filtering in semantic models based on user identity</li>
-            <li><strong>Service Principals:</strong> App-owns-data authentication for unattended automation</li>
-          </ul>
-
-          <h3>Audit & Compliance</h3>
-          <ul>
-            <li><strong>Activity Logging:</strong> All item creations, modifications, and deletions logged with user context</li>
-            <li><strong>Query Auditing:</strong> SQL and Spark query execution logged with resource consumption</li>
-            <li><strong>Purview Integration:</strong> Automated data classification, lineage tracking, and access reviews</li>
-            <li><strong>Compliance Certifications:</strong> SOC 2 Type II, ISO 27001, HIPAA, FedRAMP compliance built-in</li>
-          </ul>
-
-          <h2>Capacity Metrics & Throttling</h2>
-          <p>Fabric's metering engine tracks Fabric Units (FU) in real-time:</p>
-          <ul>
-            <li><strong>Compute FU:</strong> Charged per vCore-second of SQL and Spark execution</li>
-            <li><strong>Storage FU:</strong> Charged per GB-month for data stored in OneLake</li>
-            <li><strong>Background Operations:</strong> Automatic optimization jobs (vacuuming, compaction) metered separately</li>
-            <li><strong>Throttling Policy:</strong> When capacity exhausted, queries queued with configurable max wait time (default 5 min)</li>
-            <li><strong>Workload Management:</strong> Assign priorities (High/Normal/Low) to queries; high-priority queries preempt low-priority ones</li>
-          </ul>
-
-          <div class="callout">
-            <p><strong>Deep Dive:</strong> Fabric uses <strong>exponential backoff with jitter</strong> for queue management. When a query is throttled, its retry interval grows exponentially (1s → 2s → 4s...) with randomized jitter to prevent thundering herd on capacity release.</p>
-          </div>
-
-          <h2>Advanced Performance Tuning</h2>
-
-          <h3>Statistics & Query Optimization</h3>
-          <ul>
-            <li>Fabric automatically collects histograms on table columns after ingestion</li>
-            <li>The optimizer uses these statistics to estimate row counts and choose optimal join orders</li>
-            <li>Stale statistics can degrade plan quality; refresh with <code>ANALYZE TABLE</code> after major data changes</li>
-            <li>Use <code>EXPLAIN ANALYZE</code> to see actual vs. estimated row counts and identify misestimations</li>
-          </ul>
-
-          <h3>Index-Free Performance</h3>
-          <p>Unlike traditional databases, Fabric doesn't require manual index creation:</p>
-          <ul>
-            <li>Parquet files are self-describing; column statistics enable predicate pushdown</li>
-            <li>File pruning based on min/max values eliminates scanning irrelevant files</li>
-            <li>Bloom filters on critical columns speed up equality and IN predicates</li>
-            <li>If certain queries remain slow, use <strong>materialized views</strong> to pre-compute aggregates</li>
-          </ul>
-
-          <h3>Join Strategies</h3>
-          <ul>
-            <li><strong>Broadcast Join:</strong> For small tables &lt;256MB, broadcast to all workers (default threshold)</li>
-            <li><strong>Sort-Merge Join:</strong> For large tables; both sides sorted on join key, then merged in parallel</li>
-            <li><strong>Hash Join:</strong> Default for equijoins; partitions both tables on join key, then local joins on workers</li>
-          </ul>
-
-          <h2>Performance Tuning in Fabric</h2>
-
-          <h3>Caching & Query Optimization</h3>
-          <ul>
-            <li><strong>Result Caching:</strong> Query results are cached for identical queries</li>
-            <li><strong>Columnar Compression:</strong> Parquet encoding reduces data transfer</li>
-            <li><strong>Partitioning:</strong> Organizing data by date or category improves pruning</li>
-            <li><strong>Statistics:</strong> Fabric automatically collects column statistics for query planning</li>
-          </ul>
-
-          <h3>Capacity Planning</h3>
-          <p>Fabric uses a <strong>Capacity Utilization Metric</strong> to track resource consumption:</p>
-          <ul>
-            <li><strong>Throttling:</strong> When capacity is exhausted, queries are queued</li>
-            <li><strong>Workload Management:</strong> You can prioritize critical workloads over exploratory queries</li>
-            <li><strong>Auto-Pause:</strong> Warehouses can pause during periods of inactivity</li>
-          </ul>
-
-          <h2>Best Practices for Fabric Architectures</h2>
-
-          <h3>1. Data Modeling</h3>
-          <ul>
-            <li>Use dimensional modeling (star schemas) for analytics queries</li>
-            <li>Denormalize fact tables to reduce joins and improve query performance</li>
-            <li>Implement a medallion architecture: Bronze (raw), Silver (cleaned), Gold (analytics-ready)</li>
-          </ul>
-
-          <h3>2. Lakehouse Design</h3>
-          <ul>
-            <li>Organize data into logical lakehouses by domain or business unit</li>
-            <li>Use shortcuts to create virtual hierarchies across lakehouses</li>
-            <li>Keep raw data immutable in the Bronze layer for audit trails</li>
-          </ul>
-
-          <h3>3. Pipeline Optimization</h3>
-          <ul>
-            <li>Use Dataflows Gen2 for standard transformations; Spark for complex logic</li>
-            <li>Implement incremental loading to minimize full scans</li>
-            <li>Chain pipelines efficiently: avoid unnecessary re-materialization</li>
-          </ul>
-
-          <h3>4. Cost Management</h3>
-          <ul>
-            <li>Right-size your capacity: monitor Fabric Unit usage over time</li>
-            <li>Use pause/resume on warehouses to control costs during off-hours</li>
-            <li>Implement query caching to avoid redundant compute</li>
-          </ul>
-
-          <h2>Key Internals Takeaways</h2>
-          <p>MS Fabric's internal architecture is built on several core principles that drive its capabilities and performance:</p>
-          <ol>
-            <li><strong>Unified Storage (OneLake):</strong> Single source of truth with Delta format for all data types, enabling ACID transactions and time travel</li>
-            <li><strong>Serverless Compute:</strong> Auto-scaling Spark and SQL engines eliminate provisioning friction and enable true pay-per-use economics</li>
-            <li><strong>Data Federation:</strong> Query across clouds and on-prem via shortcuts without data movement, reducing ETL complexity</li>
-            <li><strong>Automatic Optimization:</strong> Statistics, caching, and intelligent query planning require minimal manual tuning</li>
-            <li><strong>Integrated Governance:</strong> Security, compliance, and lineage baked into the platform from day one; no bolt-on security</li>
-            <li><strong>Capacity-Based Metering:</strong> Transparent cost model based on actual resource consumption, not seat-based licensing</li>
-          </ol>
-
-          <h2>Conclusion</h2>
-          <p>MS Fabric's internals—from OneLake storage to serverless Spark compute, from semantic models to governance—are architected to democratize analytics. Understanding these internals allows you to design scalable, cost-efficient, and maintainable data platforms that serve diverse analytical and AI workloads under a unified SaaS umbrella.</p>
-
-          <p>Whether you're migrating from legacy data warehouses or building greenfield lakehouse solutions, Fabric's internal architecture provides the flexibility and power to support modern data strategies.</p>
         </div>
       </article>
 
@@ -711,12 +456,11 @@ graph TB
         <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color: var(--accent-primary);">Return to home</a></small></p>
       </footer>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('pre code').forEach(el => {
-          hljs.highlightElement(el);
-        });
+        document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
       });
     </script>
   </body>

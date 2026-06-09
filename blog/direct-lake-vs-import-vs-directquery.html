@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Direct Lake vs Import vs DirectQuery: How to Stop Guessing and Actually Choose</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1e3a5f',
+        primaryTextColor: '#c9d4e0',
+        primaryBorderColor: '#2d5a8e',
+        lineColor: '#4a7aaa',
+        secondaryColor: '#0d1f35',
+        tertiaryColor: '#0a1628',
+        background: '#090d1b',
+        mainBkg: '#0d1f35',
+        nodeBorder: '#2d5a8e',
+        clusterBkg: '#0a1628',
+        titleColor: '#d4a540',
+        edgeLabelBackground: '#0d1f35',
+        stateBkg: '#0d1f35',
+        labelBackgroundColor: '#0d1f35'
+      }
+    });
+  </script>
+
+  <style>
+    .blog-article { max-width: 820px; }
+
+    .article-header {
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 2rem;
+    }
+
+    .article-header h1 {
+      font-size: 2.2rem;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+    }
+
+    .article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 1rem;
+    }
+
+    .article-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+    .article-content h2 {
+      margin-top: 2.8rem;
+      margin-bottom: 0.9rem;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.4rem;
+    }
+
+    .article-content h3 {
+      margin-top: 1.8rem;
+      margin-bottom: 0.7rem;
+      font-size: 1.1rem;
+      color: var(--accent-primary);
+    }
+
+    .article-content p {
+      line-height: 1.85;
+      margin-bottom: 1.2rem;
+      color: var(--text-secondary);
+    }
+
+    .article-content ul, .article-content ol {
+      margin-left: 1.6rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .article-content li {
+      margin-bottom: 0.6rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .article-content code {
+      background: var(--bg-secondary);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      color: var(--accent-primary);
+    }
+
+    .article-content pre {
+      background: rgba(15, 23, 42, 0.92);
+      padding: 1.4rem 1.6rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border-left: 3px solid var(--accent-primary);
+    }
+
+    .article-content pre code {
+      background: none;
+      padding: 0;
+      color: var(--text-secondary);
+      font-size: 0.87rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 2rem;
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+    }
+
+    .back-link:hover { text-decoration: underline; }
+
+    .callout {
+      background: var(--accent-secondary);
+      border-left: 4px solid var(--accent-primary);
+      padding: 1rem 1.5rem;
+      margin: 1.8rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .callout p { margin: 0; font-size: 0.95rem; }
+
+    .callout.warning {
+      border-left-color: hsl(0, 72%, 51%);
+      background: rgba(239, 68, 68, 0.06);
+    }
+
+    .callout.tip {
+      border-left-color: hsl(142, 70%, 45%);
+      background: rgba(34, 197, 94, 0.06);
+    }
+
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 0.7rem 1rem;
+      text-align: left;
+      color: var(--text-secondary);
+    }
+
+    th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+    .diagram-wrap {
+      background: rgba(9, 13, 27, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem 1rem;
+      margin: 1.8rem 0;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    .diagram-caption {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin: 0.75rem 0 0 0;
+      font-style: italic;
+    }
+
+    .mode-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .mode-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.2rem;
+    }
+
+    .mode-card h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .mode-card .verdict {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      margin-bottom: 0.8rem;
+      font-weight: 600;
+    }
+
+    .mode-card.import .verdict { background: rgba(34,197,94,0.15); color: hsl(142,70%,55%); }
+    .mode-card.dl .verdict { background: rgba(59,130,246,0.15); color: hsl(213,90%,65%); }
+    .mode-card.dq .verdict { background: rgba(245,158,11,0.15); color: hsl(38,92%,60%); }
+
+    .mode-card p { margin: 0; font-size: 0.85rem; line-height: 1.6; }
+
+    .state-chips {
+      display: flex;
+      gap: 0.5rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      padding: 0.35rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border: 1px solid;
+    }
+
+    .chip.cold { border-color: hsl(213,50%,40%); color: hsl(213,70%,65%); background: rgba(59,130,246,0.08); }
+    .chip.warm { border-color: hsl(38,50%,40%); color: hsl(38,80%,60%); background: rgba(245,158,11,0.08); }
+    .chip.hot  { border-color: hsl(142,50%,35%); color: hsl(142,65%,55%); background: rgba(34,197,94,0.08); }
+
+    @media (max-width: 600px) {
+      .mode-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/>
+        </svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+
+    <a href="./" class="back-link">← Back to Blog</a>
+
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Direct Lake vs Import vs DirectQuery: How to Stop Guessing and Actually Choose</h1>
+        <div class="article-meta">
+          <span>📅 October 7, 2025</span>
+          <span>📖 13 min read</span>
+          <span>🏷️ Power BI</span>
+          <span>🏷️ Microsoft Fabric</span>
+          <span>🔧 Architecture</span>
+        </div>
+      </header>
+
+      <div class="article-content">
+
+        <p>Power BI now has three meaningfully different ways to connect a semantic model to data, and the internet is full of articles that treat them as a spec sheet rather than an architectural decision. "Import is fast. DirectQuery is live. Direct Lake is new." Thanks — extremely useful for choosing which one to use on a 200-million-row sales fact table in a Microsoft Fabric lakehouse.</p>
+
+        <p>This is the article I wish existed when I first had to make that choice in production. It covers what each mode actually does at a storage and query execution level, the performance model that determines which one wins in which scenario, the five most common mistakes teams make, and a decision framework that actually leads to an answer.</p>
+
+        <h2>One Thing to Understand Before Everything Else</h2>
+
+        <p>There is one architectural fact that changes how you think about all three modes:</p>
+
+        <p><strong>Import and Direct Lake both use VertiPaq for query execution. DirectQuery usually does not.</strong></p>
+
+        <p>VertiPaq is Power BI's in-memory columnar engine — the thing that makes DAX fast. When your data is in VertiPaq, it's encoded, compressed, and resident in RAM. Complex aggregations over millions of rows happen in sub-second time. When your data is <em>not</em> in VertiPaq (DirectQuery), every report interaction potentially translates into SQL sent to your source system and waits for the result. These are fundamentally different performance profiles, and the mode you choose determines which one your users experience.</p>
+
+        <div class="mode-cards">
+          <div class="mode-card import">
+            <h4>Import</h4>
+            <span class="verdict">VertiPaq resident</span>
+            <p>Data copied into the semantic model during refresh. VertiPaq is the primary storage and query engine. Queries hit RAM. Fastest, most predictable. Data age = last refresh time.</p>
+          </div>
+          <div class="mode-card dl">
+            <h4>Direct Lake</h4>
+            <span class="verdict">VertiPaq on demand</span>
+            <p>Data stays in OneLake Delta/Parquet. Columns loaded into VertiPaq when first queried. Near-Import performance when warm; cold-start penalty on first query after eviction.</p>
+          </div>
+          <div class="mode-card dq">
+            <h4>DirectQuery</h4>
+            <span class="verdict">Source engine</span>
+            <p>No local data storage. DAX queries translated to SQL at runtime. Performance depends entirely on source system speed, indexes, concurrency, and network latency.</p>
+          </div>
+        </div>
+
+        <h2>Import Mode: The Reliable Workhorse</h2>
+
+        <p>Import mode is fifteen years old and still the best default for most scenarios. When you refresh a Power BI Import model, it copies data from the source, compresses it with VertiPaq's dictionary and RLE encoding, and stores it in the semantic model. When a user opens a report, every DAX query hits RAM — there is no round-trip to any external system.</p>
+
+        <p>The result is the fastest and most predictable user experience Power BI can deliver. Report performance doesn't degrade when the source database has a noisy neighbor. It doesn't slow down at peak business hours when fifty other applications are hitting the same SQL Server. It doesn't timeout when someone puts a "Top N" slicer on a 500-million-row table. The data is local, encoded, and ready.</p>
+
+        <h3>Where Import Falls Short</h3>
+
+        <p>The obvious limitation is that the data is only as fresh as the last refresh. If you refresh hourly, users see data that's up to 59 minutes stale. For most business reporting, this is fine. For operational monitoring dashboards where people need the last five minutes of data, it isn't.</p>
+
+        <p>The less-obvious limitation is refresh cost. For a 10 GB semantic model refreshing every hour, you're running 24 full data reads per day from your source. Large models with expensive transformations can consume enough compute that the refresh pipeline itself becomes a problem to manage. This is where incremental refresh partitioning (available in Power BI Premium / Fabric capacity) becomes essential — refresh only the data that changed, not the entire dataset.</p>
+
+        <p>Use Import when: performance is the top priority, daily or hourly refresh is acceptable, you need advanced DAX modeling capabilities (calculated tables, calculated columns, complex relationship patterns), or you want predictable performance regardless of source system load.</p>
+
+        <h2>Direct Lake: The Fabric-Native Path</h2>
+
+        <p>Direct Lake is a Microsoft Fabric storage mode that reads data directly from OneLake Delta Parquet files rather than importing it. The critical distinction from DirectQuery is that it still uses VertiPaq — it just loads columns into VertiPaq on demand rather than during a scheduled refresh.</p>
+
+        <p>The mechanism: when a report query references a column, Direct Lake loads that column's Parquet data from OneLake into VertiPaq memory. Subsequent queries on that same column hit the in-memory VertiPaq cache, like Import mode. If memory pressure evicts a column (capacity is full, new queries need space), the next query that references it incurs a reload cost.</p>
+
+        <h3>Cold, Warm, and Hot</h3>
+
+        <p>Direct Lake performance lives in one of three states, and understanding which state your queries are actually in is the key to honest performance expectations:</p>
+
+        <div class="state-chips">
+          <span class="chip cold">Cold — columns not loaded</span>
+          <span class="chip warm">Warm — columns in memory</span>
+          <span class="chip hot">Hot — columns + query caches active</span>
+        </div>
+
+        <p><strong>Cold</strong> means the required columns are not in VertiPaq memory. Direct Lake must read the Parquet files from OneLake, decode and transcode them into VertiPaq's format, then execute the query. This takes seconds to tens of seconds depending on column size, Parquet file layout, and whether V-Order optimization was applied when the files were written. On a Friday morning when the first user opens the weekly sales report, they hit the cold path. Everyone after them gets the warm path.</p>
+
+        <p><strong>Warm</strong> means the columns are loaded. Query performance approaches Import mode — you're running VertiPaq scans against in-memory columnar data with the full benefit of SIMD vectorization, dictionary encoding, and RLE compression. For a well-designed model, "warm Direct Lake" and "Import" are largely indistinguishable to users.</p>
+
+        <p><strong>Hot</strong> means columns are loaded and the VertiPaq internal result cache (VertiScan cache) has results for your specific query patterns. The second report user on the same filter context gets hot-path performance: cached results, sub-100ms response.</p>
+
+        <div class="callout">
+          <p><strong>The key insight:</strong> Direct Lake's selling point isn't that it's faster than Import — it often isn't, especially warm Import vs warm Direct Lake. The selling point is that it <em>eliminates the refresh pipeline</em>. Your Gold Delta table is always current; Power BI reads it on demand. No scheduled refresh job, no incremental refresh partitioning, no "the report was delayed because the 3am refresh failed." Your Fabric pipeline updates the Delta table; Direct Lake sees the new snapshot immediately.</p>
+        </div>
+
+        <h3>Direct Lake on OneLake vs Direct Lake on SQL Endpoint</h3>
+
+        <p>There are two flavors. Direct Lake on OneLake connects the semantic model directly to OneLake Delta files — this is the clean, strategic path for Fabric-native architectures. Direct Lake on SQL Endpoint routes through the Fabric Warehouse or Lakehouse SQL endpoint, which can introduce DirectQuery fallback behavior for certain operations (SQL views, complex joins). For new Fabric architectures, target Direct Lake on OneLake and design your Gold layer as Delta tables rather than SQL views.</p>
+
+        <h3>The Delta Table Quality Tax</h3>
+
+        <p>Direct Lake performance is directly proportional to the quality of your Delta tables. Small files, poor partitioning, high-cardinality columns without sorting, and non-V-Order Parquet all add to the cold-load time. A Gold table with 50,000 tiny files takes much longer to load than one with 200 well-sized 256 MB files. This means the data engineering team's decisions upstream directly affect report performance downstream — a political fact that is worth surfacing early in any Fabric architecture project.</p>
+
+        <h2>DirectQuery: Powerful Tool, Frequently Misused</h2>
+
+        <p>DirectQuery is the mode where Power BI sends queries directly to the source system at runtime. When a user changes a slicer, Power BI translates the resulting DAX into SQL (or whatever native query language the source supports) and waits for the answer. No local data. No VertiPaq. No caching of facts.</p>
+
+        <p>This sounds appealing: no refresh delays, always-fresh data, no storage overhead. In practice, it's the mode that generates the most support tickets. Here's why.</p>
+
+        <p>The translated SQL Power BI generates is often not what a human would write. It tends to be verbose, uses subqueries, and doesn't always leverage indexes optimally. Multiply this by 50 concurrent users, each with 12 visuals on their dashboard, each visual potentially generating its own query. A busy dashboard can generate hundreds of SQL queries per minute against your source system. A database optimized for OLTP will cry.</p>
+
+        <p>Use DirectQuery when: data genuinely cannot be copied (regulatory, contractual, or security constraints), reports must show current state at second-level freshness, you're querying a source that's already optimized for analytical queries (Synapse Dedicated SQL Pool, Snowflake, BigQuery), or you're building a composite model where only a small live table needs DirectQuery while historical data is imported.</p>
+
+        <div class="callout warning">
+          <p><strong>"DirectQuery for real-time data" is usually the wrong architecture.</strong> DirectQuery is not a streaming solution — it's a synchronous SQL poll. If you need truly real-time data (seconds), you need Power BI Streaming Datasets, Fabric Real-Time Intelligence, or a pre-aggregated table in your source that Direct Lake or Import can read with a short refresh interval. DirectQuery with a report auto-refresh every 5 seconds on a shared database is a great way to make the DBA page you at 2am.</p>
+        </div>
+
+        <h2>The Architecture: Where Each Mode Lives in a Fabric Stack</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart LR
+    subgraph Sources["Source Systems"]
+        ERP["ERP / CRM / SaaS"]
+        OLTP["Operational DBs"]
+        ExtDW["External DW\nSnowflake / Databricks"]
+    end
+
+    subgraph Fabric["Microsoft Fabric — OneLake"]
+        DF["Data Factory Pipelines\n+ Dataflows Gen2\nIngestion + orchestration"]
+        Bronze["Bronze Delta Tables\nRaw ingested data"]
+        Silver["Silver Delta Tables\nCleaned + conformed"]
+        Gold["Gold Delta Tables\nStar schema — facts + dims"]
+        WH["Fabric Warehouse\nSQL endpoint over Gold"]
+    end
+
+    subgraph SemanticLayer["Power BI Semantic Layer"]
+        IMPORT["Import Semantic Model\nGold → copied into VertiPaq\nFull-speed DAX, scheduled refresh"]
+        DL["Direct Lake Semantic Model\nGold Delta → columns loaded on demand\nNo refresh job needed"]
+        DQ["DirectQuery Semantic Model\nLive SQL to Warehouse or ext. source\nAlways current, source-dependent perf"]
+        VP["VertiPaq Engine\nIn-memory columnar — Import + Direct Lake"]
+    end
+
+    ERP & OLTP --> DF --> Bronze --> Silver --> Gold
+    ExtDW -->|"OneLake shortcut"| Gold
+    Gold -->|"scheduled/incr. refresh"| IMPORT
+    Gold -->|"Direct Lake — no refresh"| DL
+    Gold --> WH -->|"live SQL"| DQ
+    ExtDW -->|"live SQL"| DQ
+    OLTP -->|"composite model live tail"| DQ
+    IMPORT --> VP
+    DL --> VP
+          </pre>
+          <p class="diagram-caption">In a Fabric medallion architecture, all three modes can coexist. Import and Direct Lake sit over the same Gold Delta tables but differ in how data reaches VertiPaq. DirectQuery routes through the SQL endpoint or external sources, bypassing VertiPaq for fact data.</p>
+        </div>
+
+        <h2>Performance Reality Check</h2>
+
+        <p>Here's the honest comparison of what each mode actually delivers at query time, stripped of marketing language:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Factor</th>
+                <th>Import</th>
+                <th>Direct Lake (warm)</th>
+                <th>Direct Lake (cold)</th>
+                <th>DirectQuery</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Simple aggregation (SUM over 10M rows)</td>
+                <td>10–50ms</td>
+                <td>10–80ms</td>
+                <td>2–15 seconds</td>
+                <td>0.5–5 seconds (source-dependent)</td>
+              </tr>
+              <tr>
+                <td>Complex DAX (context transitions)</td>
+                <td>Fast (VertiPaq FE)</td>
+                <td>Fast (VertiPaq FE)</td>
+                <td>Slow + load penalty</td>
+                <td>Very slow or timeout</td>
+              </tr>
+              <tr>
+                <td>50 concurrent users</td>
+                <td>Good — cached in RAM</td>
+                <td>Good when warm</td>
+                <td>Contention at cold load</td>
+                <td>Degrades — source concurrency</td>
+              </tr>
+              <tr>
+                <td>Data freshness after pipeline run</td>
+                <td>Next scheduled refresh</td>
+                <td>Immediate</td>
+                <td>Immediate</td>
+                <td>Immediate</td>
+              </tr>
+              <tr>
+                <td>Model size limit</td>
+                <td>RAM-bound per capacity</td>
+                <td>OneLake (virtually unlimited)</td>
+                <td>OneLake (virtually unlimited)</td>
+                <td>No local limit</td>
+              </tr>
+              <tr>
+                <td>DAX modeling richness</td>
+                <td>Full</td>
+                <td>Full (with some Direct Lake caveats)</td>
+                <td>Full (with some Direct Lake caveats)</td>
+                <td>Limited — many patterns inefficient</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The table makes one thing clear: Import and warm Direct Lake are roughly equivalent for most DAX patterns. Cold Direct Lake is noticeably slower for the first user. DirectQuery is performance-variable and DAX-constrained in ways that bite you during report development, not just in production.</p>
+
+        <h2>The Decision Tree</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart TD
+    Start(["Need a Power BI model"]) --> Q1{"Where is your\ncurated data?"}
+
+    Q1 -->|"In Fabric OneLake\nDelta tables"| Q2{"Refresh latency\ntolerance?"}
+    Q1 -->|"External DB / DW\nor operational source"| Q3{"Can data be\ncopied into Power BI?"}
+
+    Q2 -->|"Daily / hourly OK\nand I want max performance"| IMP1["Import\nBest default for performance\n+ modeling flexibility"]
+    Q2 -->|"Always current after\npipeline runs"| DL["Direct Lake\nGold Delta → VertiPaq on demand\nNo refresh pipeline needed"]
+
+    Q3 -->|"Yes — can copy"| IMP2["Import\nBest performance +\nrichest modeling"]
+    Q3 -->|"No — live source or\nsource-side security required"| DQ["DirectQuery\nAccept performance tradeoff\nDesign reports carefully"]
+
+    DL --> Q4{"Performance OK?"}
+    Q4 -->|"Cold queries slow"| OPT1["Optimize Delta tables upstream:\nV-Order, file consolidation,\ncolumn sort order"]
+    Q4 -->|"DirectQuery fallback"| OPT2["Switch to Direct Lake on OneLake\n(not SQL Endpoint)\nRemove SQL views from model"]
+    Q4 -->|"Model too complex"| OPT3["Simplify Gold schema:\nstar schema, reduce high-cardinality\ncalculated columns"]
+
+    IMP1 & IMP2 & DL --> VP(["VertiPaq — fast DAX"])
+    DQ --> SQ(["Source query engine\n— variable performance"])
+          </pre>
+          <p class="diagram-caption">Start with where your data lives and how fresh it needs to be. Most teams land on Import or Direct Lake; DirectQuery is the exception that requires a genuine live-data or data-residency requirement to justify its trade-offs.</p>
+        </div>
+
+        <h2>Composite Models: The Real-World Pattern</h2>
+
+        <p>Real enterprise semantic models rarely fit neatly into one mode. The practical pattern is composite models: a single semantic model where different tables use different storage modes.</p>
+
+        <p>The most common composite pattern in Fabric:</p>
+
+        <ul>
+          <li><strong>Direct Lake for large fact tables</strong> — sales transactions, events, logs. Too large to import efficiently; benefits most from Direct Lake's "no refresh" freshness.</li>
+          <li><strong>Import for small helper tables</strong> — date dimension, product hierarchy, static mappings, disconnected slicer tables. Small enough that import is trivial; rich modeling features (calculated columns, M transformations) are available for these tables.</li>
+          <li><strong>DirectQuery for a live tail</strong> — in some architectures, the most recent hour of data lives in a transactional source while historical data is in Gold. DirectQuery on the live table, Import or Direct Lake on the Gold table, with a relationship or Union in DAX connecting them. This is the "hybrid historical + live" pattern that legacy Lambda architectures used to solve with two separate pipelines.</li>
+        </ul>
+
+        <p>The composite model approach is pragmatic and explicitly supported by Fabric's architecture. Don't feel like you're cheating by mixing modes — you're using the right tool for each part of the data.</p>
+
+        <h2>Five Mistakes That Will Ruin Your Friday Afternoon</h2>
+
+        <h3>Mistake 1: Thinking Direct Lake Is Always Faster Than Import</h3>
+
+        <p>It isn't. A well-designed Import model where all columns are already in VertiPaq is faster than Direct Lake in cold state, and roughly equivalent in warm state. Direct Lake's advantage is eliminating the refresh pipeline, not beating Import on raw query speed. If your model has a two-hour refresh window that's causing operational pain, Direct Lake is your fix. If your model already refreshes in 15 minutes and performance is fine, don't migrate for the marketing story.</p>
+
+        <h3>Mistake 2: Using DirectQuery Because It Sounds Like Real-Time Analytics</h3>
+
+        <p>DirectQuery is not real-time analytics. It's synchronous SQL polling. If a user changes a slicer and Power BI fires a SQL query against a Postgres database that's also handling 500 concurrent application transactions, somebody's experience is going to suffer. Use DirectQuery when the source is actually built for it (Synapse, Snowflake, BigQuery), not when you want to avoid building a proper pipeline.</p>
+
+        <h3>Mistake 3: Connecting Power BI Directly to Bronze or Silver Tables</h3>
+
+        <p>This is the "I'll skip the Gold layer, it's just overhead" mistake. It isn't. Bronze tables have raw data, naming inconsistencies, no star schema, and columns that VertiPaq will encode inefficiently. Silver tables are better but still normalized — normalized data means complex DAX relationships that push query logic into the Formula Engine rather than the Storage Engine. The Gold star schema exists specifically because it's what VertiPaq processes efficiently. Skip it and your report performance will be consistently mediocre, and you'll spend six months blaming the wrong thing.</p>
+
+        <h3>Mistake 4: Ignoring Delta Table Physical Quality for Direct Lake</h3>
+
+        <p>If your Gold Delta table has 100,000 files of 1 MB each (classic streaming write without compaction), Direct Lake cold-load will be slow regardless of any other optimization. The Parquet file reader has to open each file, read the footer, check the row group statistics. With 100,000 files, this metadata overhead dominates even before reading a single value. Compact aggressively — aim for 128 MB to 512 MB files. Apply V-Order on write (Fabric-native tools do this automatically; external writers don't). Sort dimension columns for maximum RLE compression.</p>
+
+        <h3>Mistake 5: Building Complex Transformations in DAX Instead of Upstream</h3>
+
+        <p>DAX is a query language, not a transformation engine. Calculated columns that join multiple tables, complex SWITCH statements implementing business rules, ADDCOLUMNS that materialize derived fields from large tables — all of these compute at refresh time and store the result in VertiPaq memory, or worse, re-compute at query time. Heavy business logic belongs in Spark notebooks, dbt models, or Dataflows Gen2, where it runs at scale on distributed compute and the result lands in a clean Gold column. If your DAX has more than 10 lines per measure and involves multiple table joins, something has gone wrong upstream.</p>
+
+        <h2>The Recommended Pattern for Fabric</h2>
+
+        <p>For most Microsoft Fabric enterprise analytics platforms, this is the architecture that makes the fewest regrettable decisions:</p>
+
+        <pre><code>Source Systems
+    ↓ (Fabric Data Factory / CDC Mirroring)
+Bronze Delta Tables  (raw, append-only)
+    ↓ (Spark notebooks or Dataflows Gen2)
+Silver Delta Tables  (cleaned, conformed, optionally Data Vault 2.0)
+    ↓ (dbt or Spark)
+Gold Delta Tables    (star schema — facts + dimensions, V-Order, compacted)
+    ↓
+Direct Lake Semantic Model  (over Gold, no refresh pipeline)
+    + Import for small helper / lookup tables
+    + DirectQuery only where live source access is genuinely required
+    ↓
+Power BI Reports / Dashboards</code></pre>
+
+        <p>This pattern gives you: scalable data engineering in Delta Lake, no Power BI refresh pipeline to maintain, VertiPaq performance for the query layer, and the flexibility to add Import or DirectQuery tables where the standard pattern genuinely doesn't fit — without compromising the rest of the model.</p>
+
+        <div class="callout tip">
+          <p><strong>The one-sentence rule:</strong> Import by default. Direct Lake when your data lives in Fabric OneLake and refresh avoidance matters. DirectQuery only when the data genuinely must be queried live at the source. When in doubt, start with Import — it's the most predictable, easiest to debug, and hardest to make accidentally slow.</p>
+        </div>
+
+        <h2>Choosing in Practice</h2>
+
+        <p>The question "which mode should I use?" almost always resolves to one of three actual situations:</p>
+
+        <ol>
+          <li><strong>"I have data in Fabric OneLake and want to build a Power BI report on it."</strong> → Direct Lake. No import needed, no refresh pipeline, just build the semantic model and point it at your Gold Delta tables.</li>
+          <li><strong>"I have data in Power BI or a traditional SQL source and this is a standard BI project."</strong> → Import. Standard tooling, best modeling flexibility, predictable performance.</li>
+          <li><strong>"I have data that legally or contractually cannot leave the source system, or I need sub-minute freshness on a source-optimized warehouse."</strong> → DirectQuery. Accept the trade-offs and design reports accordingly: fewer visuals per page, reduce high-cardinality slicers, validate every measure in DAX Studio against the generated SQL.</li>
+        </ol>
+
+        <p>Most of the time, you already know the answer before you finish reading the question. The challenge is resisting the urge to pick a fancier-sounding option when the boring one is clearly correct. "Import" has served perfectly well for fifteen years. Direct Lake is genuinely useful in the Fabric context. DirectQuery is a specialized tool that requires specialized discipline. Know which situation you're in, and the rest is implementation detail.</p>
+
+      </div>
+    </article>
+
+    <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-muted);">
+      <p><small>&copy; 2025 Dmitry Shirokov. <a href="../" style="color: var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('pre:not(.mermaid) code').forEach(el => {
+        hljs.highlightElement(el);
+      });
+    });
+  </script>
+</body>
+</html>
