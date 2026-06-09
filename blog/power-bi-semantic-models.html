@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power BI & Semantic Models Deep Dive</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <style>
+    body {
+      --text-primary: #1a1a1a;
+      --text-secondary: #666;
+      --text-muted: #999;
+      --bg-primary: #fff;
+      --bg-secondary: #f9f9f9;
+      --border-color: #e1e4e8;
+      --accent-primary: #b8860b;
+      --accent-hover: #daa520;
+      --code-bg: #f6f8fa;
+    }
+
+    body[data-theme="dark"] {
+      --text-primary: #e0e0e0;
+      --text-secondary: #b0b0b0;
+      --text-muted: #808080;
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #242424;
+      --border-color: #404040;
+      --accent-primary: #daa520;
+      --accent-hover: #ffd700;
+      --code-bg: #2d2d2d;
+    }
+
+    .wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+
+    .theme-toggle-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .theme-toggle-btn {
+      background: none;
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      background-color: var(--accent-primary);
+      color: white;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 2rem;
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: color 0.3s ease;
+    }
+
+    .back-link:hover {
+      color: var(--accent-hover);
+    }
+
+    article {
+      margin-bottom: 3rem;
+    }
+
+    article h1 {
+      font-size: 2.5rem;
+      margin: 2rem 0 1rem;
+      font-family: 'Lora', serif;
+      line-height: 1.2;
+      color: var(--text-primary);
+    }
+
+    article h2 {
+      font-size: 1.8rem;
+      margin: 2rem 0 1rem;
+      font-family: 'Lora', serif;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--accent-primary);
+      padding-bottom: 0.5rem;
+    }
+
+    article h3 {
+      font-size: 1.3rem;
+      margin: 1.5rem 0 0.75rem;
+      font-family: 'Lora', serif;
+      color: var(--text-secondary);
+    }
+
+    article p {
+      margin-bottom: 1rem;
+      color: var(--text-secondary);
+    }
+
+    article ul, article ol {
+      margin: 1rem 0 1rem 2rem;
+      color: var(--text-secondary);
+    }
+
+    article li {
+      margin-bottom: 0.5rem;
+    }
+
+    article a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+
+    article a:hover {
+      border-bottom: 1px solid var(--accent-primary);
+    }
+
+    article code {
+      background-color: var(--code-bg);
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      color: var(--accent-primary);
+    }
+
+    article pre {
+      background-color: var(--code-bg);
+      padding: 1rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 1rem 0;
+      border-left: 4px solid var(--accent-primary);
+    }
+
+    article pre code {
+      background-color: transparent;
+      padding: 0;
+      color: var(--text-secondary);
+    }
+
+    .article-meta {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background-color: var(--bg-secondary);
+      border-radius: 4px;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .callout {
+      background-color: var(--bg-secondary);
+      border-left: 4px solid var(--accent-primary);
+      padding: 1rem;
+      margin: 1.5rem 0;
+      border-radius: 4px;
+    }
+
+    .callout p {
+      margin: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--bg-secondary);
+      font-weight: 600;
+    }
+
+    footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    footer a {
+      color: var(--accent-primary);
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/>
+        </svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+
+    <a href="./" class="back-link">← Back to Blog</a>
+
+    <article>
+      <h1>Power BI & Semantic Models Deep Dive</h1>
+
+      <div class="article-meta">
+        <span>📅 Published: June 8, 2024</span>
+        <span>⏱️ 10 min read</span>
+        <span>🏷️ Power BI</span>
+        <span>🏷️ Semantic Models</span>
+      </div>
+
+      <p>Power BI's true power lies not just in visualization, but in the semantic layer that underlies every report. Understanding semantic models—how data flows through them, how queries are optimized, and how to design them for performance—is the difference between a sluggish BI system and a lightning-fast analytics platform. This deep dive explores the architecture, optimization techniques, and best practices you need to master.</p>
+
+      <h2>What is a Semantic Model?</h2>
+      <p>A semantic model is the bridge between raw data and business intelligence. It's a layer of business logic that transforms technical data into meaningful metrics and relationships that non-technical users can work with.</p>
+      <p>In Power BI, a semantic model consists of:</p>
+      <ul>
+        <li><strong>Tables and Columns:</strong> The data entities and their attributes</li>
+        <li><strong>Relationships:</strong> How tables connect (one-to-many, many-to-many, role-based)</li>
+        <li><strong>Measures:</strong> Aggregations and calculations expressed in DAX (Data Analysis Expressions)</li>
+        <li><strong>Calculated Columns:</strong> New columns derived from existing data via DAX formulas</li>
+        <li><strong>Hierarchies:</strong> Parent-child or grouped structures for drill-down analysis</li>
+      </ul>
+      <p>Semantic models exist in Power BI Desktop (.pbix files) and are published to the Power BI Service where they can be shared, refreshed, and governed.</p>
+
+      <h2>Query Folding: The Hidden Performance Multiplier</h2>
+      <p>Query folding is one of the most misunderstood—and powerful—optimization techniques in Power BI. It's the ability of Power Query to push data transformation logic down to the source system, rather than executing transformations in Power BI's engine.</p>
+
+      <h3>How Query Folding Works</h3>
+      <p>When you build a query in Power Query Editor (the data prep layer), each step creates a transformation operation. If the source supports it (SQL Server, Azure SQL, many cloud databases), Power Query translates your steps into native SQL and sends that SQL to the database—the database then performs the filtering, grouping, and joining, returning only the necessary rows.</p>
+
+      <p><strong>Example:</strong> You load 10 million rows from a SQL database, then filter for only 2026 transactions. Without query folding, Power BI loads all 10M rows into memory and filters locally. With query folding, Power BI sends a SQL WHERE clause to the database; the database filters to 100K rows and returns only those.</p>
+
+      <h3>When Query Folding Breaks</h3>
+      <p>Some operations prevent query folding:</p>
+      <ul>
+        <li>Custom functions written in M (Power Query formula language)</li>
+        <li>Pivot/Unpivot operations (with some exceptions)</li>
+        <li>Certain advanced text transformations</li>
+        <li>Referencing tables that don't fold (e.g., Excel files)</li>
+      </ul>
+
+      <p>To check if query folding is working, right-click a query step in Power Query and select "View Native Query." If you see SQL, query folding is active. If you see "native query is not supported," query folding has stopped.</p>
+
+      <h2>Import vs. DirectQuery vs. Direct Lake</h2>
+
+      <h3>Import Mode</h3>
+      <p>Data is loaded into Power BI's in-memory VertiPaq engine (a columnar compressed database). Queries run in-memory against cached data.</p>
+      <ul>
+        <li><strong>Pros:</strong> Fastest queries, no dependency on source connectivity, excellent for complex DAX</li>
+        <li><strong>Cons:</strong> Limited by available memory (typical limit 10GB per dataset), refresh latency, no real-time data</li>
+        <li><strong>Best For:</strong> Historical analysis, smaller datasets, complex metrics</li>
+      </ul>
+
+      <h3>DirectQuery Mode</h3>
+      <p>Queries run directly against the source database in real-time. Power BI translates DAX queries to native SQL/database queries.</p>
+      <ul>
+        <li><strong>Pros:</strong> Real-time data, no size limits, up-to-date information always</li>
+        <li><strong>Cons:</strong> Slower queries (source DB performance matters), reduced DAX functionality, network latency</li>
+        <li><strong>Best For:</strong> Real-time operational dashboards, massive datasets</li>
+      </ul>
+
+      <h3>Direct Lake Mode (Fabric Integration)</h3>
+      <p>Available in Power BI when connected to Microsoft Fabric OneLake, Direct Lake queries Parquet-formatted data directly from the data lake without import or caching, combining speed of import with freshness of DirectQuery.</p>
+
+      <h3>Dual Mode</h3>
+      <p>Mix both: some tables in Import, others in DirectQuery. Useful for blending historical (imported) with real-time (DirectQuery) data.</p>
+
+      <h2>DAX Deep Dive: Measures vs. Calculated Columns</h2>
+
+      <h3>Measures: Dynamic Calculations</h3>
+      <p>Measures calculate results on-the-fly based on the filtering context of the report. They're computed at query time.</p>
+
+      <pre><code>Sales Amount = SUM(Sales[Amount])
+Sales YoY Growth % = 
+  (SUM(Sales[Amount]) - CALCULATE(SUM(Sales[Amount]), YEAR(TODAY())-1)) 
+  / CALCULATE(SUM(Sales[Amount]), YEAR(TODAY())-1)</code></pre>
+
+      <p>Key advantage: Measures respect all filters and slicers on the report. Change a date filter, and measures automatically recalculate.</p>
+
+      <h3>Calculated Columns: Static Values</h3>
+      <p>Calculated columns execute once during data load/refresh and store values in memory. They're like new columns you add to a table.</p>
+
+      <pre><code>Full Name = Customers[FirstName] & " " & Customers[LastName]
+Age Category = 
+  IF(Customers[Age] < 18, "Child", 
+    IF(Customers[Age] < 65, "Working Age", "Senior"))</code></pre>
+
+      <p>Calculated columns consume storage and must be refreshed to update. Use them sparingly.</p>
+
+      <h3>Performance Implications</h3>
+      <table>
+        <tr>
+          <th>Aspect</th>
+          <th>Measures</th>
+          <th>Calculated Columns</th>
+        </tr>
+        <tr>
+          <td>Computation Time</td>
+          <td>At query time (slow for large calcs)</td>
+          <td>At refresh time (one-time cost)</td>
+        </tr>
+        <tr>
+          <td>Storage</td>
+          <td>Minimal (formula only)</td>
+          <td>Full column stored in memory</td>
+        </tr>
+        <tr>
+          <td>Context Sensitivity</td>
+          <td>Fully dynamic, filters applied</td>
+          <td>Static, no filter context</td>
+        </tr>
+        <tr>
+          <td>Best Practice</td>
+          <td>For aggregations & KPIs</td>
+          <td>For categorization & grouping</td>
+        </tr>
+      </table>
+
+      <h2>Semantic Model Architecture Patterns</h2>
+
+      <h3>Star Schema (Recommended)</h3>
+      <p>Center fact table (transactions) surrounded by dimension tables (customers, products, dates).</p>
+      <ul>
+        <li>Fact table: millions of rows, foreign keys to dimensions</li>
+        <li>Dimension tables: thousands of rows, textual attributes</li>
+        <li>All relationships: one-to-many from dimension to fact</li>
+      </ul>
+      <p>Advantages: Simple query patterns, predictable performance, easy to navigate for users.</p>
+
+      <h3>Snowflake Schema</h3>
+      <p>Dimensions are normalized into sub-dimensions (e.g., Date → Year → Quarter → Month). Reduces dimension table redundancy.</p>
+      <p>Trade-off: More tables to join, slightly more complex queries, marginal storage savings in modern BI systems.</p>
+
+      <h3>Flat Model (Avoid)</h3>
+      <p>Everything in one wide table: fact + all dimension attributes denormalized. Looks simple but causes problems:</p>
+      <ul>
+        <li>Cartesian product errors if many-to-many relationships exist</li>
+        <li>Redundant data = larger model size</li>
+        <li>Harder to maintain and update dimensions</li>
+      </ul>
+
+      <h2>Optimization Techniques</h2>
+
+      <h3>1. Minimize Calculated Columns</h3>
+      <p>Replace calculated columns with measures when possible. A 1M-row calculated column stores 1M values; a measure computes on demand.</p>
+
+      <h3>2. Reduce Row-Level Security (RLS) Complexity</h3>
+      <p>RLS applies filters to restrict data visibility per user. Complex RLS logic at model level can slow all queries. Consider:</p>
+      <ul>
+        <li>Using object-level security (hide/show columns) instead where possible</li>
+        <li>Pre-filtering data at the source if row counts are manageable</li>
+        <li>Caching RLS context when users are static</li>
+      </ul>
+
+      <h3>3. Summarize Large Fact Tables</h3>
+      <p>For datasets with billions of rows, create summarized tables at daily or weekly grain. Use DirectQuery for detail, Import for summaries.</p>
+
+      <h3>4. Optimize Relationships</h3>
+      <p>Make relationships one-to-many when possible. Many-to-many relationships create virtual join tables internally, increasing complexity.</p>
+      <p>Use role-based relationships for multiple paths (e.g., "Hire Date" vs. "Termination Date" on Employee table). Activate only the relevant one per report.</p>
+
+      <h3>5. Use Aggregations</h3>
+      <p>Define aggregation tables—small pre-aggregated tables that Power BI uses instead of full fact tables for certain queries.</p>
+
+      <pre><code>Aggregation Example:
+Fact Table: Sales (100M rows)
+Aggregation: Sales_By_Product_Month (5K rows - grouped by Product & Month)</code></pre>
+
+      <p>When a report queries total sales by month, Power BI intercepts and queries the 5K-row aggregation instead.</p>
+
+      <h2>Metadata Management & Governance</h2>
+
+      <h3>Description & Documentation</h3>
+      <p>Add descriptions to every table, column, and measure. In Power BI Desktop, right-click properties and add documentation. This metadata appears in Power BI Service tooltips for users.</p>
+
+      <h3>Certification & Endorsement</h3>
+      <p>In Power BI Service, mark datasets as "Certified" to signal trustworthiness. Users see a badge, encouraging use of official models over shadow BI.</p>
+
+      <h3>Sensitivity Labels</h3>
+      <p>Tag columns with Microsoft Purview sensitivity labels (Public, Internal, Confidential). Power BI enforces downstream restrictions automatically.</p>
+
+      <h2>Performance Analyzer: The Diagnostic Tool</h2>
+      <p>Power BI Desktop's Performance Analyzer shows query execution times and identifies bottlenecks:</p>
+      <ul>
+        <li><strong>Direct Query Time:</strong> Time spent querying the source</li>
+        <li><strong>Engine Time:</strong> Time for Power BI's VertiPaq to compute results</li>
+        <li><strong>Rendering Time:</strong> Time to draw the visual</li>
+      </ul>
+      <p>High engine time suggests DAX optimization is needed. High direct query time suggests source DB tuning or switching to Import mode for historical data.</p>
+
+      <h2>Best Practices Summary</h2>
+      <ul>
+        <li><strong>Design star schemas:</strong> Simple, performant, user-friendly</li>
+        <li><strong>Maximize query folding:</strong> Push transformations to the source when possible</li>
+        <li><strong>Prefer measures over calculated columns:</strong> They're more flexible and lighter-weight</li>
+        <li><strong>Choose the right mode:</strong> Import for speed, DirectQuery for freshness, consider blending</li>
+        <li><strong>Document everything:</strong> Metadata is your BI system's lifeline</li>
+        <li><strong>Monitor with Performance Analyzer:</strong> Profile before optimizing; measure improvements</li>
+        <li><strong>Test RLS and aggregations:</strong> These can dramatically impact query times</li>
+        <li><strong>Keep DAX formulas readable:</strong> Complex nested DAX is hard to debug and maintain</li>
+      </ul>
+
+      <h2>Conclusion</h2>
+      <p>Semantic models are the foundation of effective Power BI systems. Master query folding, understand the Import/DirectQuery trade-off, architect clean star schemas, and optimize with DAX best practices. When you get the semantic layer right, everything else—reports, dashboards, self-service analytics—becomes faster, more reliable, and easier to maintain. The organizations that win with BI are those that invest in semantic model governance and architecture as much as they do in attractive dashboards.</p>
+    </article>
+
+    <footer>
+      <p><small>&copy; 2026 Dmitry Shirokov. <a href="../">Return to home</a></small></p>
+    </footer>
+  </div>
+
+  <script src="../javascripts/theme.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('pre code').forEach(el => {
+        hljs.highlightElement(el);
+      });
+    });
+  </script>
+</body>
+</html>
