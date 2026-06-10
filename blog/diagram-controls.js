@@ -137,7 +137,8 @@
     zoomOut: `<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10.5" y1="10.5" x2="14.5" y2="14.5"/><line x1="4" y1="6.5" x2="9" y2="6.5"/></svg>`,
     fullscreen: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,5 1,1 5,1"/><polyline points="11,1 15,1 15,5"/><polyline points="15,11 15,15 11,15"/><polyline points="5,15 1,15 1,11"/></svg>`,
     exitFs: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="5,1 1,1 1,5"/><polyline points="11,1 15,1 15,5"/><polyline points="15,11 15,15 11,15"/><polyline points="5,15 1,15 1,11"/><line x1="1" y1="1" x2="5" y2="5"/><line x1="15" y1="1" x2="11" y2="5"/><line x1="15" y1="15" x2="11" y2="11"/><line x1="1" y1="15" x2="5" y2="11"/></svg>`,
-    archgram: `<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 13h14L8 1zm0 3l4.5 8h-9L8 4z"/></svg>`
+    archgram: `<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1L1 13h14L8 1zm0 3l4.5 8h-9L8 4z"/></svg>`,
+    copy: `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="1" width="9" height="11" rx="1.5"/><path d="M3 4H2a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1"/></svg>`
   };
 
   // ─── Zoom state per wrap ──────────────────────────────────────────────────
@@ -195,6 +196,14 @@
       fsBtn.title = document.fullscreenElement === wrap ? 'Exit fullscreen' : 'Fullscreen';
     });
     ctrl.appendChild(fsBtn);
+
+    // ── Copy Mermaid source ──
+    ctrl.appendChild(makeBtn(icons.copy, 'Copy Mermaid source', () => {
+      if (!mermaidSrc) return;
+      navigator.clipboard.writeText(mermaidSrc)
+        .then(() => showToast('Mermaid source copied'))
+        .catch(() => showToast('Copy failed — try selecting manually'));
+    }));
 
     // ── Open in Archgram ──
     ctrl.appendChild(makeBtn(icons.archgram, 'Open in Archgram.io', () => {
