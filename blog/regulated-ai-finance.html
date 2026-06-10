@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Evidence Layer: Data Lineage as Regulatory Proof in Banking (BCBS 239, CCAR, SOX)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); vertical-align: top; }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+    .series-nav { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 2rem 0; }
+    .series-nav h4 { margin: 0 0 0.6rem 0; font-size: 0.95rem; color: var(--text-primary); }
+    .series-nav ol { margin: 0 0 0 1.2rem; }
+    .series-nav li { font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .series-nav a { color: var(--accent-primary); text-decoration: none; }
+    .series-nav a:hover { text-decoration: underline; }
+    .series-nav .current { color: var(--text-muted); font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>The Evidence Layer: Data Lineage as Regulatory Proof in Banking (BCBS 239, CCAR, SOX)</h1>
+        <div class="article-meta">
+          <span>📅 February 3, 2026</span>
+          <span>📖 17 min read</span>
+          <span>🏛️ Governance</span>
+          <span>🏗️ Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <div class="series-nav">
+          <h4>📚 This is Part 1 of a 3-part series: Auditable AI in Regulated Industries</h4>
+          <ol>
+            <li><span class="current">The Evidence Layer in Banking — BCBS 239, CCAR, SOX (you are here)</span></li>
+            <li><a href="regulated-ai-multi-agent-design.html">Designing Multi-Agent AI Over Sensitive Data: Traceable by Construction</a></li>
+            <li><a href="regulated-ai-healthcare.html">The Evidence Layer in Healthcare &amp; Biotech AI</a></li>
+          </ol>
+        </div>
+
+        <p>There's a sentence that ends careers in banking: <em>"We think the number is right, but we can't show you how we got it."</em> Regulators don't run on trust — they run on evidence. Every figure in a risk report, a capital submission, or a financial statement has to be provable: traceable from the dashboard a regulator is looking at, back through every transformation, all the way to the system where the fact was born. That chain of proof is <strong>data lineage</strong>, and it is the single most underappreciated piece of infrastructure in a regulated data platform.</p>
+
+        <p>This article is the first of three on building AI and data systems that hold up under audit. We start with banking, because banking has the oldest and most demanding traceability regimes, and because the framing here carries straight into the AI era: as models and autonomous agents enter the pipeline, <strong>lineage is the evidence layer that makes regulatory obligations provable</strong>. You don't need to be a compliance lawyer to design for it. You need to understand what three regulators are actually asking for, and recognize that all three are asking the same architectural question.</p>
+
+        <div class="callout">
+          <p><strong>The one-line thesis:</strong> BCBS 239, CCAR, and SOX look like three different compliance burdens. Architecturally they are one requirement repeated three times — <em>prove that every reported number traces accurately to its source, and that nothing was silently altered along the way.</em> Build that capability once and you've answered all three.</p>
+        </div>
+
+        <h2>Three Regimes, One Underlying Demand</h2>
+
+        <p>Here are the three frameworks an engineer at a large US/global bank runs into, what each actually requires, and what lineage specifically proves in each.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Regime</th><th>Who &amp; what it governs</th><th>What lineage proves</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>BCBS 239</strong></td><td>Basel Committee principles for G-SIBs/D-SIBs on risk data aggregation and reporting (14 principles across governance, aggregation, reporting, supervision)</td><td>Risk exposures aggregate <em>accurately, completely, and on time</em>, and can be traced to source systems without being altered, truncated, or corrupted in transit</td></tr>
+              <tr><td><strong>CCAR / DFAST</strong></td><td>Federal Reserve capital stress testing for banks &gt;$100B; built on SR 11-7 model risk management</td><td>The data feeding stress models is traceable from <em>source to decision</em>, models have clear provenance, and results are reproducible by an examiner</td></tr>
+              <tr><td><strong>SOX</strong></td><td>Sarbanes-Oxley (§302, §404, §409) — internal control over financial reporting for all US public companies</td><td>Every figure in the financial statements traces from its entry point through controlled transformations, with auditable evidence the controls operated</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Notice the shared verb: <em>trace</em>. Each regime is, at its core, demanding an unbroken, tamper-evident path from a reported value back to ground truth. That path is what we'll call the evidence layer.</p>
+
+        <h2>BCBS 239: Aggregation You Can Defend</h2>
+
+        <p>BCBS 239 — formally the <em>Principles for effective risk data aggregation and risk reporting</em> — exists because of 2008. When the crisis hit, many banks discovered they could not answer a simple question quickly: <em>"What is our total exposure to counterparty X across every desk and legal entity?"</em> Their data was scattered across incompatible systems, and assembling an accurate firm-wide number took days. BCBS 239's risk-data-aggregation principles demand that this data be <strong>accurate, complete, timely, and adaptable</strong> — especially under stress, exactly when systems are most strained.</p>
+
+        <p>Lineage is how you defend the aggregate. When a supervisor points at a concentration-risk figure and asks "where did this come from?", the answer cannot be a shrug. Lineage lets you trace that exposure back to the source trading and lending systems, validate that the aggregation logic is correct, and demonstrate that the value wasn't silently altered by an undocumented transformation somewhere in the pipeline.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart RL
+    REPORT["📊 Risk report:\n'Counterparty X exposure = $4.2B'"]
+    AGG["Aggregation &amp; netting layer"]
+    DQ["Data quality / reconciliation"]
+    WH["Risk data warehouse"]
+    S1["Trading system"]
+    S2["Loan origination"]
+    S3["Derivatives / collateral"]
+
+    REPORT --> AGG --> DQ --> WH
+    WH --> S1
+    WH --> S2
+    WH --> S3
+          </pre>
+          <p class="diagram-caption">Reading lineage right-to-left is the auditor's view: start at the reported number and walk back through every transformation to the source systems. Each hop must be reconstructable and evidenced. This is what BCBS 239 "traceability" means in practice.</p>
+        </div>
+
+        <h3>Why column-level lineage matters</h3>
+
+        <p>Table-level lineage ("this report draws from these five tables") is not enough for BCBS 239. The defensible unit is the <strong>column</strong>. When a regulator asks how the <em>exposure</em> field in a report was derived, you need to show that it came from <code>position.notional</code> joined to <code>collateral.haircut</code>, netted by <code>master_agreement_id</code> — field by field, transformation by transformation. This is exactly why large institutions like Morgan Stanley invest in <strong>column-level lineage</strong>: it's the granularity at which "prove this number" can actually be answered. Table-level lineage tells you which files were in the room; column-level lineage tells you who said what.</p>
+
+        <h2>CCAR: From Source to Decision, Reproducibly</h2>
+
+        <p>CCAR (Comprehensive Capital Analysis and Review) and its sibling DFAST are the Federal Reserve's stress-testing programs for the largest banks. They are arguably the most rigorous model-governance environment in US finance, and they sit on top of <strong>SR 11-7</strong>, the Fed/OCC guidance on model risk management. For banks above $100B in assets, SR 11-7 compliance is effectively a precondition for a credible CCAR submission.</p>
+
+        <p>The traceability bar here is higher than BCBS 239 because there's a <em>model</em> in the middle. A stress-testing calculation might consume data from 200+ source systems — core banking, loan origination, trading, the general ledger, economic-scenario databases — feed it through a capital model, and produce a number the Fed will scrutinize. SR 11-7 expects you to document the model's architecture, its <strong>training/input data lineage</strong>, its validation results, and its ongoing performance monitoring. The governing requirements are blunt: <em>lineage from data to decision, clear model provenance, and reproducibility.</em></p>
+
+        <div class="callout warning">
+          <p><strong>Reproducibility is the trap.</strong> "We ran the model in March and got this number" is not enough. An examiner can ask you to <em>re-run it</em> and get the same answer — which means you must have versioned the input data, the model code, the parameters, and the scenario definitions, all pinned together. If any of those four drifted and you didn't capture which version produced the submitted number, you cannot reproduce it, and you have a finding. This is the same discipline ML engineers call experiment tracking — banking just made it a legal obligation a decade earlier.</p>
+        </div>
+
+        <p>This is the point where data lineage and <em>model</em> lineage merge. The evidence layer has to span both: the data's journey to the model, and the model's identity (version, training data, validation) at the moment it produced a regulated output. When AI models enter stress testing — and they are — this requirement doesn't relax; it intensifies.</p>
+
+        <h2>SOX: Lineage to the Financial Statement</h2>
+
+        <p>SOX (Sarbanes-Oxley, 2002) is the broadest of the three because it applies to every US public company, not just banks. The relevant machinery is <strong>internal control over financial reporting (ICFR)</strong>: §302 makes executives personally certify the financials, §404 requires documented and tested controls over how those financials are produced, and §409 demands timely disclosure of material changes.</p>
+
+        <p>The engineering translation of §404 is precise: <strong>map data lineage from each entry point through to the financial statements, and place a control at every risk point along the way</strong>. A control is just a rule that prevents or detects an error — a reconciliation, an access restriction, a change-management gate, a four-eyes approval. SOX doesn't only ask "is the number right?"; it asks "can you show the controls that keep it right, and prove they operated during the period?"</p>
+
+        <p>The classic SOX failure mode is the rogue spreadsheet — a manual transformation between a system and the financial statement that nobody governed, where a fat-fingered formula silently changes a reported figure. Lineage exposes exactly these uncontrolled hops. If your lineage graph has an edge that runs through an analyst's laptop, that's a §404 finding waiting to happen.</p>
+
+        <h2>The Common Pattern: Lineage as Evidence</h2>
+
+        <p>Step back and the three regimes collapse into one architectural capability. Each wants a tamper-evident path from a regulated output to its origin, with proof that the right controls operated in between.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart TB
+    subgraph Obligations["Regulatory obligations"]
+        B["BCBS 239:\naccurate, traceable\nrisk aggregation"]
+        C["CCAR / SR 11-7:\ndata→decision,\nreproducible models"]
+        S["SOX §404:\ncontrolled path to\nfinancial statements"]
+    end
+
+    EV["🧾 THE EVIDENCE LAYER\ncolumn-level lineage · immutable audit log ·\nversioned data + models · control attestations"]
+
+    B --> EV
+    C --> EV
+    S --> EV
+
+    EV --> P["Provable answer to:\n'Show me how you got this number.'"]
+          </pre>
+          <p class="diagram-caption">Three regimes, one capability. The evidence layer is the shared infrastructure that satisfies all of them — and the foundation everything in Parts 2 and 3 builds on.</p>
+        </div>
+
+        <p>Concretely, an evidence layer that survives all three audits has four properties:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Property</th><th>What it means</th><th>Which regime leans on it hardest</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Column-level lineage</td><td>Field-by-field derivation, not just table-to-table</td><td>BCBS 239</td></tr>
+              <tr><td>Immutable, time-stamped audit</td><td>Append-only record of who changed what, when, and why</td><td>SOX</td></tr>
+              <tr><td>Transformation capture</td><td>Every join, filter, and calculation recorded as a lineage edge</td><td>BCBS 239 / SOX</td></tr>
+              <tr><td>Versioned reproducibility</td><td>Data + code + params pinned so a result can be re-derived</td><td>CCAR / SR 11-7</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <p><strong>The design instinct that pays off:</strong> treat lineage and audit as <em>first-class outputs of the pipeline</em>, emitted automatically as data flows, not as documentation written after the fact. Lineage you reconstruct manually for an exam is already stale and untrustworthy. Lineage the platform emits on every run is evidence. The cultural shift — from "document it later" to "the system proves it continuously" — is the whole game.</p>
+        </div>
+
+        <h2>Where AI Changes the Picture</h2>
+
+        <p>Everything above predates the current AI wave, but it's the reason regulated institutions are cautious about putting models and agents into their data pipelines. An LLM that summarizes risk, or an autonomous agent that pulls data and drafts a regulatory narrative, becomes a <strong>new node in the lineage graph</strong> — and a non-deterministic one. The regulator's question doesn't change: <em>show me how you got this number, and prove nothing was silently altered.</em> But the answer is harder when one of the transformations is a probabilistic model invoked by an agent that decided, on its own, which data to read.</p>
+
+        <p>That is exactly the problem Part 2 takes on: how to design a multi-agent AI system that operates over sensitive, regulated data while remaining <strong>traceable and observable by construction</strong> — so that an agent's action is just another evidenced edge in the lineage graph, not a black hole in it. Part 3 then carries the same evidence-layer thinking into healthcare and biotech, where the regulators are different but the underlying demand is identical.</p>
+
+        <div class="series-nav">
+          <h4>📚 Continue the series</h4>
+          <ol>
+            <li><span class="current">The Evidence Layer in Banking (this article)</span></li>
+            <li><a href="regulated-ai-multi-agent-design.html">Designing Multi-Agent AI Over Sensitive Data: Traceable by Construction →</a></li>
+            <li><a href="regulated-ai-healthcare.html">The Evidence Layer in Healthcare &amp; Biotech AI →</a></li>
+          </ol>
+        </div>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>
