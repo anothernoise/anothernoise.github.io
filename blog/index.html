@@ -86,6 +86,7 @@
               <a href="#" class="tag" data-tag="architecture">Architecture</a>
               <a href="#" class="tag" data-tag="governance">Governance</a>
               <a href="#" class="tag" data-tag="data-engineering">Data Engineering</a>
+              <a href="#" class="tag" data-tag="snowflake">Snowflake</a>
               <a href="#" class="tag" data-tag="azure">Azure</a>
               <a href="#" class="tag" data-tag="aws">AWS</a>
               <a href="#" class="tag" data-tag="gcp">GCP</a>
@@ -125,6 +126,33 @@
                 <div class="post-date">June 7, 2026</div>
                 <p class="post-excerpt">Part 3 of the RAG series. Connecting variants, genes, diseases, drugs, and trials over ~190M annotations from ClinVar/gnomAD/PharmGKB — why genomics breaks naive RAG, the knowledge graph as the product, the full AWS stack (Neptune, Bedrock, AgentCore semantic layer), and the lessons that only show up once real annotation data hits a real graph. Provenance, clinical-logic encoding, and HIPAA as architecture.</p>
                 <div class="post-meta"><span>📖 21 min read</span><span>☁️ AWS</span><span>🧬 Genomics</span><span>🔧 RAG</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="snowflake,data-engineering,architecture,aws">
+              <a href="snowflake-realtime-aws.html">
+                <h2 class="post-title">Real-Time Snowflake on AWS: Snowpipe Streaming, Dynamic Tables, and Lessons Learned</h2>
+                <div class="post-date">June 1, 2026</div>
+                <p class="post-excerpt">Part 3 of the Snowflake Deep Dive. "Real-time Snowflake" stopped being a contradiction: next-gen Snowpipe Streaming (GA on AWS, up to 10 GB/s per table, sub-10s latency, volume-priced) plus Dynamic Tables for declarative incremental transforms. The Envoy/buffering/Assigner architecture, file vs rowset mode, a Kinesis/MSK→streaming→Dynamic Table DAG reference design, and six hard-won lessons — exactly-once, TARGET_LAG as a cost dial, small-files pressure, schema evolution, and end-to-end latency.</p>
+                <div class="post-meta"><span>📖 19 min read</span><span>❄️ Snowflake</span><span>☁️ AWS</span><span>🔧 Data Engineering</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="snowflake,ai-agents,architecture">
+              <a href="snowflake-cortex-2026.html">
+                <h2 class="post-title">Snowflake Cortex AI in 2026: Agents, Analyst, and the Agentic Data Cloud</h2>
+                <div class="post-date">May 4, 2026</div>
+                <p class="post-excerpt">Part 2 of the Snowflake Deep Dive. Eighteen months on from the 2024 building blocks: Cortex Analyst and Search went GA, LLM functions consolidated under AISQL (now with frontier models — Claude, OpenAI — inside the perimeter), and Cortex Agents shipped a managed plan→tool→reflect loop over structured and unstructured data. How the agent loop works, how to define and call one, the cost trap agents multiply, and an honest when-Cortex-wins table now that the model gap has closed.</p>
+                <div class="post-meta"><span>📖 18 min read</span><span>❄️ Snowflake</span><span>🏷️ AI Agents</span><span>🏗️ Architecture</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="snowflake,data-engineering,architecture">
+              <a href="snowflake-internals.html">
+                <h2 class="post-title">Snowflake Internals: How the Three-Layer Architecture Actually Works</h2>
+                <div class="post-date">April 14, 2026</div>
+                <p class="post-excerpt">Part 1 of the Snowflake Deep Dive. Why a 4-second query becomes 90 and why the bill doubles — both answered by the architecture underneath the SQL. Immutable, self-describing micro-partitions and partition pruning; virtual warehouses and the scale-up-vs-scale-out decision; the three caches; the cloud services "brain" (optimizer, metadata, MVCC); and how Time Travel, zero-copy cloning, and secure sharing all fall out of immutable storage. Plus reading pruning and spill off QUERY_HISTORY.</p>
+                <div class="post-meta"><span>📖 17 min read</span><span>❄️ Snowflake</span><span>🔧 Data Engineering</span><span>🏗️ Architecture</span></div>
               </a>
             </li>
 
@@ -301,7 +329,7 @@
               </a>
             </li>
 
-            <li class="post-item" data-tags="cloud,ai-agents,architecture">
+            <li class="post-item" data-tags="snowflake,cloud,ai-agents,architecture">
               <a href="snowflake-cortex.html">
                 <h2 class="post-title">Snowflake Cortex AI Deep Dive: LLMs Inside Your Data Warehouse</h2>
                 <div class="post-date">December 12, 2024</div>
@@ -514,16 +542,19 @@
             <!-- 2026 — expanded -->
             <div class="timeline-year-group" data-year="2026">
               <button class="timeline-year-btn" aria-expanded="true" aria-controls="year-2026">
-                2026 <span class="timeline-year-badge">9</span>
+                2026 <span class="timeline-year-badge">12</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items" id="year-2026">
                 <div class="timeline-item" data-href="agent-landscape-2026.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 8, 2026</div><div class="timeline-title">2026 Agent Landscape</div></div>
                 <div class="timeline-item" data-href="clinico-genomics-rag-aws.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 7, 2026</div><div class="timeline-title">Clinico-Genomics RAG</div></div>
+                <div class="timeline-item" data-href="snowflake-realtime-aws.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 1, 2026</div><div class="timeline-title">Real-Time Snowflake on AWS</div></div>
                 <div class="timeline-item" data-href="rag-bedrock-neptune.html"><div class="timeline-dot"></div><div class="timeline-date">May 24, 2026</div><div class="timeline-title">RAG on AWS</div></div>
                 <div class="timeline-item" data-href="rag-fundamentals.html"><div class="timeline-dot"></div><div class="timeline-date">May 6, 2026</div><div class="timeline-title">RAG Fundamentals</div></div>
                 <div class="timeline-item" data-href="ai-agent-memory.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 8, 2026</div><div class="timeline-title">AI Agent Memory</div></div>
                 <div class="timeline-item" data-href="llm-observability.html"><div class="timeline-dot"></div><div class="timeline-date">May 5, 2026</div><div class="timeline-title">LLM Observability</div></div>
+                <div class="timeline-item" data-href="snowflake-cortex-2026.html"><div class="timeline-dot"></div><div class="timeline-date">May 4, 2026</div><div class="timeline-title">Snowflake Cortex AI 2026</div></div>
+                <div class="timeline-item" data-href="snowflake-internals.html"><div class="timeline-dot"></div><div class="timeline-date">Apr 14, 2026</div><div class="timeline-title">Snowflake Internals</div></div>
                 <div class="timeline-item" data-href="regulated-ai-healthcare.html"><div class="timeline-dot"></div><div class="timeline-date">Mar 17, 2026</div><div class="timeline-title">Evidence Layer: Healthcare</div></div>
                 <div class="timeline-item" data-href="regulated-ai-multi-agent-design.html"><div class="timeline-dot"></div><div class="timeline-date">Feb 24, 2026</div><div class="timeline-title">Traceable Multi-Agent AI</div></div>
                 <div class="timeline-item" data-href="regulated-ai-finance.html"><div class="timeline-dot"></div><div class="timeline-date">Feb 3, 2026</div><div class="timeline-title">Evidence Layer: Banking</div></div>

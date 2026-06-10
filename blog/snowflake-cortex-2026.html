@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snowflake Cortex AI in 2026: Agents, Analyst, and the Agentic Data Cloud</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+    .series-nav { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 2rem 0; }
+    .series-nav h4 { margin: 0 0 0.6rem 0; font-size: 0.95rem; color: var(--text-primary); }
+    .series-nav ol { margin: 0 0 0 1.2rem; }
+    .series-nav li { font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .series-nav a { color: var(--accent-primary); text-decoration: none; }
+    .series-nav a:hover { text-decoration: underline; }
+    .series-nav .current { color: var(--text-muted); font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Snowflake Cortex AI in 2026: Agents, Analyst, and the Agentic Data Cloud</h1>
+        <div class="article-meta">
+          <span>📅 May 4, 2026</span>
+          <span>📖 18 min read</span>
+          <span>❄️ Snowflake</span>
+          <span>🏷️ AI Agents</span>
+          <span>🏗️ Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <div class="series-nav">
+          <h4>❄️ This is Part 2 of a 3-part series: Snowflake Deep Dive (2026)</h4>
+          <ol>
+            <li><a href="snowflake-internals.html">Snowflake Internals: How the Three-Layer Architecture Actually Works</a></li>
+            <li><span class="current">Snowflake Cortex AI in 2026: Agents, Analyst, and the Agentic Data Cloud (you are here)</span></li>
+            <li><a href="snowflake-realtime-aws.html">Real-Time Snowflake on AWS: Snowpipe Streaming, Dynamic Tables, and Lessons Learned</a></li>
+          </ol>
+        </div>
+
+        <p>When I <a href="snowflake-cortex.html">covered Cortex AI in late 2024</a>, the pitch was "LLM functions inside your data warehouse" — run <code>SNOWFLAKE.CORTEX.COMPLETE()</code> over a table, get managed RAG with Cortex Search, ask questions in English with a preview of Cortex Analyst. Useful, but mostly a set of building blocks you assembled yourself.</p>
+
+        <p>Eighteen months later the framing has changed. Cortex Analyst and Cortex Search went GA, the LLM functions consolidated under <strong>AISQL</strong>, and — the headline shift — Snowflake shipped <strong>Cortex Agents</strong>: a fully-managed agentic runtime that plans, calls tools, executes code, and reasons over your structured <em>and</em> unstructured data in one governed loop, without you operating an orchestration framework. The marketing calls the whole thing the "Agentic Data Cloud." Stripped of the slogan, the real story is that the building blocks from 2024 are now <em>tools an agent orchestrates for you</em>. This article maps the 2026 surface, shows how the agent loop actually works, and gives an honest read on where it fits.</p>
+
+        <div class="callout tip">
+          <p><strong>If you read the 2024 piece:</strong> LLM functions, Cortex Search, Cortex Analyst, and Document AI all still exist and work as described — this isn't a rewrite of those. What's new is the layer <em>above</em> them (Cortex Agents), the GA status of the key pieces, and the consolidation of the function surface into AISQL. Skip to "Cortex Agents" if you only want the 2026 delta.</p>
+        </div>
+
+        <h2>The 2026 Product Surface</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph Platform["Snowflake Agentic Data Cloud (2026)"]
+        AGENTS["🤖 Cortex Agents (GA)\nmanaged plan→tool→reflect loop"]
+        subgraph Tools["Tools an agent can call"]
+            ANALYST["Cortex Analyst (GA)\nNL → SQL over semantic views"]
+            SEARCH["Cortex Search (GA)\nhybrid retrieval over unstructured"]
+            AISQL["AISQL functions\nCOMPLETE, AI_CLASSIFY, AI_FILTER…"]
+            CUSTOM["Custom tools\nstored procs / UDFs"]
+            MCP["MCP connectors\n+ web search + code exec"]
+        end
+        SEMMODEL["Semantic Models / Views\n(the shared business layer)"]
+        HORIZON["Horizon Catalog\ngovernance, lineage, RBAC"]
+    end
+
+    AGENTS --> ANALYST
+    AGENTS --> SEARCH
+    AGENTS --> AISQL
+    AGENTS --> CUSTOM
+    AGENTS --> MCP
+    ANALYST --> SEMMODEL
+    HORIZON -.governs every call.-> AGENTS
+          </pre>
+          <p class="diagram-caption">Cortex AI in 2026. The agent is the new top layer; the 2024 primitives (functions, Search, Analyst) are now its tools. The semantic model is the shared contract that makes natural-language-to-SQL reliable, and Horizon governance wraps every call — the same "data never leaves the perimeter" story, now extended to autonomous agents.</p>
+        </div>
+
+        <h2>AISQL: The Function Layer, Consolidated</h2>
+
+        <p>The scalar LLM functions are still the foundation — every higher-level feature ultimately calls them — but the 2026 surface is broader and more SQL-idiomatic. Alongside the familiar <code>COMPLETE</code>, <code>SUMMARIZE</code>, <code>SENTIMENT</code>, and <code>TRANSLATE</code>, Snowflake added a family of "AI operators" designed to be composed inside ordinary queries:</p>
+
+        <pre><code class="language-sql">-- Classic generation, now with a much larger model menu
+SELECT review_id,
+       SNOWFLAKE.CORTEX.COMPLETE('claude-sonnet-4-5',
+           'Extract the product complaint in one sentence: ' || review_text) AS issue
+FROM reviews;
+
+-- AI_FILTER: a boolean LLM predicate you can put in a WHERE clause
+SELECT * FROM support_tickets
+WHERE AI_FILTER(ticket_text, 'this message describes a billing dispute');
+
+-- AI_CLASSIFY: multi-label classification as a first-class function
+SELECT ticket_id,
+       AI_CLASSIFY(ticket_text, ['billing','technical','account','other']) AS category
+FROM support_tickets;
+
+-- AI_AGG: aggregate reasoning across many rows in a group
+SELECT product_line,
+       AI_AGG(review_text, 'summarize the top 3 recurring complaints') AS themes
+FROM reviews
+GROUP BY product_line;</code></pre>
+
+        <p>The meaningful change since 2024 is the <strong>model menu</strong>. Cortex now serves frontier models from multiple providers directly inside the governed perimeter — including Anthropic's Claude family and OpenAI models via Cortex, alongside the open-weights Llama, Mistral, and Snowflake's own models. The 2024 limitation — "no GPT-4 or Claude, open-weights only" — is gone. You can run a genuinely frontier model with the same <code>data-never-leaves-Snowflake</code> guarantee, which removes the single biggest reason teams used to route around Cortex to an external API.</p>
+
+        <h2>Cortex Analyst and Cortex Search: Now GA, Now Tools</h2>
+
+        <p><strong>Cortex Analyst</strong> (GA) is still the natural-language-to-SQL feature, and the semantic model is still the thing that makes it trustworthy: a YAML (now exposed as a first-class <strong>semantic view</strong> object) that maps business terms to verified SQL — measures, dimensions, the filters that belong on a metric. The reliability principle hasn't changed: it generates SQL against <em>defined semantics</em>, not by guessing column names off a raw schema.</p>
+
+        <p><strong>Cortex Search</strong> (GA) is still managed hybrid retrieval (vector + keyword) over a Snowflake table, kept in sync with the source. What's new is that an agent can now adjust its parameters dynamically — filters, which metadata columns to return, result count, time-decay — instead of you hard-coding them.</p>
+
+        <p>The important reframing: in 2024 you called these directly and wrote your own glue. In 2026 they are the two primary tools a Cortex Agent reaches for — Analyst for "the answer is in a number in a table," Search for "the answer is in prose in a document." The agent decides which (or both) a question needs.</p>
+
+        <h2>Cortex Agents: The Managed Loop</h2>
+
+        <p>This is the genuinely new thing. A Cortex Agent is a managed runtime that executes the standard agentic cycle — <strong>plan → use tools → reflect → respond</strong> — without you building or operating the orchestration loop, the runtime, or a code sandbox. Snowflake runs all of that.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+sequenceDiagram
+    participant U as User / App
+    participant A as Cortex Agent (managed)
+    participant AN as Cortex Analyst
+    participant SE as Cortex Search
+    participant DB as Governed Data
+    U->>A: "Why did EMEA churn rise last quarter, and what are customers saying?"
+    A->>A: Plan — split into (1) churn metric (2) qualitative reasons
+    A->>AN: Tool call: NL → SQL over semantic view
+    AN->>DB: SELECT churn metrics (RBAC enforced)
+    DB-->>AN: numbers
+    AN-->>A: structured result
+    A->>SE: Tool call: search support tickets / NPS verbatims (EMEA, last quarter)
+    SE->>DB: hybrid retrieval (RBAC enforced)
+    DB-->>SE: relevant passages + citations
+    SE-->>A: passages
+    A->>A: Reflect — enough to answer? combine quant + qual
+    A->>U: Grounded answer with SQL + cited sources
+          </pre>
+          <p class="diagram-caption">A single agent turn combining structured and unstructured data. The agent decided, on its own, that the question needed both Analyst (the churn number) and Search (the "why"), then reconciled them. Every data access still runs under the asking user's role — governance is not bypassed by the agent.</p>
+        </div>
+
+        <h3>What an agent can call</h3>
+        <p>Beyond Analyst and Search, a Cortex Agent's toolbelt includes <strong>custom tools</strong> (your own stored procedures and UDFs implementing business logic), <strong>code execution</strong> in a secure sandbox (Python, when enabled), <strong>MCP connectors</strong> to remote Model Context Protocol servers (Atlassian, Salesforce, and custom apps), <strong>web search</strong>, and <strong>data-to-chart</strong> visualization. Tools are described to the agent; it chooses which to invoke per step.</p>
+
+        <h3>How you actually invoke one</h3>
+        <p>Agents are GA in Snowsight, via SQL, and through a REST API. The API supports two patterns: define a reusable agent object once, or pass the full configuration per request. Authentication is via PAT, key-pair JWT, or OAuth.</p>
+
+        <pre><code class="language-sql">-- Define a reusable agent object backed by a semantic view + a search service
+CREATE OR REPLACE AGENT support_insights_agent
+  WITH PROFILE = '{"display_name": "Support Insights"}'
+  COMMENT = 'Answers questions over support metrics + ticket text'
+  FROM SPECIFICATION $$
+  models:
+    orchestration: claude-sonnet-4-5
+  tools:
+    - name: metrics
+      type: cortex_analyst_text_to_sql
+      semantic_view: analytics.prod.support_semantics
+    - name: tickets
+      type: cortex_search
+      search_service: analytics.prod.ticket_search
+  instructions:
+    response: "Always cite the ticket IDs you used. Show the SQL for any number."
+  $$;</code></pre>
+
+        <pre><code class="language-python"># Call the agent from an app over the REST API
+import requests
+
+resp = requests.post(
+    f"https://{account}.snowflakecomputing.com/api/v2/cortex/agent:run",
+    headers={"Authorization": f"Bearer {jwt}", "Content-Type": "application/json"},
+    json={
+        "agent": "support_insights_agent",
+        "messages": [{"role": "user", "content": [{"type": "text",
+            "text": "Why did EMEA churn rise last quarter, and what are customers saying?"}]}],
+    },
+)
+# Response streams the agent's tool calls, generated SQL, retrieved citations,
+# and the final grounded answer — the orchestration loop runs server-side.</code></pre>
+
+        <h2>The Rest of the 2026 Platform</h2>
+
+        <p>A few more pieces round out the surface and frequently come up in real designs:</p>
+        <ul>
+          <li><strong>Cortex Code</strong> — an AI coding/data-engineering assistant in Snowsight (GA) and a CLI, including agent teams that split large assignments into parallel work. It is Snowflake's "build on your data with an agent" developer surface.</li>
+          <li><strong>Snowflake Cortex / CoWork</strong> — the knowledge-worker-facing chat surface that sits on top of agents, for non-engineers to ask governed questions.</li>
+          <li><strong>Openflow</strong> — managed data integration (built on Apache NiFi) for getting structured and unstructured sources into Snowflake so agents have something to reason over.</li>
+          <li><strong>Document AI</strong> — still the no-code path for extracting structured fields from PDFs and images at scale, now commonly used as a preprocessing step feeding agent workflows.</li>
+          <li><strong>Cortex Knowledge Extensions</strong> — packaged third-party content (e.g. licensed reference data) consumable by Search/agents via the Marketplace.</li>
+        </ul>
+
+        <h2>Cost: Still Tokens, Still Credits, Still the Same Trap</h2>
+
+        <p>The billing model is unchanged in shape: AISQL functions are billed per token, converted to Snowflake credits, and agent runs bill for every underlying tool call and token they consume. That last part is the new wrinkle — an agent that fans out to Analyst, Search, web search, and a couple of reflection steps consumes more than a single function call, and a multi-step agent over a large dataset can surprise you the same way <code>SUMMARIZE</code> over 10M rows did in 2024.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>What you run</th><th>What it bills</th><th>Cost-control lever</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>AISQL function over a table</td><td>Tokens × model rate → credits</td><td>Test on <code>LIMIT 1000</code>, pick the smallest model that passes eval</td></tr>
+              <tr><td>Cortex Search service</td><td>Embedding + serving + sync compute</td><td>Tune <code>TARGET_LAG</code>; don't over-refresh static corpora</td></tr>
+              <tr><td>Cortex Analyst query</td><td>Orchestration model tokens</td><td>Tight semantic views reduce retries/clarifications</td></tr>
+              <tr><td>Cortex Agent run</td><td>Sum of every tool call + reasoning tokens</td><td>Constrain the toolset; cap steps; cheaper orchestration model</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout warning">
+          <p><strong>Agents multiply the 2024 batch trap.</strong> A single agent question is cheap. The same agent wired into an app and called on every page load, fanning out to four tools each time, is not. Before exposing an agent in production, measure the credit cost of a representative turn, multiply by expected traffic, and put a budget/resource monitor on the warehouse and on Cortex consumption. Use the cheapest orchestration model that holds answer quality on your eval set — the frontier model is rarely needed for the <em>planning</em> step.</p>
+        </div>
+
+        <h2>When Cortex Wins in 2026 — and When It Still Doesn't</h2>
+
+        <p>The honest assessment has shifted because the model gap closed. In 2024, the strongest reason to leave Cortex was "I need GPT-4/Claude quality." With frontier models now served inside Cortex, the decision is mostly about <em>where your data and governance live</em>.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Scenario</th><th>Verdict</th><th>Why</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Q&amp;A and agents over governed Snowflake data</td><td><strong>Cortex wins</strong></td><td>Data never leaves the perimeter; RBAC + Horizon apply to every tool call; no glue infra</td></tr>
+              <tr><td>Batch enrichment / classification over big tables</td><td><strong>Cortex wins</strong></td><td>SQL-native, scales on warehouses, no rate limits</td></tr>
+              <tr><td>Blending structured metrics + unstructured text in one answer</td><td><strong>Cortex wins</strong></td><td>Agents + Analyst + Search is purpose-built for exactly this</td></tr>
+              <tr><td>Low-latency consumer chatbot at the edge</td><td>External / app-side</td><td>Round-trip and cold-start latency; agent loop adds steps</td></tr>
+              <tr><td>Deeply custom agent graphs, human-in-the-loop tooling</td><td>External framework</td><td>LangGraph / custom orchestration still more flexible than managed loop</td></tr>
+              <tr><td>Data lives outside Snowflake</td><td>External</td><td>The whole value prop is governance over data already in Snowflake</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The clearest 2026 use cases: governed self-serve analytics where a business user asks a question that spans a fact table and a pile of support tickets, and an agent answers it with cited SQL and cited text — under the asker's own permissions. The clearest cases to stay external: latency-critical user-facing apps, and complex agent topologies that need the control of a full orchestration framework. Most Snowflake-heavy shops run both, exactly as in 2024 — but the line moved, and a lot more now lands on the Cortex side of it.</p>
+
+        <p>In <strong>Part 1</strong> we saw the engine these agents run on — separated storage and compute, governed by the cloud services layer. In <strong>Part 3</strong>, we close the loop on the data side: how to feed Snowflake continuously so these agents and dashboards reason over fresh data, using the next-generation Snowpipe Streaming and Dynamic Tables on AWS.</p>
+
+        <div class="series-nav">
+          <h4>❄️ Continue the series</h4>
+          <ol>
+            <li><a href="snowflake-internals.html">Snowflake Internals: The Three-Layer Architecture</a></li>
+            <li><span class="current">Snowflake Cortex AI in 2026 (this article)</span></li>
+            <li><a href="snowflake-realtime-aws.html">Real-Time Snowflake on AWS: Snowpipe Streaming, Dynamic Tables, and Lessons Learned →</a></li>
+          </ol>
+          <p style="margin:0.6rem 0 0 0;font-size:0.85rem;color:var(--text-muted);">Related: the <a href="snowflake-cortex.html">2024 Cortex AI deep dive</a> — the building-blocks view that this article builds on.</p>
+        </div>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>
