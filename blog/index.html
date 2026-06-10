@@ -82,6 +82,7 @@
             <div class="tags-cloud">
               <a href="#" class="tag active" data-tag="all">All Posts</a>
               <a href="#" class="tag" data-tag="ai-agents">AI Agents</a>
+              <a href="#" class="tag" data-tag="rag">RAG</a>
               <a href="#" class="tag" data-tag="architecture">Architecture</a>
               <a href="#" class="tag" data-tag="data-engineering">Data Engineering</a>
               <a href="#" class="tag" data-tag="azure">Azure</a>
@@ -108,6 +109,33 @@
           <ul class="post-list">
 
             <!-- 2026 -->
+            <li class="post-item" data-tags="ai-agents,rag,architecture,aws">
+              <a href="clinico-genomics-rag-aws.html">
+                <h2 class="post-title">Building a Clinico-Genomics RAG on AWS: Architecture, Best Practices, and Hard-Won Lessons</h2>
+                <div class="post-date">June 28, 2026</div>
+                <p class="post-excerpt">Part 3 of the RAG series. Connecting variants, genes, diseases, drugs, and trials over ~190M annotations from ClinVar/gnomAD/PharmGKB — why genomics breaks naive RAG, the knowledge graph as the product, the full AWS stack (Neptune, Bedrock, AgentCore semantic layer), and the lessons that only show up once real annotation data hits a real graph. Provenance, clinical-logic encoding, and HIPAA as architecture.</p>
+                <div class="post-meta"><span>📖 21 min read</span><span>☁️ AWS</span><span>🧬 Genomics</span><span>🔧 RAG</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="ai-agents,rag,architecture,aws,cloud">
+              <a href="rag-bedrock-neptune.html">
+                <h2 class="post-title">RAG on AWS: Bedrock Knowledge Bases, GraphRAG, and Amazon Neptune</h2>
+                <div class="post-date">June 20, 2026</div>
+                <p class="post-excerpt">Part 2 of the RAG series. The full AWS RAG menu: Bedrock Knowledge Bases as managed vector RAG, the GraphRAG capability backed by Neptune Analytics (GA March 2025), the DIY Neptune + LlamaIndex pattern, pgvector on RDS, structured retrieval that writes SQL, and the AgentCore semantic-layer pattern — with a decision table for which path fits which question.</p>
+                <div class="post-meta"><span>📖 19 min read</span><span>☁️ AWS</span><span>🏷️ AI Agents</span><span>🔧 RAG</span></div>
+              </a>
+            </li>
+
+            <li class="post-item" data-tags="ai-agents,rag,architecture">
+              <a href="rag-fundamentals.html">
+                <h2 class="post-title">RAG From the Ground Up: Types, Architecture, and What Actually Moves the Needle</h2>
+                <div class="post-date">June 12, 2026</div>
+                <p class="post-excerpt">Part 1 of the RAG series. RAG is a search problem with a language model stapled to the end — the maturity ladder from naive to agentic, the taxonomy of retrieval types (dense, sparse, hybrid, graph, multimodal, self-RAG), and the honest ranking of what moves quality: chunking, hybrid search, "retrieve wide, rerank narrow," and measuring retrieval separately from generation.</p>
+                <div class="post-meta"><span>📖 18 min read</span><span>🏷️ AI Agents</span><span>🔧 RAG</span></div>
+              </a>
+            </li>
+
             <li class="post-item" data-tags="ai-agents,architecture">
               <a href="ai-agent-memory.html">
                 <h2 class="post-title">AI Agent Memory: The Infrastructure Layer Nobody Told You About</h2>
@@ -440,10 +468,13 @@
             <!-- 2026 — expanded -->
             <div class="timeline-year-group" data-year="2026">
               <button class="timeline-year-btn" aria-expanded="true" aria-controls="year-2026">
-                2026 <span class="timeline-year-badge">2</span>
+                2026 <span class="timeline-year-badge">5</span>
                 <svg class="yr-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="2,4 6,8 10,4"/></svg>
               </button>
               <div class="timeline-year-items" id="year-2026">
+                <div class="timeline-item" data-href="clinico-genomics-rag-aws.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 28, 2026</div><div class="timeline-title">Clinico-Genomics RAG</div></div>
+                <div class="timeline-item" data-href="rag-bedrock-neptune.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 20, 2026</div><div class="timeline-title">RAG on AWS</div></div>
+                <div class="timeline-item" data-href="rag-fundamentals.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 12, 2026</div><div class="timeline-title">RAG Fundamentals</div></div>
                 <div class="timeline-item" data-href="ai-agent-memory.html"><div class="timeline-dot"></div><div class="timeline-date">Jun 8, 2026</div><div class="timeline-title">AI Agent Memory</div></div>
                 <div class="timeline-item" data-href="llm-observability.html"><div class="timeline-dot"></div><div class="timeline-date">May 5, 2026</div><div class="timeline-title">LLM Observability</div></div>
               </div>

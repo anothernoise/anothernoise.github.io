@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG on AWS: Bedrock Knowledge Bases, GraphRAG, and Amazon Neptune</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+    .series-nav { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 2rem 0; }
+    .series-nav h4 { margin: 0 0 0.6rem 0; font-size: 0.95rem; color: var(--text-primary); }
+    .series-nav ol { margin: 0 0 0 1.2rem; }
+    .series-nav li { font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .series-nav a { color: var(--accent-primary); text-decoration: none; }
+    .series-nav a:hover { text-decoration: underline; }
+    .series-nav .current { color: var(--text-muted); font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>RAG on AWS: Bedrock Knowledge Bases, GraphRAG, and Amazon Neptune</h1>
+        <div class="article-meta">
+          <span>📅 June 20, 2026</span>
+          <span>📖 19 min read</span>
+          <span>☁️ AWS</span>
+          <span>🏷️ AI Agents</span>
+          <span>🔧 RAG</span>
+          <span>🏗️ Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <div class="series-nav">
+          <h4>📚 Part 2 of a 3-part series on RAG</h4>
+          <ol>
+            <li><a href="rag-fundamentals.html">RAG From the Ground Up</a></li>
+            <li><span class="current">RAG on AWS: Bedrock, GraphRAG &amp; Neptune (you are here)</span></li>
+            <li><a href="clinico-genomics-rag-aws.html">Building a Clinico-Genomics RAG on AWS</a></li>
+          </ol>
+        </div>
+
+        <p>Part 1 covered the principles. Now the question every AWS team eventually asks: do you use the managed RAG service and ship in an afternoon, or do you build your own retrieval stack and control every knob? AWS has quietly built one of the more complete RAG toolkits in the cloud — Bedrock Knowledge Bases for managed vector RAG, a native GraphRAG capability backed by Neptune Analytics, structured retrieval that writes SQL for you, and all the primitives (OpenSearch, pgvector on RDS, Neptune) if you'd rather assemble it yourself. This article maps the whole landscape and tells you which path fits which problem.</p>
+
+        <h2>Bedrock Knowledge Bases: Managed RAG, Batteries Included</h2>
+
+        <p>Amazon Bedrock Knowledge Bases is the "I don't want to operate a vector database" option. You point it at documents in S3, choose an embedding model and a vector store, and it handles ingestion, chunking, embedding, storage, and retrieval. At query time you call <code>Retrieve</code> (get chunks) or <code>RetrieveAndGenerate</code> (get chunks + generate an answer) and it orchestrates the whole pipeline.</p>
+
+        <p>What it manages for you:</p>
+        <ul>
+          <li><strong>Ingestion &amp; chunking:</strong> fixed-size, semantic, or hierarchical chunking strategies — configurable, no code</li>
+          <li><strong>Embeddings:</strong> Amazon Titan Text Embeddings V2 (configurable 256/512/1024 dimensions) or Cohere Embed</li>
+          <li><strong>Vector store:</strong> OpenSearch Serverless, Aurora PostgreSQL with pgvector, Neptune Analytics, Pinecone, Redis, and others</li>
+          <li><strong>Advanced retrieval:</strong> hybrid search and reranking are config flags, not code you write</li>
+        </ul>
+
+        <div class="callout tip">
+          <p><strong>When managed wins:</strong> If your retrieval needs are "search my company's documents and answer with citations," Bedrock Knowledge Bases gets you there with hybrid search and reranking enabled by configuration — exactly the Advanced RAG tier from Part 1 — without operating infrastructure. The reasons to build your own start when you need custom retrieval logic, multi-source routing, or retrieval patterns the managed service doesn't expose.</p>
+        </div>
+
+        <h2>Why Vector RAG Hits a Wall — and Where Graphs Come In</h2>
+
+        <p>Recall the structural blind spot from Part 1: vector search can only retrieve what is <em>semantically similar</em> to the query. Information that is relevant but phrased differently — or that only becomes relevant through a chain of relationships — is effectively invisible. As AWS's own framing puts it, information that is dissimilar is "structurally unavailable for retrieval."</p>
+
+        <p>Consider a multi-hop question: <em>"Which suppliers are affected if the factory in Osaka goes offline?"</em> The answer lives in relationships — factory → produces → component → used-in → product → sourced-from → supplier — that no single document states in full. Vector search retrieves chunks about Osaka and chunks about suppliers, but it can't <em>traverse</em> the connection. That's what GraphRAG is for.</p>
+
+        <h2>Bedrock Knowledge Bases GraphRAG with Neptune Analytics</h2>
+
+        <p>In March 2025, AWS made GraphRAG generally available as a built-in capability of Bedrock Knowledge Bases, backed by Amazon Neptune Analytics. The pitch is genuinely compelling: when you create a knowledge base, you choose Neptune Analytics as the store, and Bedrock <strong>automatically</strong> extracts entities and relationships from your documents, builds a knowledge graph, and combines vector search with graph traversal at retrieval time — no graph modeling, no Gremlin, no openCypher. It collapses what used to be a multi-week graph-engineering effort into a few hours of configuration.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart TB
+    Docs["Documents in S3"] --> Ingest["Bedrock Knowledge Base\nIngestion"]
+    Ingest --> Embed["Generate embeddings\n(Titan / Cohere)"]
+    Ingest --> Extract["LLM extracts entities\n&amp; relationships"]
+    Embed --> Vec["Vector index\n(Neptune Analytics)"]
+    Extract --> Graph["Knowledge graph\n(Neptune Analytics)"]
+
+    Query["User query"] --> VSearch["1 · Vector search\nfind seed nodes"]
+    VSearch --> Vec
+    VSearch --> Traverse["2 · Graph traversal\nexpand to linked nodes/chunks"]
+    Traverse --> Graph
+    Traverse --> Context["3 · Enriched context\n(chunks + relationships)"]
+    Context --> LLM["4 · Foundation model\ngenerates grounded answer"]
+          </pre>
+          <p class="diagram-caption">Bedrock GraphRAG retrieval flow: an initial vector search finds seed nodes, then the graph is traversed to pull in related chunks and entities, producing context richer than vector search alone — and explainable, because you can see which relationships were followed.</p>
+        </div>
+
+        <p>The retrieval mechanic is worth understanding precisely. After an initial vector search finds the most relevant document chunks, GraphRAG retrieves the graph nodes (and linked chunk identifiers) connected to those chunks, then expands by traversing the graph to pull in their details. The result is context that captures the <em>connections</em> between entities, which is exactly what multi-hop questions need — and because the traversal path is inspectable, the answers are more explainable than opaque vector similarity.</p>
+
+        <h2>Building GraphRAG Yourself: Neptune + Bedrock + LlamaIndex</h2>
+
+        <p>If you need more control than the managed capability offers — custom traversal logic, a pre-existing graph schema, or integration into a larger agent — you can assemble GraphRAG directly. The common pattern uses Neptune as the graph store, Bedrock for the LLM, and LlamaIndex as the orchestration layer:</p>
+
+        <pre><code class="language-python">from llama_index.llms.bedrock import Bedrock
+from llama_index.graph_stores.neptune import NeptuneDatabaseGraphStore
+from llama_index.core import StorageContext
+from llama_index.core.retrievers import KnowledgeGraphRAGRetriever
+
+llm = Bedrock(model="anthropic.claude-3-sonnet-20240229-v1:0")
+
+graph_store = NeptuneDatabaseGraphStore(
+    host="<your-neptune-endpoint>", port=8182
+)
+storage_context = StorageContext.from_defaults(graph_store=graph_store)
+
+# Hybrid: entity-keyword extraction + multi-hop traversal,
+# plus natural-language-to-openCypher for flexible querying
+retriever = KnowledgeGraphRAGRetriever(
+    storage_context=storage_context,
+    llm=llm,
+    graph_traversal_depth=3,      # how many hops to expand
+    with_nl2graphquery=True,      # let the LLM write openCypher
+)</code></pre>
+
+        <p>Two things make this robust. First, <code>with_nl2graphquery=True</code> lets the LLM translate the question into an openCypher query for precise graph lookups, going beyond keyword matching. Second, using a refine-style response mode lets the engine reconcile potentially incomplete graph-query results with standard vector retrieval — so if the generated Cypher misses, vector results still carry the answer.</p>
+
+        <h3>The GraphRAG Toolkit</h3>
+        <p>AWS also open-sourced a higher-level <strong>GraphRAG Toolkit</strong> that automates the indexing pipeline. Its <code>LexicalGraphIndex</code> extracts content into three tiers — lineage (sources and chunks), summarization (topics, statements, facts), and entity-relationships — giving you both local detail and global connectivity. Two retriever strategies ship with it: a <code>TraversalBasedRetriever</code> (top-down vector search combined with bottom-up entity keywords) and a <code>SemanticGuidedRetriever</code> (semantic entry points plus intelligent traversal and reranking). It defaults to Neptune for the graph, OpenSearch Serverless for vectors, and Bedrock for the models.</p>
+
+        <pre><code class="language-python">from graphrag_toolkit import LexicalGraphIndex, LexicalGraphQueryEngine
+
+# Build the graph + vector representations from documents
+graph_index = LexicalGraphIndex(graph_store, vector_store)
+graph_index.extract_and_build(docs)
+
+# Query with a traversal-based retriever
+query_engine = LexicalGraphQueryEngine.for_traversal_based_search(
+    graph_store, vector_store
+)
+response = query_engine.query("How are these entities connected?")</code></pre>
+
+        <h2>Neptune Database vs Neptune Analytics</h2>
+
+        <p>A point of confusion worth clearing up, because they're different products:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th></th><th>Neptune Database</th><th>Neptune Analytics</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Purpose</td><td>OLTP graph — persistent, transactional</td><td>OLAP graph — fast analytics &amp; algorithms</td></tr>
+              <tr><td>Best for</td><td>Always-on app backends, large graphs</td><td>GraphRAG, graph algorithms, vector + graph</td></tr>
+              <tr><td>Vector support</td><td>Via app layer</td><td>✅ Built-in vector index</td></tr>
+              <tr><td>Bedrock GraphRAG</td><td>Manual (LlamaIndex pattern)</td><td>✅ Native managed integration</td></tr>
+              <tr><td>Query languages</td><td>Gremlin, openCypher, SPARQL</td><td>openCypher</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>For managed GraphRAG, Neptune Analytics is the answer — it has the built-in vector index and the native Bedrock integration. For a persistent application graph that you also query for RAG via the LlamaIndex pattern, Neptune Database fits.</p>
+
+        <h2>The Other AWS RAG Building Blocks</h2>
+
+        <h3>pgvector on RDS / Aurora PostgreSQL</h3>
+        <p>If your data already lives in PostgreSQL, the <code>pgvector</code> extension turns it into a vector store — no new system to operate. Enable it, add a vector column, and query by cosine distance. Titan Text Embeddings V2 generates the vectors; HNSW or IVFFlat indexes keep search fast at scale.</p>
+
+        <pre><code class="language-sql">CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE documents (
+    id          BIGSERIAL PRIMARY KEY,
+    content     TEXT,
+    metadata    JSONB,
+    embedding   vector(1024)          -- Titan V2 dimension
+);
+
+-- HNSW index for fast approximate nearest-neighbour search
+CREATE INDEX ON documents
+    USING hnsw (embedding vector_cosine_ops);
+
+-- Retrieve the 10 most similar chunks, filtered by metadata
+SELECT id, content
+FROM documents
+WHERE metadata->>'department' = 'oncology'
+ORDER BY embedding <=> :query_embedding   -- cosine distance
+LIMIT 10;</code></pre>
+
+        <p>Note the <code>WHERE</code> clause — that's metadata filtering from Part 1, free and built into SQL. pgvector is the pragmatic choice when you want RAG without adopting a dedicated vector database and your scale is moderate (millions, not billions, of vectors).</p>
+
+        <h3>Structured Retrieval — RAG That Writes SQL</h3>
+        <p>Not all knowledge lives in prose. Bedrock Knowledge Bases also supports <strong>structured data retrieval</strong>: ask "what were our top-selling products last quarter?" and it generates and runs the appropriate SQL against a warehouse like Amazon Redshift, returning grounded numbers. This is the right pattern for metrics and aggregates — never try to answer numerical questions from vector-retrieved text chunks; route them to SQL instead.</p>
+
+        <h2>The Semantic Layer: Tools Beat Raw Query Generation</h2>
+
+        <p>Here's a pattern that separates demos from production systems, and it applies whether your backend is a graph or a warehouse. Letting an LLM generate raw openCypher or SQL directly is brittle — it works most of the time, which in production means it fails in front of users regularly. The fix is a <strong>semantic layer</strong>: instead of asking the model to write queries, you expose a curated set of tools (functions) that perform database interactions deterministically, and the model only decides <em>which tool to call with which arguments</em>.</p>
+
+        <p>The principle, stated well by practitioners building these systems, is to "turn prompt engineering problems, which might work most of the time, into code engineering problems, which work every time exactly as scripted." You trade some flexibility for reliability you can test.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart LR
+    User["User question"] --> Agent["LLM Agent\n(Bedrock)"]
+    Agent -->|chooses tool + args| Tools["Semantic Layer\n(curated tools)"]
+    Tools --> T1["find_entity(name)\nfull-text lookup"]
+    Tools --> T2["get_related(id, type)\nsafe graph traversal"]
+    Tools --> T3["get_metric(name, period)\nvalidated SQL"]
+    T1 --> Graph["Neptune"]
+    T2 --> Graph
+    T3 --> WH["Redshift / Aurora"]
+    Graph --> Agent
+    WH --> Agent
+    Agent --> Answer["Grounded answer"]
+          </pre>
+          <p class="diagram-caption">The semantic layer pattern: the agent never writes raw queries. It picks from tested, parameterized tools that encapsulate the query logic — deterministic, debuggable, and safe against malformed queries hitting the database.</p>
+        </div>
+
+        <p>On AWS, <strong>Amazon Bedrock AgentCore</strong> is purpose-built for this. Its <em>Gateway</em> turns existing APIs, Lambda functions, and databases into tools agents can call, and its <em>Runtime</em> hosts agents built in any framework (LangChain/LangGraph, Strands, CrewAI, LlamaIndex) behind a secure, serverless endpoint. You define your semantic-layer tools once and the agent orchestrates them. The AWS sample for a data-agnostic semantic layer demonstrates exactly this: discovery agents on AgentCore that auto-map a schema across RDS, Neptune, and OpenSearch, then query agents that answer natural-language questions through tools rather than raw query generation.</p>
+
+        <h2>Choosing Your AWS RAG Path</h2>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Your situation</th><th>Recommended path</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Search documents, answer with citations</td><td>Bedrock Knowledge Bases (managed, hybrid + rerank on)</td></tr>
+              <tr><td>Multi-hop, relationship-driven questions</td><td>Bedrock GraphRAG on Neptune Analytics</td></tr>
+              <tr><td>Custom traversal / existing graph schema</td><td>Neptune + Bedrock + LlamaIndex (DIY)</td></tr>
+              <tr><td>Data already in PostgreSQL, moderate scale</td><td>pgvector on RDS/Aurora</td></tr>
+              <tr><td>Numerical / metric questions</td><td>Structured retrieval → SQL on Redshift</td></tr>
+              <tr><td>Agent orchestrating many sources reliably</td><td>AgentCore + semantic-layer tools</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout warning">
+          <p><strong>Cost reality check:</strong> GraphRAG isn't free. Entity-and-relationship extraction runs an LLM over every chunk at ingestion — that's the expensive part, and re-ingesting a large corpus costs real money. Neptune Analytics and OpenSearch Serverless both bill for provisioned capacity even when idle. Before committing to GraphRAG, confirm your questions actually need multi-hop reasoning; if they don't, managed vector RAG with reranking is cheaper and simpler. Match the architecture to the question shape, not to the newest feature.</p>
+        </div>
+
+        <h2>Where This Goes Next</h2>
+
+        <p>You now have the full AWS RAG menu: managed vector RAG, native GraphRAG on Neptune Analytics, the DIY graph stack, pgvector, structured retrieval, and the semantic-layer agent pattern via AgentCore. Part 3 puts all of it under load on a domain where mistakes matter — a clinico-genomics RAG that connects variants, genes, diseases, drugs, and clinical trials, where every answer needs provenance and a human in the loop.</p>
+
+        <div class="series-nav">
+          <h4>📚 Continue the series</h4>
+          <ol>
+            <li><a href="rag-fundamentals.html">← RAG From the Ground Up</a></li>
+            <li><span class="current">RAG on AWS: Bedrock, GraphRAG &amp; Neptune (this article)</span></li>
+            <li><a href="clinico-genomics-rag-aws.html">Building a Clinico-Genomics RAG on AWS →</a></li>
+          </ol>
+        </div>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>
