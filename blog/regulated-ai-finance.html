@@ -131,7 +131,7 @@ flowchart RL
 
         <h3>Why column-level lineage matters</h3>
 
-        <p>Table-level lineage ("this report draws from these five tables") is not enough for BCBS 239. The defensible unit is the <strong>column</strong>. When a regulator asks how the <em>exposure</em> field in a report was derived, you need to show that it came from <code>position.notional</code> joined to <code>collateral.haircut</code>, netted by <code>master_agreement_id</code> — field by field, transformation by transformation. This is exactly why large institutions like Morgan Stanley invest in <strong>column-level lineage</strong>: it's the granularity at which "prove this number" can actually be answered. Table-level lineage tells you which files were in the room; column-level lineage tells you who said what.</p>
+        <p>Table-level lineage ("this report draws from these five tables") is not enough for BCBS 239. The defensible unit is the <strong>column</strong>. When a regulator asks how the <em>exposure</em> field in a report was derived, you need to show that it came from <code>position.notional</code> joined to <code>collateral.haircut</code>, netted by <code>master_agreement_id</code> — field by field, transformation by transformation. This is exactly the granularity at which "prove this number" can actually be answered — and why column-level lineage is the unit large institutions invest in. Table-level lineage tells you which files were in the room; column-level lineage tells you who said what.</p>
 
         <h2>CCAR: From Source to Decision, Reproducibly</h2>
 
