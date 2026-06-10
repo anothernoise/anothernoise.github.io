@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Building a RAG System on GCP for a Real Estate Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); vertical-align: top; }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+    .series-nav { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 2rem 0; }
+    .series-nav h4 { margin: 0 0 0.6rem 0; font-size: 0.95rem; color: var(--text-primary); }
+    .series-nav ol { margin: 0 0 0 1.2rem; }
+    .series-nav li { font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .series-nav a { color: var(--accent-primary); text-decoration: none; }
+    .series-nav a:hover { text-decoration: underline; }
+    .series-nav .current { color: var(--text-muted); font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>Building a RAG System on GCP for a Real Estate Agency</h1>
+        <div class="article-meta">
+          <span>📅 September 2, 2025</span>
+          <span>📖 18 min read</span>
+          <span>🏷️ AI/ML</span>
+          <span>☁️ GCP</span>
+          <span>🔧 RAG</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <div class="series-nav">
+          <h4>📚 This is Part 2 of a 2-part series on RAG on Google Cloud</h4>
+          <ol>
+            <li><a href="rag-on-gcp.html">RAG on GCP: From First Corpus to Production</a></li>
+            <li><span class="current">Building a RAG System on GCP for a Real Estate Agency (you are here)</span></li>
+          </ol>
+        </div>
+
+        <p>Part 1 covered the GCP RAG toolbox in the abstract. This part is the opposite: one concrete domain, end to end. We'll build the retrieval system a mid-sized residential real estate agency actually needs — the kind with a few thousand active listings, a dozen agents, and a website where buyers ask questions in plain English. Real estate turns out to be a near-perfect stress test for RAG, because it breaks the naive "embed everything and search" approach in four different ways at once.</p>
+
+        <p>By the end you'll have a reference architecture on Google Cloud, the data model that makes hybrid retrieval work, the retrieval flow that combines hard filters with semantic search, and — the part everyone forgets until legal calls — the compliance guardrails that keep a property chatbot out of Fair Housing trouble.</p>
+
+        <h2>What the Agency Actually Wants</h2>
+
+        <p>Strip away the buzzwords and there are three concrete products hiding inside "we want AI for our listings":</p>
+
+        <ul>
+          <li><strong>Buyer-facing search assistant</strong> — a website chatbot that answers "show me 3-bed homes under $750k near downtown with a yard and a home office" and returns real, current listings with links and photos.</li>
+          <li><strong>Agent copilot</strong> — an internal tool that drafts listing descriptions, summarizes comparable sales ("comps"), answers questions about disclosures and contracts, and pulls neighborhood facts on demand.</li>
+          <li><strong>Document Q&A</strong> — grounded answers over the agency's pile of unstructured documents: HOA rules, inspection reports, seller disclosures, neighborhood guides, and market reports.</li>
+        </ul>
+
+        <p>All three are RAG. But the first one is where the design decisions get interesting, because a listing is <em>half structured data and half prose</em>, and the query mixes hard constraints with soft preferences.</p>
+
+        <h2>Why Naive RAG Fails Here</h2>
+
+        <p>If you take the tutorial approach — dump every listing into a vector store, embed the query, return top-k — you'll ship something that demos well and falls apart in week one. Four reasons:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Problem</th><th>Why vector-only RAG breaks</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Hard constraints are non-negotiable</strong></td><td>"Under $750k" and "3 bedrooms" are filters, not similarity. A semantic search will happily return a beautiful $900k 2-bed because the <em>description</em> is similar. Price and bedroom count must be exact filters, not vectors.</td></tr>
+              <tr><td><strong>Freshness is brutal</strong></td><td>Listings change daily — price drops, status flips to "pending" or "sold." A stale index that shows a sold house as available is worse than no answer. The index must track the source of truth in near-real-time.</td></tr>
+              <tr><td><strong>Geography is structured, not semantic</strong></td><td>"Near downtown" or "in the Eastside school district" is a spatial/categorical filter. Embeddings don't understand a 5-mile radius or a district boundary.</td></tr>
+              <tr><td><strong>Compliance is a hard wall</strong></td><td>Under the Fair Housing Act, the system must not steer buyers based on protected characteristics (race, religion, family status, etc.) or answer "is this a good neighborhood for [group]." This can't be left to model judgment.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>The fix is the pattern from Part 1's "Advanced RAG": <strong>structured pre-filtering plus semantic ranking, with the structured store as the source of truth.</strong> Hard constraints filter the candidate set deterministically; semantic search ranks what survives by how well it matches the soft preferences.</p>
+
+        <h2>The Architecture</h2>
+
+        <p>Here's the full system on GCP. Two ingestion paths feed one hybrid retrieval store; the query service combines structured filtering, semantic search, and reranking before grounding Gemini.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart TB
+    subgraph Ingest["① Ingestion"]
+        MLS["MLS feed / listings DB"]
+        DOCS["Documents:\ndisclosures, HOA, reports (GCS)"]
+        MLS --> CF["Cloud Functions:\nnormalize + enrich"]
+        CF --> BQ["AlloyDB:\nstructured fields + pgvector"]
+        DOCS --> DF["Document AI +\nchunking"]
+        DF --> EMB["Vertex AI Embeddings\n(text-embedding-005)"]
+        PHOTO["Listing photos"] --> MM["Multimodal embeddings"]
+        EMB --> BQ
+        MM --> BQ
+    end
+
+    subgraph Serve["② Retrieval &amp; serving (Cloud Run)"]
+        Q["Buyer / agent query"] --> GUARD["Fair-Housing guardrail\n+ query parse"]
+        GUARD --> FILTER["Structured pre-filter\n(price, beds, geo, status)"]
+        FILTER --> VEC["Semantic search\nover survivors"]
+        VEC --> RANK["Vertex Ranking API\nrerank top-k"]
+        RANK --> GEM["Gemini:\nground + cite listings"]
+        GEM --> A["Answer + listing cards"]
+    end
+
+    BQ -.serves.-> FILTER
+    BQ -.serves.-> VEC
+          </pre>
+          <p class="diagram-caption">Real-estate RAG on GCP. AlloyDB holds both the structured listing fields and the pgvector embeddings, so a single store does deterministic filtering and semantic ranking. The guardrail runs before retrieval, not after.</p>
+        </div>
+
+        <h2>The Data Model: One Store, Two Jobs</h2>
+
+        <p>The single most important decision is keeping structured fields and embeddings <strong>in the same row</strong>. On GCP you have two good options for this: AlloyDB (or Cloud SQL) for PostgreSQL with the <code>pgvector</code> extension, or BigQuery with vector search. For a transactional, frequently-updated listings catalog with sub-second query needs, AlloyDB is the better fit — it gives you ACID updates for freshness and a vector index in the same table you filter on.</p>
+
+        <pre><code class="language-sql">CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE TABLE listings (
+    id              BIGINT PRIMARY KEY,
+    status          TEXT NOT NULL,          -- active | pending | sold
+    price           INTEGER NOT NULL,
+    bedrooms        SMALLINT NOT NULL,
+    bathrooms       NUMERIC(3,1) NOT NULL,
+    sqft            INTEGER,
+    city            TEXT,
+    school_district TEXT,
+    geo             GEOGRAPHY(Point, 4326), -- lat/long for radius queries
+    description     TEXT,                   -- the prose half
+    updated_at      TIMESTAMPTZ NOT NULL,
+    embedding       vector(768)             -- text-embedding-005 dims
+);
+
+-- Index the things we filter and rank on
+CREATE INDEX ON listings USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX ON listings (status, price, bedrooms);
+CREATE INDEX ON listings USING gist (geo);</code></pre>
+
+        <p>The embedding is generated from the prose half — description, neighborhood notes, standout features — not the structured fields. You never want to embed "$749,000" into a vector; you filter on it. Embed the language a buyer uses ("open-concept kitchen, walkable, great natural light") and filter the numbers.</p>
+
+        <h3>Generating embeddings on ingest</h3>
+
+        <pre><code class="language-python">from vertexai.language_models import TextEmbeddingModel
+
+model = TextEmbeddingModel.from_pretrained("text-embedding-005")
+
+def embed_listing(listing: dict) -> list[float]:
+    # Embed only the unstructured, preference-bearing text
+    text = " ".join(filter(None, [
+        listing["description"],
+        listing.get("neighborhood_notes", ""),
+        ", ".join(listing.get("features", [])),
+    ]))
+    return model.get_embeddings([text])[0].values  # 768-dim vector</code></pre>
+
+        <h2>Hybrid Retrieval: Filter Hard, Rank Soft</h2>
+
+        <p>The query path is where real estate RAG lives or dies. A buyer asks: <em>"3-bed under $750k near downtown with a home office and good light."</em> That decomposes into <strong>hard constraints</strong> (beds = 3, price ≤ 750000, within radius of downtown, status = active) and <strong>soft preferences</strong> ("home office," "good light"). The hard constraints become a SQL <code>WHERE</code>; the soft preferences become the embedded query vector that orders the survivors.</p>
+
+        <pre><code class="language-sql">-- :qvec = embedding of "home office, good natural light"
+-- :lng/:lat = geocoded "downtown" centroid
+SELECT id, price, bedrooms, description,
+       embedding &lt;=&gt; :qvec AS distance
+FROM listings
+WHERE status = 'active'                         -- freshness: never show sold
+  AND price &lt;= 750000                            -- hard constraint
+  AND bedrooms &gt;= 3                              -- hard constraint
+  AND ST_DWithin(geo, ST_MakePoint(:lng,:lat)::geography, 8000)  -- 8km
+ORDER BY embedding &lt;=&gt; :qvec                     -- soft ranking
+LIMIT 30;                                        -- retrieve wide</code></pre>
+
+        <p>Two things make this work. First, the structured predicates run <em>before</em> the vector ordering, so the expensive similarity computation only touches listings that already satisfy the non-negotiables. Second, we <strong>retrieve wide (30) and rerank narrow</strong>: cosine distance gets us a good candidate set, but a cross-encoder reranker scores the query against each description jointly and surfaces the genuinely best matches.</p>
+
+        <pre><code class="language-python">from google.cloud import discoveryengine_v1 as de
+
+def rerank(query: str, candidates: list[dict], top_n: int = 5):
+    client = de.RankServiceClient()
+    records = [
+        de.RankingRecord(id=str(c["id"]), content=c["description"])
+        for c in candidates
+    ]
+    resp = client.rank(de.RankRequest(
+        ranking_config=RANKING_CONFIG,
+        model="semantic-ranker-default@latest",
+        top_n=top_n,
+        query=query,
+        records=records,
+    ))
+    keep = {r.id for r in resp.records}
+    return [c for c in candidates if str(c["id"]) in keep]</code></pre>
+
+        <h2>Grounding Gemini — and Forcing Citations</h2>
+
+        <p>The reranked top 5 listings go into the Gemini prompt as grounded context. The non-negotiable rule: the model answers <strong>only</strong> from the retrieved listings and must cite the listing ID for every property it mentions. A real estate answer that invents a listing or misquotes a price is a liability, not a bug.</p>
+
+        <pre><code class="language-python">PROMPT = """You are a real estate assistant. Answer using ONLY the listings
+provided in CONTEXT. For every property you mention, cite its [listing_id].
+If no listing matches, say so plainly — never invent properties or prices.
+Do NOT comment on the demographics, religion, family makeup, or any protected
+characteristic of a neighborhood or its residents.
+
+CONTEXT:
+{listings}
+
+QUESTION: {question}
+"""
+
+from vertexai.generative_models import GenerativeModel
+model = GenerativeModel("gemini-1.5-flash")
+answer = model.generate_content(
+    PROMPT.format(listings=format_cards(top5), question=user_q)
+).text</code></pre>
+
+        <h2>Fair Housing: Compliance as Architecture</h2>
+
+        <div class="callout warning">
+          <p><strong>This is the part that gets agencies sued.</strong> The Fair Housing Act prohibits discrimination based on race, color, religion, sex, disability, familial status, and national origin. An AI assistant that answers "is this a good area for a family like mine?" or steers buyers toward or away from neighborhoods based on demographics is creating direct legal exposure. You cannot rely on the model to "know better" — guardrails must be structural.</p>
+        </div>
+
+        <p>Three structural defenses, none of which depend on the model behaving:</p>
+
+        <ul>
+          <li><strong>Pre-retrieval intent classification.</strong> Before any search runs, a lightweight classifier flags queries that ask about protected characteristics or request steering ("safe neighborhood for...", "mostly [group] area"). Flagged queries get a fixed, compliant response and never reach retrieval.</li>
+          <li><strong>Curated, neutral data only.</strong> The neighborhood corpus contains facts — school ratings, transit, amenities, commute times — not demographic commentary. If steering content isn't in the index, it can't be retrieved.</li>
+          <li><strong>Output filtering.</strong> A final check on the generated answer blocks responses that drifted into protected territory, with full logging for audit.</li>
+        </ul>
+
+        <p>This is the real-estate instance of a general principle from this series: <strong>encode the rules in the system, don't hope the model infers them.</strong> Compliance, like a price filter, is too important to leave to similarity scores.</p>
+
+        <h2>Keeping the Index Fresh</h2>
+
+        <p>Listings change constantly, and a stale index is the fastest way to lose buyer trust. The pattern that works: treat the MLS/listings database as the source of truth and propagate changes incrementally.</p>
+
+        <ul>
+          <li><strong>Event-driven updates.</strong> A change in the listings DB (price drop, status flip) fires a Pub/Sub message; a Cloud Function updates the row in AlloyDB and re-embeds only if the <em>description</em> changed. Price and status updates skip re-embedding entirely — they're just column writes.</li>
+          <li><strong>Status as a filter, never a delete.</strong> Sold and pending listings stay in the table with their status flag; the <code>WHERE status = 'active'</code> predicate keeps them out of buyer results while preserving them for comps and analytics.</li>
+          <li><strong>Nightly reconciliation.</strong> A scheduled job diffs the index against the source of truth to catch anything the event stream missed — belt and suspenders for the one thing buyers will notice immediately.</li>
+        </ul>
+
+        <h2>Measuring Whether It Works</h2>
+
+        <p>Two failure modes matter in real estate, and they map to the two halves of RAG. <strong>Retrieval failures</strong> (wrong or missing listings) and <strong>generation failures</strong> (hallucinated facts, fair-housing drift). Measure them separately:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Metric</th><th>What it catches</th><th>How</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Constraint accuracy</td><td>Results that violate a hard filter (over budget, wrong bed count)</td><td>Deterministic assertion on result set — should be 100%</td></tr>
+              <tr><td>Retrieval recall</td><td>Relevant active listings the system missed</td><td>Golden query set with known-good listings, checked weekly</td></tr>
+              <tr><td>Faithfulness</td><td>Invented properties, misquoted prices</td><td>Vertex AI Evaluation / LLM-as-judge against retrieved context</td></tr>
+              <tr><td>Compliance violation rate</td><td>Steering or protected-class commentary</td><td>Adversarial query suite run on every deploy — target zero</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <p><strong>The two numbers to watch from day one:</strong> constraint accuracy (are we ever showing a $900k house to a $750k buyer?) and compliance violation rate (did we ever steer?). Constraint accuracy should be exactly 100% because it's deterministic SQL — if it isn't, your filter logic is broken. Compliance violations should be zero on an adversarial test suite before you ever go live. Everything else is optimization; these two are go/no-go.</p>
+        </div>
+
+        <h2>Lessons Learned</h2>
+
+        <ul>
+          <li><strong>Embed the prose, filter the numbers.</strong> The single biggest quality win is refusing to put structured fields into the vector. Price, beds, geo, and status are SQL predicates; descriptions and features are embeddings.</li>
+          <li><strong>One store beats two.</strong> Keeping structured columns and embeddings in the same AlloyDB row eliminates the consistency nightmare of syncing a separate vector database against a transactional listings DB. Freshness becomes a normal UPDATE.</li>
+          <li><strong>Compliance is a pre-retrieval gate, not a post-hoc filter.</strong> The cheapest place to stop a fair-housing problem is before retrieval runs. By the time the model has generated text, you're cleaning up rather than preventing.</li>
+          <li><strong>Status-as-filter, not delete.</strong> Sold listings are gold for comps and market reports. Flag them, don't drop them.</li>
+          <li><strong>Gemini Flash is enough.</strong> For grounded listing Q&A, the cheaper, faster model is the right default. Reserve Pro for genuinely multi-hop reasoning like comparing five comps across neighborhoods.</li>
+        </ul>
+
+        <p>The through-line from Part 1 holds with force in this domain: RAG is a search problem with a language model on the end, and the search half is where the engineering lives. In real estate, the structured constraints, the freshness pipeline, and the compliance gate are all <em>search-side</em> decisions. Get those right and Gemini's job becomes easy: read five real listings and answer honestly, with citations.</p>
+
+        <div class="series-nav">
+          <h4>📚 The series</h4>
+          <ol>
+            <li><a href="rag-on-gcp.html">RAG on GCP: From First Corpus to Production</a></li>
+            <li><span class="current">Building a RAG System on GCP for a Real Estate Agency (this article)</span></li>
+          </ol>
+        </div>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2025 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

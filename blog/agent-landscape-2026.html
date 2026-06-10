@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The 2026 AI Agent Landscape: Hermes vs Claude Code &amp; Cowork vs OpenClaw vs Gemini Spark</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); vertical-align: top; }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>The 2026 AI Agent Landscape: Hermes vs Claude Code &amp; Cowork vs OpenClaw vs Gemini Spark</h1>
+        <div class="article-meta">
+          <span>📅 June 8, 2026</span>
+          <span>📖 19 min read</span>
+          <span>🏷️ AI Agents</span>
+          <span>🏗️ Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>The first half of 2026 turned the "AI agent" from a demo into a product category. In the span of four months we got Anthropic's <strong>Claude Cowork</strong> going GA on the desktop, Google announcing <strong>Gemini Spark</strong> at I/O, Nous Research shipping the open-source <strong>Hermes Agent</strong>, and an open-source project called <strong>OpenClaw</strong> becoming the most-starred repository in GitHub's history. Plus the tool that arguably started the current wave for developers — <strong>Claude Code</strong> — kept maturing in the terminal.</p>
+
+        <p>These five things all get called "agents," but they're not the same kind of product, and comparing them feature-by-feature without first understanding their <em>shape</em> leads to bad decisions. This article maps the landscape across two axes that actually matter — <strong>who runs the compute</strong> (a vendor's cloud vs. your own machine) and <strong>who the agent is for</strong> (developers vs. general knowledge workers) — then digs into the internals, features, use cases, and pricing of each.</p>
+
+        <div class="callout">
+          <p><strong>Disclosure on sourcing:</strong> these are fast-moving products, several of which launched between February and May 2026. Everything here reflects publicly available information as of <strong>June 2026</strong>. Pricing and feature availability change constantly — treat the numbers as directional and verify against each vendor's current docs before you commit.</p>
+        </div>
+
+        <h2>Two Axes That Organize the Whole Field</h2>
+
+        <p>Almost every "which agent should I use" debate collapses once you place the contenders on two axes. The vertical axis is <strong>execution locus</strong>: does the agent run on infrastructure the vendor owns and bills you for, or on hardware you control? The horizontal axis is <strong>primary user</strong>: is it built for engineers living in a terminal and a codebase, or for everyone else doing knowledge work in documents, inboxes, and spreadsheets?</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart TB
+    subgraph Managed["☁️ Vendor-hosted / managed compute"]
+        direction LR
+        CC["Claude Code\n(dev · local CLI, vendor models)"]
+        CW["Claude Cowork\n(knowledge work · desktop, vendor models)"]
+        GS["Gemini Spark\n(knowledge work · 24/7 cloud VM)"]
+    end
+
+    subgraph Self["🖥️ Self-hosted / bring-your-own"]
+        direction LR
+        HA["Hermes Agent\n(dev + personal · your VPS/GPU)"]
+        OC["OpenClaw\n(personal · your devices)"]
+    end
+
+    Dev["⌨️ Developer-centric"] -.-> CC
+    Dev -.-> HA
+    Know["📊 Knowledge-worker-centric"] -.-> CW
+    Know -.-> GS
+    Know -.-> OC
+
+    Managed --- Self
+          </pre>
+          <p class="diagram-caption">The 2026 agent field on two axes. Anthropic spans both user types with two products on vendor-hosted compute; Google bets on always-on cloud VMs; Hermes and OpenClaw are open-source and run on hardware you control.</p>
+        </div>
+
+        <p>Note where Anthropic sits: it's the only player here fielding <em>two distinct products</em> — Claude Code for engineers and Claude Cowork for everyone else — sharing the same model backend and subscription. Google's Spark is a single always-on cloud agent. The two open-source entrants, Hermes and OpenClaw, both let you bring any model and run on your own box, but they target different users: Hermes leans developer/power-user, OpenClaw leans personal-assistant-over-messaging.</p>
+
+        <h2>The Contenders, One at a Time</h2>
+
+        <h3>Claude Code — the terminal-native coding agent</h3>
+        <p>Claude Code is Anthropic's command-line coding agent. It lives in your terminal, reads and edits files in your repo, runs commands, and operates as an autonomous (but approval-gated) pair programmer. Architecturally it's a thin local client driving Anthropic's hosted Claude models (Opus, Sonnet, Haiku in the 4.x family), extended through the Model Context Protocol (MCP) for tools, plus a skills mechanism and subagents for parallel work. The compute that matters — inference — happens in Anthropic's cloud; the file and command execution happens locally on your machine.</p>
+        <p>Its sweet spot is software engineering: multi-file refactors, test-driven changes, codebase exploration, and CI/scripting glue. It's included in Anthropic's paid plans rather than sold separately.</p>
+
+        <h3>Claude Cowork — the desktop knowledge-work agent</h3>
+        <p>Cowork is Anthropic's answer to "what does Claude Code feel like for people who aren't developers." It went generally available on <strong>April 9, 2026</strong> for paid subscribers on macOS and Windows, and it lives <em>inside the Claude desktop app</em> alongside Chat and Code. Rather than a sandbox in the cloud, Cowork operates on your actual machine: it opens applications, fills spreadsheets, navigates your browser, organizes files, and connects to services via MCP connectors (Slack, Chrome, Zoom). Crucially, it shows you an execution plan and waits for approval before significant actions — the UX is built around supervised autonomy.</p>
+        <p>The target user is explicitly <em>not</em> the developer: researchers, analysts, operations, legal, and finance teams who have time-consuming but not technically complex work. The GA release added enterprise controls — role-based access, group spend limits, usage analytics, per-connector controls, and private plugin marketplaces. (Anthropic temporarily doubled Cowork's 5-hour usage limit for the June 5 – July 5, 2026 window, a tell that usage caps are the binding constraint for heavy users.)</p>
+
+        <h3>Gemini Spark — the always-on cloud agent</h3>
+        <p>Announced at Google I/O on <strong>May 19, 2026</strong>, Gemini Spark is built from Gemini base models (Gemini 3.5) wrapped in an agentic harness from <strong>Google Antigravity</strong>, Google's agent platform. Its defining architectural choice is that it runs <strong>24/7 on dedicated virtual machines in Google Cloud</strong> — you don't keep a laptop open; the agent works in the background and reports progress (including via "Android Halo" on mobile). You task it by emailing a dedicated Gmail address, and it browses the web through Chrome.</p>
+        <p>Spark ships with deep Workspace integration (Gmail, Docs, Sheets, Slides) out of the box and MCP connections to third-party apps — Canva, OpenTable, and Instacart at launch, with GitHub, Notion, Slack, Adobe, Samsung, Spotify, and CapCut slated for summer 2026. On the developer side, it leans on Antigravity to suggest code changes, file a Jira ticket for review, and update status across Sheets and Docs. It's available to Google AI Ultra subscribers (U.S. only at launch).</p>
+
+        <h3>Hermes Agent — the open-source agent that grows with you</h3>
+        <p>Released by <strong>Nous Research in February 2026</strong> under an MIT license, Hermes Agent is built around a <strong>learning loop</strong>: it creates skills from experience, refines them during use, persists knowledge, searches its own past conversations, and builds a model of the user across sessions. That persistent memory is the headline feature — it's positioned as an agent that compounds in usefulness over time rather than resetting every session.</p>
+        <p>It ships with 40+ built-in tools (web search, browser automation, vision), scheduled automations, and subagents. Critically, it's <strong>model-agnostic</strong>: point it at Nous Portal, OpenRouter (200+ models), NovitaAI, NVIDIA NIM, or your own endpoint. It runs persistently on infrastructure you control — a $5 VPS, a GPU cluster, or near-free serverless when idle — and you can talk to it from Telegram while it works on a cloud VM. No telemetry, no cloud dependency, no vendor lock-in; runs on Linux, macOS, and WSL2.</p>
+
+        <h3>OpenClaw — the viral personal assistant over messaging</h3>
+        <p>OpenClaw has the most colorful origin story here. Created by Peter Steinberger, it first appeared as <em>Warelay</em> in November 2025, was renamed <em>Moltbot</em> on January 27, 2026 (after a trademark complaint from Anthropic), then settled on <strong>OpenClaw</strong> days later. It crossed 100,000 GitHub stars in February 2026 and hit ~347,000 by April — the most-starred repository in GitHub history. Steinberger has since joined OpenAI, with an OpenClaw Foundation set up for stewardship.</p>
+        <p>Architecturally, OpenClaw is a <strong>local-first Gateway</strong> (written in TypeScript and Swift) that acts as a control plane: it receives inbound messages across a huge range of channels (WhatsApp, Telegram, Signal, Discord, iMessage, Slack, and many more), routes them to isolated agent workspaces, manages sessions, and executes tools. Configuration lives in workspace files (<code>SOUL.md</code>, <code>AGENTS.md</code>) and skills are directories with a <code>SKILL.md</code>, distributed through a registry called ClawHub. It enforces sandbox isolation (Docker/SSH backends) for non-main sessions and DM-pairing approval for unknown senders. It's model-agnostic (Claude, GPT, DeepSeek), MIT-licensed, and installs as a global npm package running as a daemon. The interaction model is the differentiator: your agent answers you on the chat apps you already use.</p>
+
+        <h2>Architecture, Side by Side</h2>
+
+        <p>The clearest way to see the real differences is to line up the architectural decisions that determine cost, privacy, latency, and control.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Dimension</th><th>Claude Code</th><th>Claude Cowork</th><th>Gemini Spark</th><th>Hermes Agent</th><th>OpenClaw</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Vendor</td><td>Anthropic</td><td>Anthropic</td><td>Google</td><td>Nous Research</td><td>OpenClaw Foundation</td></tr>
+              <tr><td>Where it runs</td><td>Local CLI; inference in Anthropic cloud</td><td>Local desktop app; inference in Anthropic cloud</td><td>24/7 dedicated VM in Google Cloud</td><td>Your VPS / GPU / serverless</td><td>Your devices (local-first gateway)</td></tr>
+              <tr><td>Model</td><td>Claude (locked to Anthropic)</td><td>Claude (locked to Anthropic)</td><td>Gemini 3.5 (locked to Google)</td><td>Any (OpenRouter, NIM, local…)</td><td>Any (Claude, GPT, DeepSeek…)</td></tr>
+              <tr><td>Agent harness</td><td>Anthropic agent loop + MCP</td><td>Anthropic agent loop + MCP</td><td>Google Antigravity</td><td>Hermes loop + 40+ tools</td><td>Gateway + skills</td></tr>
+              <tr><td>Primary interface</td><td>Terminal</td><td>Desktop app UI</td><td>Email (Gmail) + mobile</td><td>Telegram / CLI</td><td>Any messaging app</td></tr>
+              <tr><td>Memory / learning</td><td>Session + project context, MCP memory</td><td>Session + connectors</td><td>Long-horizon tasks on VM</td><td>Persistent, self-improving skills</td><td>Persistent per-workspace state</td></tr>
+              <tr><td>Extensibility</td><td>MCP, skills, subagents</td><td>MCP connectors, plugins</td><td>MCP connectors</td><td>Skills, subagents, any tool</td><td>SKILL.md skills, ClawHub</td></tr>
+              <tr><td>License</td><td>Proprietary</td><td>Proprietary</td><td>Proprietary</td><td>Open source (MIT)</td><td>Open source (MIT)</td></tr>
+              <tr><td>Data locality</td><td>Code local, prompts to vendor</td><td>Files local, prompts to vendor</td><td>Runs in Google Cloud</td><td>Fully self-hosted</td><td>Fully self-hosted</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>A pattern jumps out: there are really <strong>three architectural archetypes</strong> here, not five. The managed ones (Claude Code, Cowork, Spark) trade control for polish and zero-ops — you accept model lock-in and sending data to the vendor in exchange for something that just works. The self-hosted ones (Hermes, OpenClaw) trade convenience for sovereignty — you bring your own model and keep your data, but you own the uptime, the security posture, and the bill.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+flowchart LR
+    U["You / your task"]
+
+    subgraph A["Managed (Code · Cowork · Spark)"]
+        A1["Thin client / email / desktop"] --> A2["Vendor cloud:\nmodel + agent harness"]
+        A2 --> A3["Acts on local files\nor cloud apps"]
+    end
+
+    subgraph B["Self-hosted (Hermes · OpenClaw)"]
+        B1["Your gateway / runtime"] --> B2["Your chosen model\n(API or local GPU)"]
+        B2 --> B3["Sandboxed tools\non your infra"]
+    end
+
+    U --> A1
+    U --> B1
+          </pre>
+          <p class="diagram-caption">The two dominant patterns. Managed agents put the harness and model in the vendor's cloud; self-hosted agents put a gateway/runtime on your infrastructure and let you choose the model.</p>
+        </div>
+
+        <h2>Features That Actually Differentiate</h2>
+
+        <p>Marketing pages list dozens of features; only a few change the decision. Here are the ones that do.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Capability</th><th>Claude Code</th><th>Claude Cowork</th><th>Gemini Spark</th><th>Hermes</th><th>OpenClaw</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Writes &amp; edits code</td><td>✅ Core strength</td><td>⚠️ Possible, not the focus</td><td>✅ Via Antigravity + Jira</td><td>✅ #1-ranked coding agent</td><td>⚠️ Possible, not the focus</td></tr>
+              <tr><td>Operates GUI apps</td><td>❌</td><td>✅ Opens apps, fills sheets</td><td>⚠️ Web via Chrome</td><td>✅ Browser automation</td><td>⚠️ Via tools</td></tr>
+              <tr><td>Runs unattended 24/7</td><td>❌ Interactive</td><td>⚠️ Scheduled tasks</td><td>✅ Always-on cloud VM</td><td>✅ Persistent daemon</td><td>✅ Persistent daemon</td></tr>
+              <tr><td>Persistent cross-session memory</td><td>⚠️ Project-scoped</td><td>⚠️ Connector-scoped</td><td>⚠️ Task-scoped</td><td>✅ Self-improving</td><td>✅ Per-workspace</td></tr>
+              <tr><td>Bring your own model</td><td>❌</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+              <tr><td>Messaging-app interface</td><td>❌</td><td>❌</td><td>⚠️ Email</td><td>✅ Telegram</td><td>✅ Many channels</td></tr>
+              <tr><td>Enterprise admin controls</td><td>✅ Team/Enterprise</td><td>✅ RBAC, spend, analytics</td><td>⚠️ Via Google Workspace</td><td>🔧 DIY</td><td>🔧 DIY</td></tr>
+              <tr><td>Data stays on your infra</td><td>❌</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Pricing</h2>
+
+        <p>Pricing splits cleanly along the managed/self-hosted line. Managed agents are bundled into a subscription; self-hosted agents are free as software but you pay for infrastructure and model inference yourself.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Product</th><th>Pricing model</th><th>Indicative cost (June 2026)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Claude Code</td><td>Included in Anthropic paid plans</td><td>Pro $20/mo · Max 5× $100/mo · Max 20× $200/mo · Team Premium $125/seat</td></tr>
+              <tr><td>Claude Cowork</td><td>Included in Anthropic paid plans (GA Apr 9, 2026)</td><td>Same subscriptions as above; usage governed by rolling limits</td></tr>
+              <tr><td>Gemini Spark</td><td>Bundled with Google AI Ultra (U.S. only)</td><td>Ultra $99.99/mo (≈5× limits) or $200/mo (≈20× limits)</td></tr>
+              <tr><td>Hermes Agent</td><td>Free software (MIT) + your infra + your model API</td><td>From ~$5/mo VPS; inference billed by whichever provider you pick</td></tr>
+              <tr><td>OpenClaw</td><td>Free software (MIT) + your infra + your model API</td><td>Self-host cost + model subscription/API (e.g. your existing Claude/GPT plan)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout warning">
+          <p><strong>The hidden cost of "free":</strong> open-source agents have a $0 license but a real total cost of ownership — the VPS, the model API bill (which can dwarf a $20 subscription if the agent runs hot), and your own time on setup, security hardening, and upkeep. The managed agents fold all of that into one predictable monthly number. "Free" wins on sovereignty and flexibility, not always on dollars.</p>
+        </div>
+
+        <h2>Which One Should You Actually Use?</h2>
+
+        <p>There's no single winner — there's a best fit per situation. Mapped to the most common needs:</p>
+
+        <ul>
+          <li><strong>You're a developer who lives in a codebase →</strong> Claude Code. Terminal-native, strongest at multi-file engineering work, and already in your paid plan. If you want open-source and bring-your-own-model for coding, Hermes is the credible alternative.</li>
+          <li><strong>You're a non-developer who wants an agent to do real work on your computer →</strong> Claude Cowork. It's purpose-built for analysts, ops, legal, and finance, with the approval-gated UX and enterprise controls that make it safe to roll out.</li>
+          <li><strong>You want work to happen while your laptop is closed →</strong> Gemini Spark. The always-on cloud VM and email interface are the whole point, and the Workspace integration is unmatched if you already live in Google.</li>
+          <li><strong>You care about data sovereignty, model choice, or cost control at scale →</strong> Hermes Agent or OpenClaw. Both keep data on your infrastructure and let you swap models freely. Pick Hermes for a developer/power-user agent with self-improving memory; pick OpenClaw if you want a personal assistant reachable from WhatsApp/Telegram/Signal.</li>
+          <li><strong>You want an agent reachable from the chat apps your family or team already use →</strong> OpenClaw. The multi-channel messaging gateway is its signature.</li>
+        </ul>
+
+        <div class="callout tip">
+          <p><strong>The decision heuristic that cuts through it:</strong> answer two questions first — <em>"Am I willing to send my data and prompts to a vendor's cloud?"</em> and <em>"Is this for coding, for general desktop work, or for always-on background tasks?"</em> Those two answers eliminate three of the five options immediately. Everything else — exact feature checklists, benchmark scores — is tuning at the margins.</p>
+        </div>
+
+        <h2>The Bigger Pattern</h2>
+
+        <p>Step back and the 2026 landscape tells a coherent story. The incumbents (Anthropic, Google) are productizing agents as <strong>managed, model-locked services</strong> — polished, governed, and billed per seat — and segmenting by user: Anthropic with two products, Google with one always-on cloud agent. Meanwhile the open-source world (Hermes, OpenClaw) is racing in the opposite direction: <strong>bring-any-model, self-hosted, data-sovereign</strong> agents that compound through persistent memory and skills, reachable from wherever you already chat.</p>
+
+        <p>That tension — convenience and governance vs. control and sovereignty — is the defining axis of the agent era, and it's the same tension we've watched play out in every prior platform shift. The pragmatic answer for most teams won't be one agent; it'll be a managed agent for governed, day-job work and a self-hosted one for the tasks where data locality or model choice is non-negotiable. The interesting part is that, for the first time in 2026, both halves of that answer are genuinely good.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

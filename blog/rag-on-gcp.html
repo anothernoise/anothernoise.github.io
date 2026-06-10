@@ -99,6 +99,14 @@
     .callout.warning { border-left-color: hsl(0, 72%, 51%); background: rgba(239, 68, 68, 0.06); }
     .callout.tip { border-left-color: hsl(142, 70%, 45%); background: rgba(34, 197, 94, 0.06); }
 
+    .series-nav { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 2rem 0; }
+    .series-nav h4 { margin: 0 0 0.6rem 0; font-size: 0.95rem; color: var(--text-primary); }
+    .series-nav ol { margin: 0 0 0 1.2rem; }
+    .series-nav li { font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .series-nav a { color: var(--accent-primary); text-decoration: none; }
+    .series-nav a:hover { text-decoration: underline; }
+    .series-nav .current { color: var(--text-muted); font-style: italic; }
+
     .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
 
     table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
@@ -171,6 +179,14 @@
       </header>
 
       <div class="article-content">
+
+        <div class="series-nav">
+          <h4>📚 This is Part 1 of a 2-part series on RAG on Google Cloud</h4>
+          <ol>
+            <li><span class="current">RAG on GCP: From First Corpus to Production (you are here)</span></li>
+            <li><a href="rag-gcp-real-estate.html">Building a RAG System on GCP for a Real Estate Agency →</a></li>
+          </ol>
+        </div>
 
         <p>Retrieval-Augmented Generation sounds simple on paper: give the LLM some context alongside the question, and it stops making things up. In practice, a RAG system that works in a demo and a RAG system that works in production are separated by a list of painful surprises that nobody writes tutorials about. This article is mostly about the surprises.</p>
 
@@ -512,6 +528,14 @@ sequenceDiagram
         </div>
 
         <p>RAG on GCP isn't complicated in principle. It's complicated in the details: embedding model versions, context budgets, corpus segmentation, cold starts, and reranking. The managed services handle the infrastructure complexity well. The rest is engineering discipline: pin your versions, measure retrieval quality, set context budgets, and don't confuse "works in a demo" with "works in production at 5,000 queries per day."</p>
+
+        <div class="series-nav">
+          <h4>📚 Continue the series</h4>
+          <ol>
+            <li><span class="current">RAG on GCP: From First Corpus to Production (this article)</span></li>
+            <li><a href="rag-gcp-real-estate.html">Building a RAG System on GCP for a Real Estate Agency →</a></li>
+          </ol>
+        </div>
 
       </div>
     </article>
