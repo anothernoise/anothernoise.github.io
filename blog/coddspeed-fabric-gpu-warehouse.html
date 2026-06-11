@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoddSpeed: Inside Microsoft Fabric's GPU-Accelerated Query Engine (SIGMOD 2026 Best Paper)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+    .paper-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, rgba(184,134,11,0.15), rgba(184,134,11,0.05)); border: 1px solid rgba(184,134,11,0.4); border-radius: 6px; padding: 0.6rem 1rem; margin: 1.5rem 0; font-size: 0.9rem; color: var(--text-secondary); }
+    .paper-badge strong { color: var(--accent-primary); }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>CoddSpeed: Inside Microsoft Fabric's GPU-Accelerated Query Engine</h1>
+        <div class="article-meta">
+          <span>📅 June 10, 2026</span>
+          <span>📖 20 min read</span>
+          <span>🏷️ MS Fabric</span>
+          <span>🔧 Data Engineering</span>
+          <span>🏗️ Architecture</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <div class="paper-badge">
+          🏆 <strong>SIGMOD 2026 Best Industry Paper</strong> — Interlandi, Bruno, Haynes, Curino, Sen et al., Microsoft Research &amp; Fabric Engineering
+        </div>
+
+        <p>At Microsoft Build 2026, Microsoft announced GPU-accelerated query processing in Fabric Data Warehouse — no query rewrites, no schema changes, no new data pipelines. Just faster SQL. The engineering underneath that demo is called <strong>CoddSpeed</strong>, and it is simultaneously a shipping product and a SIGMOD 2026 Best Industry Paper. The paper is unusually candid about what it actually took to go from a research prototype running on PyTorch to a production engine maintained by 60+ engineers that delivers 30× speedups at multi-node scale.</p>
+
+        <p>This article walks the full technical stack: the Tensor Query Processor research lineage that started it, the two abstraction layers that made it production-viable, how the GPU execution pipeline works, how the optimizer routes fragments without rewriting queries, and what the benchmark numbers actually mean. There is a lot to unpack — this is one of the more substantive systems papers to come out of a cloud vendor in years.</p>
+
+        <h2>The Problem: CPUs Are the Wrong Tool for Analytical Scans</h2>
+
+        <p>The core contention of CoddSpeed is not new, but the paper states it precisely. Modern analytical queries are dominated by a small set of operations — table scans with predicate evaluation, hash joins, group-by aggregations, and arithmetic projections — that share a common shape: they process <em>large amounts of data with low computational complexity per byte</em>. The work is memory-bandwidth-bound, not compute-bound.</p>
+
+        <p>A server-class GPU like an H100 has roughly 3.35 TB/s of HBM bandwidth. A dual-socket CPU server peaks around 300–400 GB/s of DDR5 bandwidth — an order of magnitude lower. For operations that scan and filter hundreds of gigabytes, the GPU's memory subsystem is structurally the better fit, <em>if</em> you can keep it fed and avoid drowning the gains in PCIe transfer overhead. CoddSpeed's architecture is fundamentally an answer to both of those conditions.</p>
+
+        <h2>The Research Lineage: TQP</h2>
+
+        <p>CoddSpeed does not emerge from nowhere. Its GPU execution engine is derived from <strong>TQP (Tensor Query Processor)</strong>, a Microsoft Research project that started with a provocative question: what if you compiled SQL queries into tensor operations and ran them on deep learning hardware? The original 2022 VLDB paper showed that PyTorch's tensor runtime — designed for neural network training — could execute relational operators with competitive performance, achieving up to 20× speedups over CPU-only systems on standard benchmarks.</p>
+
+        <p>TQP's key insight was that relational algebra and tensor algebra share structural similarities: both involve element-wise transformations, reductions across axes, and positional indexing. A filter predicate is an element-wise boolean mask. A group-by aggregation is a scatter-reduce. A hash join is a lookup table construction followed by a gather. PyTorch's primitives cover all of these, and because PyTorch targets GPUs, the query processor inherits GPU acceleration essentially for free.</p>
+
+        <p>The academic prototype worked. The production problem was everything around it: how do you embed a PyTorch-based executor inside a distributed SQL engine? How do you manage GPU memory when queries arrive concurrently? How do you handle the 30–40% of real-world SQL constructs that don't map cleanly to tensor ops? And how do you do this without rewriting the optimizer, the frontend, or the storage layer? Those are the questions CoddSpeed answers.</p>
+
+        <h2>Architecture: Two Abstraction Layers</h2>
+
+        <p>CoddSpeed introduces two complementary abstractions that let the GPU executor slot into Fabric's existing distributed engine without replacing it. The division is clean: one layer handles compute, the other handles data movement.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph FW["Microsoft Fabric Data Warehouse"]
+        FE["SQL Frontend\n(parse · bind · auth)"]
+        OPT["Distributed Optimizer\ncost-based, fragment routing\naware of CAL capabilities"]
+        subgraph DIST["Distributed Execution Engine"]
+            HOST["CPU Host Execution\n(fallback, incompatible ops)"]
+            CAL["CAL — Coprocessor Abstraction Layer\nhardware-agnostic sub-plan API\nSerialises → Substrate plan\nZero-copy Parquet / columnar feed"]
+            TQP["GPU Coprocessor\n(TQP / CoddSpeed engine)\nCustom CUDA kernels\nLibTorch memory mgmt"]
+        end
+        DAL["DAL — Data Abstraction Layer\nunified shuffle &amp; caching\nNVLink · PCIe · InfiniBand · Ethernet\nsingle key/value interface"]
+    end
+
+    FE --> OPT
+    OPT --> HOST
+    OPT --> CAL
+    CAL --> TQP
+    HOST <--> DAL
+    TQP <--> DAL
+          </pre>
+          <p class="diagram-caption">CoddSpeed's two-layer architecture inside Fabric Data Warehouse. CAL (Coprocessor Abstraction Layer) handles compute offload — exposing GPU capabilities to the optimizer and serialising sub-plans for GPU execution. DAL (Data Abstraction Layer) handles data movement, presenting NVLink, InfiniBand, PCIe and Ethernet as a single key/value transport. The CPU host path remains for operations the GPU cannot handle.</p>
+        </div>
+
+        <h3>CAL: Coprocessor Abstraction Layer</h3>
+
+        <p>CAL is the interface between Fabric's existing distributed optimizer and the GPU executor. Its design reflects a deliberate principle from the paper: <em>integrate the accelerator alongside the existing engine, don't replace it</em>. CAL exposes the GPU coprocessor as a "capability surface" — a set of operators and operator configurations that can run on GPU. The optimizer queries this surface at plan time to understand what it can offload.</p>
+
+        <p>When the optimizer decides to route a fragment to the GPU, CAL serializes that fragment as a <strong>Substrate plan</strong> — a hardware-neutral intermediate representation — and feeds data to the GPU coprocessor in Parquet or SQL Server columnar format. Where the data is already in columnar layout in memory, the handoff is zero-copy. CAL also handles <strong>per-partition fallback</strong>: if a specific partition of data arrives in a format or schema that the GPU executor cannot handle, that partition runs on CPU while the rest run on GPU. This partition-level granularity is critical for production reliability — it prevents a single malformed partition from forcing the entire query to CPU.</p>
+
+        <h3>DAL: Data Abstraction Layer</h3>
+
+        <p>Data movement is the other half of the challenge. In a distributed warehouse running multi-GPU execution, data shuffles between nodes. CoddSpeed may run across machines connected by NVLink, InfiniBand, PCIe, or plain Ethernet — sometimes all four in the same query execution. Writing shuffle logic for each combination is unsustainable.</p>
+
+        <p>DAL presents a single <strong>key/value interface</strong> over all of these transports. Above DAL, neither the query executor nor the optimizer sees NVLink vs PCIe — they see a cache and shuffle service with consistent semantics. Below DAL, the implementation selects the fastest available transport for each data movement: NVLink for GPU-to-GPU within a node, InfiniBand (or NVIDIA Infinity Fabric) for cross-node GPU transfers, PCIe for CPU-GPU on the same machine, Ethernet as the fallback. This is what makes the multi-GPU scaling numbers achievable without hand-coded network topology awareness in the query executor.</p>
+
+        <h2>The GPU Execution Pipeline</h2>
+
+        <p>Inside the GPU coprocessor, CoddSpeed's execution model evolved meaningfully from the original TQP prototype. The production system retains the tensor-operation framing — relational operators compiled to GPU-executable tensor computations — but replaces PyTorch's generic kernels with custom CUDA implementations for the hot path.</p>
+
+        <h3>What gets accelerated</h3>
+
+        <p>The GPU execution engine handles the operators that dominate analytical query runtimes:</p>
+        <ul>
+          <li><strong>Hash joins</strong> — build and probe phases both on GPU. The build side constructs a hash table in GPU HBM; the probe side streams through it. GPU parallelism means millions of probe lookups execute simultaneously across thousands of CUDA cores.</li>
+          <li><strong>Group-by aggregations</strong> — implemented using GPU reduction primitives and parallel sort/hash strategies. For high-cardinality aggregations, the parallel hash approach dominates; for low-cardinality, sort-based reduction is more cache-friendly.</li>
+          <li><strong>Table scans with predicate pushdown</strong> — columnar data lands in GPU memory and predicate evaluation runs as an element-wise vectorized operation across the entire column simultaneously. The effective throughput matches the HBM bandwidth ceiling.</li>
+          <li><strong>Arithmetic projections</strong> — column-level arithmetic, string operations, and type casts, all implemented as fused element-wise CUDA kernels to minimize intermediate materializations.</li>
+        </ul>
+
+        <p>Operators that don't fit — certain recursive CTEs, window functions with complex framing, user-defined functions — fall back to the CPU path transparently. The optimizer knows at plan time which operators are GPU-eligible via the CAL capability surface, so fallback is deterministic, not a runtime surprise.</p>
+
+        <h3>From PyTorch to custom CUDA</h3>
+
+        <p>This transition is one of the paper's more candid engineering sections. The TQP prototype used PyTorch's tensor API throughout — which meant depending on PyTorch's generic GPU kernels. Generic kernels are correct but not optimal: they handle arbitrary data types and shapes, so they carry overhead that a purpose-built SQL kernel for, say, 64-bit integer hash joins on a known schema, doesn't need.</p>
+
+        <p>In production, CoddSpeed replaced the hot-path operators with <strong>custom CUDA kernels tuned to the specific shapes and type profiles of SQL analytics</strong>. LibTorch (the C++ PyTorch runtime) is retained for GPU memory management — allocation, deallocation, the memory pool, and synchronization primitives — but the compute kernels for joins, aggregations, and scans are custom-written. The memory management layer handles the tricky parts: tracking which tensors live on CPU vs GPU, managing the limited GPU HBM budget across concurrent queries, and orchestrating explicit PCIe transfers when data needs to move.</p>
+
+        <h3>Fragment-level, not operator-level offload</h3>
+
+        <p>This is the design decision the paper emphasizes most strongly: <em>push large query fragments to the GPU, not individual operators</em>. The naive approach to GPU query acceleration — offload each operator independently, round-trip data through CPU memory between operators — destroys the performance advantage. Each PCIe round trip costs hundreds of milliseconds on a full-scan workload, and you need many operators to make a query.</p>
+
+        <p>CoddSpeed instead evaluates the whole sub-plan fragment — potentially a multi-operator pipeline spanning a scan, multiple filters, a join, and an aggregation — on the GPU without touching CPU memory in between. Intermediate results stay in GPU HBM across operator boundaries. Data moves to the CPU only when the fragment result is complete and needs to be returned to the distributed query coordinator. This is the key to hitting 10–30× speedups rather than 2–3×.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+sequenceDiagram
+    participant OPT as Optimizer
+    participant CAL as CAL Layer
+    participant GPU as GPU Coprocessor (HBM)
+    participant DAL as DAL (shuffle)
+    participant CPU as CPU Host
+
+    OPT->>CAL: Route eligible fragment (scan+filter+join+agg)
+    CAL->>GPU: Serialize Substrate plan + columnar data (zero-copy if in-mem)
+    Note over GPU: Scan → predicate eval → hash build<br/>→ hash probe → group-by agg<br/>All intermediate data stays in HBM
+    GPU->>DAL: Fragment result (HBM → shuffle buffer)
+    DAL->>CPU: Result delivery via PCIe / NVLink
+    CPU-->>OPT: Merge with other fragments
+    Note over CPU: Ineligible ops (CTEs, UDFs)<br/>run on CPU concurrently
+          </pre>
+          <p class="diagram-caption">Fragment-level offload: the multi-operator pipeline (scan → filter → join → aggregate) executes entirely within GPU HBM without any CPU round-trip between operators. Intermediate results stay in GPU memory across operator boundaries; only the final fragment result crosses the PCIe/NVLink bus. This is what makes the 10–30× numbers achievable — the alternative, operator-level round-tripping, would reduce GPU gains to near zero.</p>
+        </div>
+
+        <h2>The Optimizer's Role: Routing Without Rewriting</h2>
+
+        <p>A key claim in both the paper and the product announcement is that CoddSpeed requires no query rewrites. The routing decision is entirely inside Fabric's distributed optimizer. Here is what the optimizer actually does:</p>
+
+        <ul>
+          <li><strong>Capability lookup via CAL</strong>: before optimization, the optimizer queries CAL for the current GPU capability surface — which operators, type combinations, and join sizes can run on GPU.</li>
+          <li><strong>Cost-based fragment routing</strong>: the optimizer treats GPU execution as an alternative execution strategy for eligible sub-plans, with an estimated cost model that accounts for data movement overhead, GPU memory pressure, and expected speedup.</li>
+          <li><strong>Fragment boundary selection</strong>: the optimizer selects fragment boundaries to maximize the amount of compute that stays on GPU before a result must cross the bus. A join feeding directly into an aggregation should stay in one GPU fragment, not two.</li>
+          <li><strong>Plan caching</strong>: GPU-routed plans are cached. Repeated queries with the same plan shape don't re-run the routing logic.</li>
+        </ul>
+
+        <p>From the user's perspective this is invisible. The same <code>SELECT</code> statement that ran on CPU runs on GPU, with results identical to floating-point precision constraints. No hints, no annotations, no schema changes.</p>
+
+        <h2>Benchmark Results</h2>
+
+        <p>The paper reports a well-structured benchmark suite. The numbers are worth reading carefully because they answer different questions depending on hardware configuration.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Configuration</th>
+                <th>Workload</th>
+                <th>Speedup (warm)</th>
+                <th>Speedup (cold)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Single A100</td><td>TPC-H SF=100 (100 GB)</td><td><strong>7.9×</strong></td><td>4.7×</td></tr>
+              <tr><td>Single H100 vs. A100</td><td>Same workload</td><td><strong>+50%</strong> over A100</td><td>—</td></tr>
+              <tr><td>Single GPU (internal)</td><td>Customer workload, 300 GB</td><td><strong>14.9×</strong></td><td>9.7×</td></tr>
+              <tr><td>8× H100 + NVLink (DAL)</td><td>TPC-H large scale</td><td><strong>27.1×</strong></td><td>—</td></tr>
+              <tr><td>16× H100, 2-node</td><td>TPC-H large scale</td><td><strong>30.4×</strong></td><td>—</td></tr>
+              <tr><td>vs. 3 cloud DWs, 64 users</td><td>100 GB, 22-query set</td><td><strong>up to 7×</strong></td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>A few things worth unpacking here:</p>
+
+        <p><strong>Warm vs cold matters a lot.</strong> The "warm" numbers assume data is already in GPU HBM or at least in host memory, so the PCIe transfer cost is amortized. The cold numbers — where data must be read from storage, moved through CPU memory, and then transferred to GPU — still show substantial speedups (4.7× on TPC-H SF=100) but are roughly half the warm numbers. For interactive BI workloads where the same tables are queried repeatedly, the warm numbers are more representative. For one-off batch queries, the cold numbers apply.</p>
+
+        <p><strong>NVLink changes the multi-GPU story.</strong> The jump from single-GPU (7.9×) to 8-GPU with NVLink (27.1×) is near-linear scaling, which is remarkable. Without NVLink — GPU-to-GPU data moving through PCIe and CPU memory — multi-GPU scaling degrades badly because shuffle overhead dominates. DAL's NVLink-aware routing is what makes the 27× number real rather than theoretical.</p>
+
+        <p><strong>The 7× vs competitors number is concurrency-gated.</strong> At single-user concurrency, the CoddSpeed advantage over CPU-based cloud warehouses is ~3–4×. At 64-user concurrency, it reaches 7× — because CPU-based systems degrade under parallel workloads (shared memory bandwidth becomes the bottleneck and queries start queuing), while the GPU's massive parallelism means it degrades less. This is the most commercially relevant number, as BI workloads almost always involve concurrent users.</p>
+
+        <div class="callout tip">
+          <p><strong>The warm/cold asymmetry is also an architecture hint.</strong> Teams that run the same analytical workloads repeatedly — daily BI dashboards, regularly scheduled aggregations — will see closer to the 15× numbers because their data is effectively pre-staged. Teams running purely ad-hoc queries over cold data get 5–10×. Both are meaningful; they're just different use cases with different expectations to set.</p>
+        </div>
+
+        <h2>Production Lessons: What the Paper Is Unusually Honest About</h2>
+
+        <p>SIGMOD industry papers often read as polished success stories. CoddSpeed's paper is atypically candid about what was hard. Four lessons stand out.</p>
+
+        <h3>1. Don't replace the existing system</h3>
+        <p>Early internal prototypes explored running the entire query engine on GPU — replacing the existing distributed executor. This failed. The existing engine handles too many things the GPU cannot: complex DDL, error handling, management operations, the long tail of SQL constructs. Integrating CoddSpeed <em>alongside</em> the existing engine (via CAL's fallback mechanism) let them ship with incomplete GPU coverage and improve coverage incrementally, without a flag-day cutover.</p>
+
+        <h3>2. Fragment granularity over operator granularity</h3>
+        <p>Already discussed above, but the paper quantifies the point: operator-level offload recovers a fraction of the potential speedup because transfer overhead amortizes poorly at single-operator granularity. The decision to make fragments the unit of offload — requiring a non-trivial optimizer change — was necessary, not optional.</p>
+
+        <h3>3. Abstract both compute and network simultaneously</h3>
+        <p>The DAL layer was not in the original design. The team initially assumed they could use the existing Fabric shuffle infrastructure for GPU-to-GPU data movement. That assumption broke at multi-node scale when NVLink-capable nodes appeared in the hardware fleet — the existing shuffle code had no path for GPU-native data transfer and was forced to round-trip through CPU memory. Building DAL before scaling to multi-GPU was retroactively identified as the correct sequencing.</p>
+
+        <h3>4. PyTorch is the right prototype platform, not the right production platform</h3>
+        <p>PyTorch's generic kernels and Python overhead are acceptable in a research prototype where correctness matters more than throughput. In production, they become the bottleneck. The custom CUDA rewrite of hot-path operators added months of engineering effort but was responsible for a significant fraction of the final speedup numbers. The paper frames this as expected: research prototypes optimize for flexibility; production systems optimize for throughput on the specific workloads they actually run.</p>
+
+        <h2>What It Means for the Fabric Data Warehouse User</h2>
+
+        <p>CoddSpeed entered Early Access Preview in July 2026, rolling out across four regions with more to follow. From a practitioner's perspective, the important practical facts are:</p>
+
+        <ul>
+          <li><strong>No changes required.</strong> Existing Fabric Data Warehouse tables, queries, pipelines, and semantic models work without modification. The optimizer decides what runs on GPU.</li>
+          <li><strong>Concurrency is where it shines.</strong> If you have a single analyst running occasional heavy queries, the win is real but modest. If you have 20+ users hitting dashboards simultaneously, the GPU's parallel execution model changes the performance profile substantially.</li>
+          <li><strong>Joins and aggregations benefit most.</strong> Queries dominated by large hash joins or high-cardinality aggregations over wide tables will see the biggest speedups. Simple point lookups and single-table filters benefit less.</li>
+          <li><strong>Cold start matters for latency SLAs.</strong> If your workload cares about first-query latency on cold data, the 4–5× cold number is the right expectation. If you care about sustained throughput on warm data, plan for 10–15×.</li>
+          <li><strong>AMD and Intel accelerators are planned.</strong> The CAL abstraction was designed to host multiple accelerator backends. NVIDIA H100/A100 is the first GA target; AMD MI300X and Intel Gaudi support are on the roadmap. This is not a one-GPU bet.</li>
+        </ul>
+
+        <h2>Broader Significance: Research-to-Production as a Systems Discipline</h2>
+
+        <p>The reason CoddSpeed won Best Industry Paper at SIGMOD 2026 is not the speedup numbers — 10–30× GPU speedups have appeared in GPU database research for a decade. The reason is the <em>architecture of the transition</em>: what organizational and technical decisions allowed a research prototype running on PyTorch to become a production feature in a cloud data warehouse used by hundreds of thousands of customers, without rewriting the query frontend, without requiring schema changes, and with a graceful fallback for every SQL construct the GPU can't yet handle.</p>
+
+        <p>That transition — TQP research paper (2022) → internal prototype → CoddSpeed production (2026) — took four years and grew from a small research team to 60+ engineers. The paper's candid accounting of what had to change along the way (generic kernels → custom CUDA, operator-level → fragment-level, no shuffle abstraction → DAL, replace the engine → coexist with it) is more useful to the systems community than any individual performance number.</p>
+
+        <p>For Fabric users the takeaway is simpler: the GPU acceleration is real, it's architecturally sound, it requires nothing from you, and the benchmark numbers were produced on the same hardware you'll use in production. The 7× concurrency advantage over the field is the number to watch.</p>
+
+        <div class="callout">
+          <p><strong>Source paper:</strong> Interlandi, Bruno, Haynes, Curino, Sen et al., "CoddSpeed: Hardware Accelerated Query Processing in Microsoft Fabric." SIGMOD 2026 Industrial Track, Best Paper. arXiv:2506.09226.</p>
+        </div>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>
