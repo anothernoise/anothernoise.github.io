@@ -3,7 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snowflake Cortex AI in 2026: Agents, Analyst, and the Agentic Data Cloud</title>
+  <title>Snowflake Cortex AI 2026: Agents, AISQL, Document AI &amp; Use Cases</title>
+  <meta name="description" content="A 2026 deep dive into Snowflake Cortex AI: Cortex Agents (GA), AISQL operators, Document AI, and Cortex Knowledge Extensions — with concrete use cases, cost best practices, and production lessons learned for building governed AI on your data.">
+  <meta name="keywords" content="Snowflake Cortex AI, Cortex Agents, Cortex Analyst, Cortex Search, AISQL, AI_FILTER, AI_CLASSIFY, Document AI, Cortex Knowledge Extensions, Snowflake Intelligence, agentic data cloud, RAG, text-to-SQL">
+  <meta name="author" content="Dmitry Shirokov">
+  <link rel="canonical" href="https://anothernoise.github.io/blog/snowflake-cortex-2026.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Snowflake Cortex AI 2026: Agents, AISQL, Document AI & Use Cases">
+  <meta property="og:description" content="Cortex Agents (GA Nov 2025), AISQL operators, Document AI, and Knowledge Extensions — concrete use cases, cost best practices, and production lessons for governed AI on Snowflake data.">
+  <meta property="og:url" content="https://anothernoise.github.io/blog/snowflake-cortex-2026.html">
+  <meta property="og:site_name" content="Dmitry Shirokov — Data &amp; AI Engineering">
+  <meta property="article:published_time" content="2026-05-04">
+  <meta property="article:modified_time" content="2026-06-11">
+  <meta property="article:author" content="Dmitry Shirokov">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Snowflake Cortex AI 2026: Agents, AISQL, Document AI & Use Cases">
+  <meta name="twitter:description" content="Cortex Agents, AISQL, Document AI, and Knowledge Extensions — use cases, cost best practices, and lessons learned.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Snowflake Cortex AI in 2026: Agents, Analyst, and the Agentic Data Cloud",
+    "description": "A 2026 deep dive into Snowflake Cortex AI: Cortex Agents, AISQL operators, Document AI, and Cortex Knowledge Extensions — with use cases, cost best practices, and production lessons learned.",
+    "datePublished": "2026-05-04",
+    "dateModified": "2026-06-11",
+    "author": { "@type": "Person", "name": "Dmitry Shirokov" },
+    "publisher": { "@type": "Person", "name": "Dmitry Shirokov" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://anothernoise.github.io/blog/snowflake-cortex-2026.html" },
+    "keywords": "Snowflake Cortex AI, Cortex Agents, Cortex Analyst, Cortex Search, AISQL, Document AI, Cortex Knowledge Extensions, agentic data cloud, RAG, text-to-SQL",
+    "articleSection": "AI Engineering",
+    "about": [
+      { "@type": "Thing", "name": "Snowflake Cortex" },
+      { "@type": "Thing", "name": "Enterprise AI agents" }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
@@ -228,6 +262,37 @@ resp = requests.post(
           <li><strong>Cortex Knowledge Extensions</strong> — packaged third-party content (e.g. licensed reference data) consumable by Search/agents via the Marketplace.</li>
         </ul>
 
+        <h2>Use Cases in Practice</h2>
+
+        <p>The product surface is abstract until you map it to work people actually do. Here are the patterns that show up most often in production, organized by which Cortex capability does the heavy lifting.</p>
+
+        <h3>AISQL: AI as a column in your pipeline</h3>
+        <p>The highest-ROI Cortex pattern is also the least flashy: treat an LLM as a SQL function and run it over data you already have, in batch, inside your existing transformations. Concrete uses that pay for themselves quickly:</p>
+        <ul>
+          <li><strong>Support-ticket triage at SQL speed.</strong> <code>AI_CLASSIFY</code> routes tickets to queues, <code>SENTIMENT</code> flags at-risk customers, and <code>AI_FILTER</code> in a <code>WHERE</code> clause isolates (say) billing disputes — turning a manual reading task into a query. The win the teams describe is "recoverable capacity": the model handles routine volume so humans focus on the ambiguous, high-risk cases.</li>
+          <li><strong>Entity and field extraction</strong> from free text — pulling structured fields out of contracts, product reviews, or clinical notes with <code>EXTRACT_ANSWER</code> (which returns a confidence score you can threshold on) or a structured <code>COMPLETE</code> prompt.</li>
+          <li><strong>Multimodal enrichment</strong> — transcribing call recordings, summarizing documents, and translating multilingual content inline in a transformation so downstream dashboards reflect a complete global view rather than just the English subset.</li>
+          <li><strong>Aggregate reasoning</strong> — <code>AI_AGG</code> summarizes the top recurring themes across all reviews in a product line in one grouped query, replacing a manual sampling exercise.</li>
+        </ul>
+
+        <h3>Cortex Agents: questions that span numbers and prose</h3>
+        <p>Agents earn their keep on questions a single tool can't answer. The canonical pattern is "what happened, and why" — a metric plus its explanation:</p>
+        <ul>
+          <li><strong>Governed self-serve analytics:</strong> "Why did EMEA churn rise last quarter, and what are customers saying?" The agent calls Cortex Analyst for the churn number (via a semantic view) and Cortex Search over support tickets/NPS verbatims for the qualitative reasons, then reconciles both — under the asking user's permissions.</li>
+          <li><strong>Operational copilots</strong> that combine a custom tool (a stored procedure implementing business logic) with retrieval — e.g. an agent that looks up an account's current status via a UDF and pulls the relevant policy text via Search.</li>
+          <li><strong>Cross-system workflows via MCP</strong> — agents calling out to Atlassian, Salesforce, or custom MCP servers to fetch context that lives outside Snowflake, while keeping the data-grounded reasoning inside the governed perimeter.</li>
+        </ul>
+
+        <h3>Document AI: unstructured documents into the warehouse</h3>
+        <p>Document AI is the workhorse for turning PDFs and images into rows. It is most valuable as a <em>preprocessing step that feeds the other capabilities</em>: extract invoice fields, contract terms, or form data, land them as structured columns, then let AISQL classify them or an agent reason over them. Typical homes are finance (invoice and receipt extraction), legal (contract clause extraction), insurance (claims forms), and healthcare (intake documents) — anywhere a custom OCR/parsing pipeline used to live.</p>
+
+        <h3>Cortex Knowledge Extensions: licensed knowledge, governed</h3>
+        <p>Cortex Knowledge Extensions (CKEs) are Cortex Search services packaged and shared — typically via the Snowflake Marketplace or private listings — so you can ground an agent or RAG app in <strong>third-party or licensed content</strong> (market research, reference texts, industry corpora, regulatory libraries) without building and maintaining that ingestion yourself. Two patterns dominate:</p>
+        <ul>
+          <li><strong>Consuming a CKE</strong> to augment your own agent with authoritative external knowledge — the licensed content stays governed and is retrievable exactly like your internal Search services.</li>
+          <li><strong>Publishing a CKE</strong> — if you own valuable content, you can package it as a CKE and monetize it through Marketplace (subscriptions or trials), turning a proprietary corpus into a product other Snowflake customers ground their AI on.</li>
+        </ul>
+
         <h2>Cost: Still Tokens, Still Credits, Still the Same Trap</h2>
 
         <p>The billing model is unchanged in shape: AISQL functions are billed per token, converted to Snowflake credits, and agent runs bill for every underlying tool call and token they consume. That last part is the new wrinkle — an agent that fans out to Analyst, Search, web search, and a couple of reflection steps consumes more than a single function call, and a multi-step agent over a large dataset can surprise you the same way <code>SUMMARIZE</code> over 10M rows did in 2024.</p>
@@ -249,6 +314,29 @@ resp = requests.post(
         <div class="callout warning">
           <p><strong>Agents multiply the 2024 batch trap.</strong> A single agent question is cheap. The same agent wired into an app and called on every page load, fanning out to four tools each time, is not. Before exposing an agent in production, measure the credit cost of a representative turn, multiply by expected traffic, and put a budget/resource monitor on the warehouse and on Cortex consumption. Use the cheapest orchestration model that holds answer quality on your eval set — the frontier model is rarely needed for the <em>planning</em> step.</p>
         </div>
+
+        <h2>Best Practices</h2>
+
+        <p>Patterns that consistently separate cost-effective, reliable Cortex deployments from expensive, flaky ones:</p>
+        <ul>
+          <li><strong>Filter before you call the model.</strong> Every row you eliminate with a plain SQL <code>WHERE</code> before an AISQL function is a row you don't pay tokens for. Push cheap predicates first; reserve the LLM for the rows that actually need it.</li>
+          <li><strong>Right-size the model per task.</strong> Don't default to the most capable (and expensive) model. A small/cheap model handles most classification, sentiment, and extraction at a fraction of the cost; reserve frontier models for genuinely hard generation or planning. The orchestration model for an <em>agent</em> rarely needs to be the biggest one.</li>
+          <li><strong>Count tokens on a sample first.</strong> Run <code>COUNT_TOKENS</code> over a representative sample before processing a large table — token counts are almost always higher than intuition suggests, and this is where batch jobs blow their budget.</li>
+          <li><strong>Prefer batch over real-time</strong> for AISQL. The functions are built for set-based, batch processing; per-row interactive calls are where latency and cost get ugly.</li>
+          <li><strong>Invest in the semantic view.</strong> Cortex Analyst (and therefore agents) is only as reliable as the semantic model behind it. Tight, well-described measures and dimensions reduce clarifying-question round-trips and wrong SQL — both of which cost tokens and trust.</li>
+          <li><strong>Constrain the agent toolbelt.</strong> Give an agent only the tools a task needs and cap its steps. A wide-open toolset increases both latency and the chance of a wrong tool choice.</li>
+          <li><strong>Use AI observability.</strong> Cortex's AI observability (GA mid-2025) lets you trace agent runs and evaluate quality — wire it in before you expose an agent to users, not after the first incident.</li>
+        </ul>
+
+        <h2>Lessons Learned</h2>
+
+        <ol>
+          <li><strong>Agents multiply the batch cost trap.</strong> A single agent question is cheap; the same agent on every page load, fanning out to four tools each time, is not. Measure the credit cost of a representative turn and multiply by traffic <em>before</em> shipping, and put resource monitors on both the warehouse and Cortex consumption.</li>
+          <li><strong>The data-stays-put guarantee is the real differentiator.</strong> With frontier models now served inside Cortex, the strongest reason to choose it is no longer model quality — it's zero data egress and unified governance. Your proprietary data isn't used to train the underlying models, and existing RBAC applies to every tool call. For nervous compliance teams, this eliminates an entire conversation.</li>
+          <li><strong>Garbage retrieval beats a good model every time.</strong> Most "the agent gave a bad answer" incidents trace to retrieval (a weak Search index or a sloppy semantic view), not the LLM. Fix the grounding layer first; swapping models rarely helps.</li>
+          <li><strong>Document AI quality needs a human-reviewed sample.</strong> Don't trust extraction at scale until you've reviewed a sample and measured field-level accuracy. Threshold on the confidence scores and route low-confidence extractions to human review.</li>
+          <li><strong>Treat CKEs like dependencies.</strong> A consumed Knowledge Extension is third-party content with its own update cadence and licensing — version and monitor it like any other external dependency, not as a static asset.</li>
+        </ol>
 
         <h2>When Cortex Wins in 2026 — and When It Still Doesn't</h2>
 

@@ -3,7 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Real-Time Snowflake on AWS: Snowpipe Streaming, Dynamic Tables, and Lessons Learned</title>
+  <title>Real-Time Snowflake on AWS: Snowpipe Streaming, Dynamic Tables &amp; Openflow</title>
+  <meta name="description" content="How to build low-latency pipelines on Snowflake + AWS: next-gen Snowpipe Streaming (10 GB/s, sub-10s), Dynamic Tables for incremental transforms, Openflow managed ingestion, a Kinesis/MSK reference architecture, use cases, and six hard-won lessons.">
+  <meta name="keywords" content="Snowflake real-time, Snowpipe Streaming, Dynamic Tables, Snowflake Openflow, Apache NiFi, Kinesis, MSK, Kafka connector, CDC, Debezium, TARGET_LAG, streaming data pipeline, AWS">
+  <meta name="author" content="Dmitry Shirokov">
+  <link rel="canonical" href="https://anothernoise.github.io/blog/snowflake-realtime-aws.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Real-Time Snowflake on AWS: Snowpipe Streaming, Dynamic Tables & Openflow">
+  <meta property="og:description" content="Next-gen Snowpipe Streaming, Dynamic Tables, and Openflow managed ingestion on AWS — reference architecture, use cases, and lessons learned for low-latency pipelines.">
+  <meta property="og:url" content="https://anothernoise.github.io/blog/snowflake-realtime-aws.html">
+  <meta property="og:site_name" content="Dmitry Shirokov — Data &amp; AI Engineering">
+  <meta property="article:published_time" content="2025-06-07">
+  <meta property="article:modified_time" content="2026-06-11">
+  <meta property="article:author" content="Dmitry Shirokov">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Real-Time Snowflake on AWS: Snowpipe Streaming, Dynamic Tables & Openflow">
+  <meta name="twitter:description" content="Build low-latency Snowflake pipelines on AWS — streaming ingestion, Dynamic Tables, Openflow, and the lessons that matter.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Real-Time Snowflake on AWS: Snowpipe Streaming, Dynamic Tables, and Lessons Learned",
+    "description": "How to build low-latency pipelines on Snowflake + AWS: next-gen Snowpipe Streaming, Dynamic Tables, Openflow managed ingestion, a Kinesis/MSK reference architecture, use cases, and six lessons learned.",
+    "datePublished": "2025-06-07",
+    "dateModified": "2026-06-11",
+    "author": { "@type": "Person", "name": "Dmitry Shirokov" },
+    "publisher": { "@type": "Person", "name": "Dmitry Shirokov" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://anothernoise.github.io/blog/snowflake-realtime-aws.html" },
+    "keywords": "Snowflake real-time, Snowpipe Streaming, Dynamic Tables, Snowflake Openflow, Apache NiFi, Kinesis, MSK, CDC, Debezium, TARGET_LAG, AWS",
+    "articleSection": "Data Engineering",
+    "about": [
+      { "@type": "Thing", "name": "Snowflake" },
+      { "@type": "Thing", "name": "Streaming data pipelines" }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
@@ -61,7 +95,8 @@
         <h1>Real-Time Snowflake on AWS: Snowpipe Streaming, Dynamic Tables, and Lessons Learned</h1>
         <div class="article-meta">
           <span>📅 June 7, 2025</span>
-          <span>📖 19 min read</span>
+          <span>🔄 Updated June 11, 2026</span>
+          <span>📖 22 min read</span>
           <span>❄️ Snowflake</span>
           <span>☁️ AWS</span>
           <span>🔧 Data Engineering</span>
@@ -212,6 +247,32 @@ GROUP BY 1, 2;</code></pre>
               <tr><td>Operational overhead</td><td>Low</td><td>Higher (you own the orchestration)</td></tr>
             </tbody>
           </table>
+        </div>
+
+        <h2>Openflow: Managed Ingestion for Everything Streaming Doesn't Cover</h2>
+
+        <div class="callout tip">
+          <p><strong>Added June 11, 2026.</strong> Snowflake <strong>Openflow</strong> reached general availability after this article first published — initially as a BYOC (bring-your-own-cloud) deployment on AWS in mid-2025, then as fully-managed <em>Snowflake Deployments</em> running on Snowpark Container Services (GA November 4, 2025). It changes the ingestion story enough to warrant its own section.</p>
+        </div>
+
+        <p>Snowpipe Streaming is the right tool when you control the producer and can push rows. But a lot of "get this data into Snowflake" work isn't a stream you own — it's a SaaS API (Salesforce, Google Ads, SharePoint, Box), a database you need to CDC, or a pile of unstructured documents headed for an AI workload. Historically that meant Fivetran, custom connectors, or hand-rolled NiFi. <strong>Openflow is Snowflake's managed answer</strong>: a data-integration service built on Apache NiFi, with hundreds of processors and prebuilt connectors, wrapped in Snowflake governance, security, and observability.</p>
+
+        <p>Two deployment models matter:</p>
+        <ul>
+          <li><strong>Snowflake Deployments</strong> — Openflow runs fully managed on Snowpark Container Services inside Snowflake. Nothing to operate; the simplest path and the one to default to.</li>
+          <li><strong>BYOC (bring your own cloud)</strong> — Openflow runs in your own AWS account, for cases where data residency or network isolation requires the runtime to sit in your VPC.</li>
+        </ul>
+
+        <p>Where Openflow fits relative to streaming: it is the <strong>connector and movement layer</strong> for the sources that aren't a native row stream, and it can land that data into Snowflake (often via Snowpipe Streaming under the hood for the low-latency paths). Concrete use cases:</p>
+        <ul>
+          <li><strong>SaaS ingestion</strong> — pull from Salesforce, marketing platforms, collaboration tools without standing up Fivetran.</li>
+          <li><strong>Database CDC</strong> — change data capture from MySQL/PostgreSQL and others, as an alternative to the Debezium-on-MSK pattern when you'd rather not operate Kafka Connect.</li>
+          <li><strong>Unstructured data for AI</strong> — Openflow's headline use case: moving documents, images, audio, and other unstructured content into Snowflake so Cortex (see <a href="snowflake-cortex-2026.html">Part 2</a>) can index and reason over it. This is the ingestion half of a RAG pipeline.</li>
+          <li><strong>Multimodal and event sources</strong> — hundreds of NiFi processors cover the long tail of formats and protocols that a pure streaming SDK doesn't.</li>
+        </ul>
+
+        <div class="callout">
+          <p><strong>How to choose between Openflow and Snowpipe Streaming.</strong> If you own the producer and need sub-10-second latency on a high-volume row stream, use Snowpipe Streaming directly. If the source is a SaaS app, a database to CDC, or unstructured content — or you want managed connectors instead of writing ingestion code — use Openflow. They're complements, not competitors: a mature platform often runs Snowpipe Streaming for its owned event firehose and Openflow for everything else, both landing into the same Dynamic Table DAG.</p>
         </div>
 
         <h2>A Reference Architecture on AWS</h2>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>End-to-End Data Vault on Snowflake: dbt, Openflow, Data Quality &amp; Governance</title>
+  <meta name="description" content="A practitioner's guide to building an end-to-end Data Vault 2.0 on Snowflake: Openflow ingestion, dbt-driven raw and business vault, data quality with Data Metric Functions and dbt tests, and Horizon governance — with best practices and lessons learned.">
+  <meta name="keywords" content="Data Vault Snowflake, dbt Data Vault, Snowflake Openflow, end-to-end data engineering, Data Metric Functions, DMF, data quality, Horizon governance, data lineage, automateDV, raw vault, business vault, information marts, data governance">
+  <meta name="author" content="Dmitry Shirokov">
+  <link rel="canonical" href="https://anothernoise.github.io/blog/end-to-end-data-vault-snowflake-dbt-openflow.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="End-to-End Data Vault on Snowflake: dbt, Openflow, Data Quality & Governance">
+  <meta property="og:description" content="Build a complete Data Vault 2.0 pipeline on Snowflake — Openflow ingestion, dbt vault modeling, data quality with DMFs, and Horizon governance — with best practices and lessons learned.">
+  <meta property="og:url" content="https://anothernoise.github.io/blog/end-to-end-data-vault-snowflake-dbt-openflow.html">
+  <meta property="og:site_name" content="Dmitry Shirokov — Data &amp; AI Engineering">
+  <meta property="article:published_time" content="2026-01-20">
+  <meta property="article:modified_time" content="2026-01-20">
+  <meta property="article:author" content="Dmitry Shirokov">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="End-to-End Data Vault on Snowflake: dbt, Openflow, DQ & Governance">
+  <meta name="twitter:description" content="The full pipeline — Openflow ingestion → dbt vault → marts — with data quality (DMFs) and Horizon governance built in.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "End-to-End Data Vault on Snowflake with dbt and Openflow: Engineering, Data Quality, and Governance",
+    "description": "A practitioner's guide to building an end-to-end Data Vault 2.0 on Snowflake: Openflow ingestion, dbt-driven raw and business vault, data quality with Data Metric Functions and dbt tests, and Horizon governance.",
+    "datePublished": "2026-01-20",
+    "dateModified": "2026-01-20",
+    "author": { "@type": "Person", "name": "Dmitry Shirokov" },
+    "publisher": { "@type": "Person", "name": "Dmitry Shirokov" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://anothernoise.github.io/blog/end-to-end-data-vault-snowflake-dbt-openflow.html" },
+    "keywords": "Data Vault Snowflake, dbt Data Vault, Snowflake Openflow, Data Metric Functions, data quality, Horizon governance, data lineage, automateDV, raw vault, business vault, information marts",
+    "articleSection": "Data Engineering",
+    "about": [
+      { "@type": "Thing", "name": "Data Vault 2.0" },
+      { "@type": "Thing", "name": "Snowflake" },
+      { "@type": "Thing", "name": "Data governance" }
+    ]
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../stylesheets/styles.css?v=2.1.0">
+  <link rel="stylesheet" href="../stylesheets/pygment_trac.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script type="module" src="../javascripts/theme.js"></script>
+  <script type="module" src="mermaid-theme.js"></script>
+  <style>
+    .blog-article { max-width: 820px; }
+    .article-header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 2rem; }
+    .article-header h1 { font-size: 2.2rem; line-height: 1.25; margin-bottom: 1rem; }
+    .article-meta { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.88rem; color: var(--text-muted); margin-top: 1rem; }
+    .article-content h2 { margin-top: 2.8rem; margin-bottom: 0.9rem; font-size: 1.5rem; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; }
+    .article-content h3 { margin-top: 1.8rem; margin-bottom: 0.7rem; font-size: 1.1rem; color: var(--accent-primary); }
+    .article-content p { line-height: 1.85; margin-bottom: 1.2rem; color: var(--text-secondary); }
+    .article-content ul, .article-content ol { margin-left: 1.6rem; margin-bottom: 1.2rem; }
+    .article-content li { margin-bottom: 0.6rem; color: var(--text-secondary); line-height: 1.7; }
+    .article-content code { background: var(--bg-secondary); padding: 0.15rem 0.45rem; border-radius: 4px; font-family: var(--font-mono); font-size: 0.88em; color: var(--accent-primary); }
+    .article-content pre { background: rgba(15,23,42,0.92); padding: 1.4rem 1.6rem; border-radius: 8px; overflow-x: auto; margin: 1.5rem 0; border-left: 3px solid var(--accent-primary); }
+    .article-content pre code { background: none; padding: 0; color: var(--text-secondary); font-size: 0.87rem; }
+    .back-link { display: inline-block; margin-bottom: 2rem; color: var(--accent-primary); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
+    .back-link:hover { text-decoration: underline; }
+    .callout { background: var(--accent-secondary); border-left: 4px solid var(--accent-primary); padding: 1rem 1.5rem; margin: 1.8rem 0; border-radius: 0 6px 6px 0; }
+    .callout p { margin: 0; font-size: 0.95rem; }
+    .callout.warning { border-left-color: hsl(0,72%,51%); background: rgba(239,68,68,0.06); }
+    .callout.tip { border-left-color: hsl(142,70%,45%); background: rgba(34,197,94,0.06); }
+    .table-wrapper { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { border: 1px solid var(--border-color); padding: 0.7rem 1rem; text-align: left; color: var(--text-secondary); }
+    th { background: var(--bg-secondary); font-weight: 600; color: var(--text-primary); }
+    tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+    .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
+    .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="theme-toggle-container">
+      <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9 9.005 9.005 0 0 0-9-9zm0 16a7 7 0 1 1 7-7 7.008 7.008 0 0 1-7 7z"/></svg>
+        <span>Toggle Theme</span>
+      </button>
+    </div>
+    <a href="./" class="back-link">← Back to Blog</a>
+    <article class="blog-article">
+      <header class="article-header">
+        <h1>End-to-End Data Vault on Snowflake with dbt and Openflow: Engineering, Data Quality, and Governance</h1>
+        <div class="article-meta">
+          <span>📅 January 20, 2026</span>
+          <span>📖 23 min read</span>
+          <span>❄️ Snowflake</span>
+          <span>🔧 Data Engineering</span>
+          <span>🏛️ Governance</span>
+        </div>
+      </header>
+      <div class="article-content">
+
+        <p>Most Data Vault writing stops at modeling — hubs, links, satellites, hash keys. That's the interesting part intellectually, but it's maybe a third of what it takes to run a Data Vault in production. The other two-thirds are the parts nobody demos: <strong>how data gets in</strong>, <strong>how you know it's correct</strong>, and <strong>how you govern it</strong> when 40 sources and a dozen teams depend on it. This article is about the whole pipeline — ingestion to governed marts — on Snowflake, with dbt orchestrating the transformations and Openflow handling ingestion.</p>
+
+        <p>If you want the modeling fundamentals — the hash-key debate, satellite variants, PIT/bridge tables — I covered those in <a href="data-vault-snowflake-dbt.html">Building a Data Vault 2.0 on Snowflake with dbt</a>. This piece assumes you know the entities and focuses on making the pipeline <em>operable</em>: end-to-end flow, data quality you can prove, and governance that's enforced rather than documented.</p>
+
+        <div class="callout tip">
+          <p><strong>What's new since the modeling article:</strong> Snowflake <strong>Openflow</strong> went GA (fully-managed Snowflake Deployments, November 2025), giving a native managed-ingestion layer that fits Data Vault's multi-source reality; and Snowflake's <strong>Data Metric Functions (DMFs)</strong> plus the <strong>Horizon Catalog</strong> turn data quality and governance into platform features rather than bolt-ons. This article puts those together with dbt into one operable pipeline.</p>
+        </div>
+
+        <h2>The End-to-End Picture</h2>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph LR
+    subgraph Sources["Many sources"]
+        SAAS["SaaS apps\n(Salesforce, etc.)"]
+        DB["Operational DBs\n(CDC)"]
+        FILES["Files / unstructured"]
+    end
+    subgraph Ingest["① Ingestion — Openflow"]
+        OF["Openflow (NiFi)\nconnectors + CDC\nmanaged on SPCS"]
+    end
+    subgraph Snowflake["Snowflake"]
+        LAND["Landing / source tables\n(VARIANT-friendly, raw)"]
+        STG["② Staging (dbt)\nhash keys + hashdiff\nload_dts, rec_src"]
+        RV["③ Raw Vault (dbt)\nHubs · Links · Sats\ninsert-only, source-faithful"]
+        BV["④ Business Vault (dbt)\nderived sats, PITs, bridges"]
+        IM["⑤ Information Marts (dbt)\nstar schemas / secure views"]
+    end
+    DQ["DMFs + dbt tests\n(quality at every layer)"]
+    GOV["Horizon Catalog\ntags · masking · row access · lineage"]
+
+    SAAS --> OF
+    DB --> OF
+    FILES --> OF
+    OF --> LAND --> STG --> RV --> BV --> IM
+    DQ -.monitors.-> RV
+    DQ -.monitors.-> IM
+    GOV -.governs.-> RV
+    GOV -.governs.-> IM
+          </pre>
+          <p class="diagram-caption">The full pipeline. Openflow lands raw data from many sources; dbt transforms it through staging, raw vault, business vault, and marts; Data Metric Functions and dbt tests enforce quality at each layer; and the Horizon Catalog applies tags, masking, row-access policies, and lineage across the whole thing. The Data Vault is the spine; ingestion, quality, and governance are the parts that make it production-grade.</p>
+        </div>
+
+        <h2>① Ingestion with Openflow</h2>
+
+        <p>Data Vault is built for many sources, and ingestion is where multi-source pipelines usually rot — a tangle of bespoke connectors, cron jobs, and CDC scripts each failing in its own way. <strong>Openflow</strong> (Snowflake's managed, Apache NiFi-based integration service) consolidates that. Running as a fully-managed Snowflake Deployment on Snowpark Container Services, it offers hundreds of processors and prebuilt connectors for SaaS apps, databases (CDC), streaming, and unstructured content, all landing into Snowflake under one governed, observable service.</p>
+
+        <p>For a Data Vault specifically, Openflow does three valuable things:</p>
+        <ul>
+          <li><strong>Lands source data faithfully.</strong> The raw vault's whole value is being source-faithful, so the ingestion layer must <em>not</em> transform or clean — it should land data as the source delivered it, stamped with arrival metadata. Openflow flows do exactly this: capture and land, leave interpretation to dbt downstream.</li>
+          <li><strong>Handles CDC for operational sources.</strong> Change data capture from operational databases maps perfectly to Data Vault's insert-only, history-preserving model — each change becomes a new satellite version. Openflow's CDC connectors remove the need to operate Debezium/Kafka Connect yourself.</li>
+          <li><strong>Brings unstructured data in</strong> for the increasingly common case where the vault feeds downstream AI — documents and multimodal content landed alongside structured records.</li>
+        </ul>
+
+        <div class="callout">
+          <p><strong>Keep the boundary clean: Openflow lands, dbt transforms.</strong> The single most important discipline at the ingestion boundary is to resist doing "just a little" cleaning in the flow. Every transformation in ingestion is a transformation you can't audit in the vault. Land raw (a <code>VARIANT</code> column for semi-structured payloads works well), stamp <code>load_dts</code> and <code>rec_src</code>, and let staging — version-controlled dbt SQL — do all interpretation. This keeps the raw vault provably faithful to source.</p>
+        </div>
+
+        <h2>② → ⑤ Transformation with dbt</h2>
+
+        <p>dbt owns everything from landing to marts. The layering mirrors the standard Data Vault architecture, and dbt's DAG expresses the dependencies and parallelism for free (see the <a href="data-vault-snowflake-dbt.html">modeling article</a> for the entity-level detail and automateDV macros). The key operational properties:</p>
+
+        <ul>
+          <li><strong>Staging</strong> computes hash keys and hashdiffs and stamps metadata — the one place real SQL lives and the one place hashing rules are enforced centrally.</li>
+          <li><strong>Raw Vault</strong> models are insert-only incrementals generated by automateDV; no business logic, ever.</li>
+          <li><strong>Business Vault</strong> applies derivations and adds query-acceleration structures (PITs, bridges) — built reactively, when query patterns justify them.</li>
+          <li><strong>Information Marts</strong> are the consumable star-schemas/secure-views. This is the only layer consumers and BI tools touch.</li>
+        </ul>
+
+        <p>Because the raw-vault loads have no cross-dependencies, they parallelize across dbt threads against Snowflake's insert-friendly, immutable micro-partition storage (the reason that fit is so good is covered in <a href="snowflake-internals.html">Snowflake internals</a>). Separate warehouses per layer keep loading, transformation, and consumption workloads isolated and individually cost-attributable.</p>
+
+        <h2>③ Data Quality: Prove It, Don't Hope It</h2>
+
+        <p>A Data Vault accumulates history forever, which means quality problems also accumulate forever if you don't catch them. Quality in this stack comes from two complementary layers — dbt tests at build time and Snowflake Data Metric Functions at rest.</p>
+
+        <h3>dbt tests — build-time, Data-Vault-specific</h3>
+        <p>Generic <code>not_null</code>/<code>unique</code> tests miss the failures that actually matter in a vault. Test the <em>grain and the keys</em>:</p>
+        <ul>
+          <li><strong>Hub uniqueness</strong> — exactly one row per business key (and per hash key). A duplicate here means inconsistent hashing.</li>
+          <li><strong>Link grain</strong> — uniqueness on the link hash; no accidental fan-out.</li>
+          <li><strong>Satellite integrity</strong> — every satellite key resolves to a hub/link (relationship tests), and hashdiff behavior is correct (no duplicate consecutive versions with identical hashdiffs).</li>
+          <li><strong>Referential consistency</strong> across the vault — no orphan satellites, no links pointing at absent hubs.</li>
+        </ul>
+
+        <pre><code class="language-yaml"># models/raw_vault/_raw_vault.yml
+models:
+  - name: hub_customer
+    columns:
+      - name: hk_customer
+        tests: [unique, not_null]        # one row per business key
+      - name: customer_id
+        tests: [not_null]
+  - name: sat_customer_details
+    tests:
+      # satellite keys must exist in the hub
+      - relationships:
+          to: ref('hub_customer')
+          field: hk_customer
+          column_name: hk_customer
+    columns:
+      - name: hashdiff
+        tests: [not_null]</code></pre>
+
+        <h3>Data Metric Functions — at-rest, continuous</h3>
+        <p>dbt tests fire when models build. But data also degrades <em>between</em> builds, and consumers care about the marts, not your DAG. Snowflake's <strong>Data Metric Functions (DMFs)</strong> monitor quality continuously on the tables themselves and surface results through Horizon. Built-in system DMFs cover the common dimensions — freshness, volume, uniqueness, null counts, accepted values — and you can write custom DMFs for business-specific rules.</p>
+
+        <pre><code class="language-sql">-- Continuously monitor the customer mart for freshness and uniqueness.
+-- Schedule the metric to evaluate when the table changes.
+ALTER TABLE marts.dim_customer
+  SET DATA_METRIC_SCHEDULE = 'TRIGGER_ON_CHANGES';
+
+-- Built-in: how many NULL emails are slipping through?
+ALTER TABLE marts.dim_customer
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email);
+
+-- Built-in: is the business key actually unique in the mart?
+ALTER TABLE marts.dim_customer
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.DUPLICATE_COUNT ON (customer_id);
+
+-- Built-in: how stale is the mart? (minutes since last update)
+ALTER TABLE marts.dim_customer
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.FRESHNESS ON (updated_at);
+
+-- Results land in SNOWFLAKE.LOCAL.DATA_QUALITY_MONITORING_RESULTS
+-- → alert on them with a task, or surface in Horizon / your catalog.</code></pre>
+
+        <p>The division of labor: <strong>dbt tests gate the build</strong> (a failing test stops bad data propagating), while <strong>DMFs monitor the live tables</strong> (catching freshness gaps, upstream drift, and slow degradation that a point-in-time build test wouldn't). Use both — they answer different questions.</p>
+
+        <div class="callout tip">
+          <p><strong>Monitor the marts, test the vault.</strong> Put your heaviest dbt testing on the raw/business vault (where structural correctness is defined) and your DMF monitoring on the information marts (where consumers feel problems). Monitoring every satellite with DMFs is expensive and rarely actionable; monitoring the marts consumers actually query gives you the signal that matters at a fraction of the cost.</p>
+        </div>
+
+        <h2>④ Governance with Horizon</h2>
+
+        <p>A vault integrating 40 sources is, by definition, a concentration of sensitive data — PII from CRMs, financials, health or payment data. Governance can't be a spreadsheet of policies; it has to be enforced by the platform. Snowflake's <strong>Horizon Catalog</strong> unifies the pieces, and crucially they're <em>connected</em>: classify a column and that classification flows into lineage, masking, and discovery automatically.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    subgraph Horizon["Horizon Catalog (unified governance)"]
+        CLASS["Auto-classification\n+ sensitive-data tags (PII, etc.)"]
+        MASK["Masking policies\n(dynamic, tag-driven)"]
+        ROW["Row-access policies\n(tenant / region scoping)"]
+        LIN["Column-level lineage\nsource → vault → mart"]
+        DQ2["Data quality (DMFs)\nresults in context"]
+    end
+    CLASS --> MASK
+    CLASS --> LIN
+    MASK -.enforced on.-> MARTS["Information marts\n(+ Iceberg via REST catalog)"]
+    ROW -.enforced on.-> MARTS
+    LIN -.traces.-> SRC["back to source system"]
+          </pre>
+          <p class="diagram-caption">Horizon ties classification, masking, row-access, lineage, and data-quality into one model. Tag a column as PII once and the tag-driven masking policy applies everywhere it flows; lineage lets you trace any mart column back through the vault to its source system — the exact capability regulated industries need to prove provenance.</p>
+        </div>
+
+        <p>How the governance layers map onto a Data Vault:</p>
+        <ul>
+          <li><strong>Classification &amp; tagging</strong> — auto-classify sensitive columns at the staging/raw-vault boundary so tags propagate as data flows into satellites and marts. Tag once, near the source.</li>
+          <li><strong>Tag-driven masking</strong> — attach dynamic masking policies to tags (not individual columns), so any PII-tagged column is masked consistently wherever it surfaces, including in marts shared downstream.</li>
+          <li><strong>Row-access policies</strong> — enforce tenant, region, or business-unit scoping on the marts, so a shared mart shows each consumer only their slice.</li>
+          <li><strong>Column-level lineage</strong> — Horizon traces a mart column back through the business and raw vault to the originating source. This is the "prove where this number came from" capability that makes Data Vault attractive to regulated industries in the first place (and complements the evidence-layer argument in the <a href="regulated-ai-finance.html">banking governance</a> piece).</li>
+        </ul>
+
+        <pre><code class="language-sql">-- Tag-driven masking: define once, applies everywhere the tag appears.
+CREATE MASKING POLICY mask_pii_email AS (val STRING) RETURNS STRING ->
+  CASE WHEN IS_ROLE_IN_SESSION('PII_READER') THEN val
+       ELSE REGEXP_REPLACE(val, '.+@', '****@') END;
+
+-- Associate the policy with a governance tag, not a column.
+ALTER TAG governance.pii SET MASKING POLICY mask_pii_email;
+
+-- Now simply tagging any email column enforces masking downstream.
+ALTER TABLE marts.dim_customer MODIFY COLUMN email
+  SET TAG governance.pii = 'email';</code></pre>
+
+        <div class="callout">
+          <p><strong>Govern the marts, share the marts.</strong> As with quality, concentrate enforcement where data is consumed. The raw vault stays private (it's unusable without deep Data Vault knowledge and leaks source internals); the information marts are the governed, masked, row-scoped sharing surface. Snowflake masking and row-access policies on marts are even enforced for external engines reading via the Iceberg REST catalog — so the governance holds whether a consumer queries through Snowflake or through Spark/Trino.</p>
+        </div>
+
+        <h2>Best Practices</h2>
+
+        <ol>
+          <li><strong>Land raw, transform in dbt.</strong> No cleaning in Openflow. The raw vault's audit value depends on the ingestion layer being a faithful capture, not a transformer.</li>
+          <li><strong>Centralize hashing rules.</strong> Normalization (case, trim, null token, delimiter) defined once and reused everywhere — inconsistent hashing is the bug that silently produces duplicate hubs. automateDV's globals enforce this.</li>
+          <li><strong>Test the vault, monitor the marts.</strong> Heavy dbt testing on vault structure (keys, grain, relationships); DMF monitoring on the marts consumers query. Different layers, different failure modes.</li>
+          <li><strong>Tag sensitive data near the source.</strong> Classify and tag at staging/raw-vault so masking and lineage propagate automatically — retrofitting governance onto a mature vault is painful.</li>
+          <li><strong>Separate warehouses per layer.</strong> Ingestion-adjacent loads, transformation, and consumption on isolated warehouses for workload isolation and clean cost attribution.</li>
+          <li><strong>Build PITs/bridges and add DMFs reactively.</strong> Both are ongoing cost. Add them where measured query patterns or quality incidents justify them, not preemptively.</li>
+          <li><strong>Version the contracts, not just the code.</strong> Publish stable mart contracts so downstream teams aren't coupled to internal vault structure; the mart absorbs vault changes invisibly.</li>
+        </ol>
+
+        <h2>Lessons Learned</h2>
+
+        <ol>
+          <li><strong>Ingestion is where multi-source projects actually fail.</strong> Teams over-invest in elegant modeling and under-invest in robust, observable ingestion, then drown in connector failures. A managed layer (Openflow or equivalent) with built-in observability pays back fast at 40 sources.</li>
+          <li><strong>Quality has two clocks.</strong> Build-time (dbt tests) and at-rest (DMFs) catch different problems. Teams that only do build-time tests miss freshness/drift on live marts; teams that only do DMFs let structurally-broken data into the vault. You need both.</li>
+          <li><strong>Governance retrofits are brutal.</strong> Classifying and tagging PII after a vault is mature — across hundreds of satellites — is far harder than tagging at the source boundary from day one. Bake it into staging.</li>
+          <li><strong>Lineage is the feature that sells Data Vault internally.</strong> When an auditor or regulator asks "where did this number come from," column-level lineage from mart back to source is the answer that justifies the whole methodology. Wire Horizon lineage in early; it's also your impact-analysis tool when a source changes.</li>
+          <li><strong>The marts are the product.</strong> The recurring failure mode is a beautiful vault with no usable consumption layer. Ingestion, vault, quality, and governance all exist to deliver trustworthy marts — budget real effort there, because it's the only layer anyone outside the data team ever sees.</li>
+        </ol>
+
+        <h2>The Bottom Line</h2>
+
+        <p>A production Data Vault on Snowflake in 2026 is no longer just a modeling exercise — the platform now supplies the operational pieces that used to be bespoke. Openflow gives you managed, observable, multi-source ingestion that lands data faithfully. dbt orchestrates the vault and marts with version control and a dependency-aware DAG. Data Metric Functions plus dbt tests make quality provable at both build time and at rest. And Horizon makes governance — classification, masking, row access, and lineage — an enforced property of the platform rather than a document nobody reads.</p>
+
+        <p>Get the modeling right (start with the <a href="data-vault-snowflake-dbt.html">modeling guide</a>), then treat ingestion, quality, and governance as first-class engineering — not afterthoughts. That's the difference between a Data Vault that's a compliance liability and one that's the trustworthy, auditable, change-absorbing foundation it's supposed to be.</p>
+
+      </div>
+    </article>
+    <footer style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border-color);text-align:center;color:var(--text-muted);">
+      <p><small>&copy; 2026 Dmitry Shirokov. <a href="../" style="color:var(--accent-primary);">Return to home</a></small></p>
+    </footer>
+  </div>
+  <script src="diagram-controls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>document.addEventListener('DOMContentLoaded',()=>{ document.querySelectorAll('pre:not(.mermaid) code').forEach(el=>hljs.highlightElement(el)); });</script>
+</body>
+</html>

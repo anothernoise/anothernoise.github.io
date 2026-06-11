@@ -3,7 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snowflake Internals: How the Three-Layer Architecture Actually Works</title>
+  <title>Snowflake Internals: Micro-Partitions, Table Types &amp; Time Travel Explained</title>
+  <meta name="description" content="A deep technical guide to Snowflake's architecture: immutable micro-partitions and pruning, virtual warehouses, the cloud services layer, managed vs external vs Iceberg vs hybrid tables, and how Time Travel and Fail-safe actually work internally.">
+  <meta name="keywords" content="Snowflake internals, micro-partitions, Snowflake architecture, virtual warehouses, partition pruning, Time Travel, Fail-safe, Iceberg tables, external tables, hybrid tables, Unistore, zero-copy cloning, query optimizer">
+  <meta name="author" content="Dmitry Shirokov">
+  <link rel="canonical" href="https://anothernoise.github.io/blog/snowflake-internals.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Snowflake Internals: Micro-Partitions, Table Types & Time Travel Explained">
+  <meta property="og:description" content="How Snowflake's three-layer architecture really works — micro-partitions, pruning, warehouses, the cloud services brain, every table type, and the internals of Time Travel and Fail-safe.">
+  <meta property="og:url" content="https://anothernoise.github.io/blog/snowflake-internals.html">
+  <meta property="og:site_name" content="Dmitry Shirokov — Data &amp; AI Engineering">
+  <meta property="article:published_time" content="2025-04-14">
+  <meta property="article:modified_time" content="2026-06-11">
+  <meta property="article:author" content="Dmitry Shirokov">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Snowflake Internals: Micro-Partitions, Table Types & Time Travel">
+  <meta name="twitter:description" content="A deep technical guide to Snowflake's storage, compute, and cloud-services layers — plus table types and how Time Travel works internally.">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Snowflake Internals: How the Three-Layer Architecture Actually Works",
+    "description": "A deep technical guide to Snowflake's architecture: immutable micro-partitions and pruning, virtual warehouses, the cloud services layer, managed vs external vs Iceberg vs hybrid tables, and how Time Travel and Fail-safe work internally.",
+    "datePublished": "2025-04-14",
+    "dateModified": "2026-06-11",
+    "author": { "@type": "Person", "name": "Dmitry Shirokov" },
+    "publisher": { "@type": "Person", "name": "Dmitry Shirokov" },
+    "mainEntityOfPage": { "@type": "WebPage", "@id": "https://anothernoise.github.io/blog/snowflake-internals.html" },
+    "keywords": "Snowflake internals, micro-partitions, virtual warehouses, partition pruning, Time Travel, Fail-safe, Iceberg tables, external tables, hybrid tables, Unistore, zero-copy cloning",
+    "articleSection": "Data Engineering",
+    "about": [
+      { "@type": "Thing", "name": "Snowflake" },
+      { "@type": "Thing", "name": "Cloud data warehouse architecture" }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
@@ -61,7 +95,8 @@
         <h1>Snowflake Internals: How the Three-Layer Architecture Actually Works</h1>
         <div class="article-meta">
           <span>📅 April 14, 2025</span>
-          <span>📖 17 min read</span>
+          <span>🔄 Updated June 11, 2026</span>
+          <span>📖 22 min read</span>
           <span>❄️ Snowflake</span>
           <span>🔧 Data Engineering</span>
           <span>🏗️ Architecture</span>
@@ -76,6 +111,10 @@
             <li><a href="snowflake-cortex-2026.html">Snowflake Cortex AI in 2026: Agents, Analyst, and the Agentic Data Cloud</a></li>
             <li><a href="snowflake-realtime-aws.html">Real-Time Snowflake on AWS: Snowpipe Streaming, Dynamic Tables, and Lessons Learned</a></li>
           </ol>
+        </div>
+
+        <div class="callout tip">
+          <p><strong>Updated June 11, 2026.</strong> This article was expanded with deeper coverage of micro-partition internals, a full breakdown of Snowflake's <strong>table types</strong> (managed, transient/temporary, external, Apache Iceberg, and hybrid/Unistore), and an internals-level treatment of <strong>Time Travel and Fail-safe</strong>. Where a capability reached general availability after the original April 2025 publication, it is flagged inline.</p>
         </div>
 
         <p>Most people learn Snowflake as a SQL endpoint: you point a BI tool at it, write <code>SELECT</code>, and a result comes back fast. That works right up until the day a query that used to take 4 seconds takes 90, or your monthly bill doubles with no change in workload, or someone asks why a table you "deleted" rows from yesterday still shows them. Every one of those questions is answered by the same thing — the architecture underneath the SQL.</p>
@@ -132,6 +171,15 @@ graph TD
         <h3>Self-describing metadata</h3>
         <p>For every micro-partition, Snowflake records metadata in the cloud services layer: the <strong>min and max value of each column</strong>, the number of distinct values, the null count, and size. The query optimizer uses these ranges to skip partitions that cannot possibly contain matching rows — <strong>partition pruning</strong>. You never declare an index; pruning is automatic and driven entirely by this metadata.</p>
 
+        <h3>How a micro-partition is physically built</h3>
+        <p>It's worth being concrete about what "columnar, compressed, self-describing" means at write time. When rows arrive, Snowflake groups them into a micro-partition and, within that unit, splits them into <strong>columns stored contiguously</strong>. Each column is then encoded independently — Snowflake picks the encoding per column based on the data it sees (dictionary encoding for low-cardinality strings, run-length for sorted/repeated values, delta for monotonic sequences, and so on) and layers a general-purpose compressor on top. Because every column is isolated, a query for three columns out of fifty reads only those three columns' byte ranges within each surviving partition — column projection and partition pruning compound.</p>
+
+        <p>Two consequences follow that trip people up. First, <strong>the unit of immutability is the partition, not the row</strong>: updating a single row means reading the partition it lives in, producing a new partition with that row changed, and retiring the old one. A workload of frequent single-row updates therefore generates enormous write amplification — the classic "why is my MERGE so slow / so expensive" answer. Second, because metadata is per-partition, a column with high <em>global</em> cardinality but good <em>local</em> clustering (values grouped within partitions) prunes well, while the same column scattered randomly across partitions prunes terribly even though the data is identical. Physical layout, not logical schema, decides pruning.</p>
+
+        <div class="callout">
+          <p><strong>Metadata-only queries.</strong> Because the min/max/count/null statistics live in cloud services, some queries never touch a warehouse at all. <code>SELECT COUNT(*)</code>, <code>MIN(col)</code>, <code>MAX(col)</code>, and <code>SELECT</code>ing the table's column list can often be answered from metadata alone — instant, zero compute credits. If a "trivial" query is suspiciously fast even on a suspended warehouse, this is why.</p>
+        </div>
+
         <div class="diagram-wrap">
           <pre class="mermaid">
 graph LR
@@ -158,6 +206,61 @@ ALTER TABLE fct_orders CLUSTER BY (order_date, customer_region);</code></pre>
 
         <div class="callout warning">
           <p><strong>Clustering keys are not free and not always the answer.</strong> Automatic Clustering consumes credits continuously as new data arrives and disturbs the sort order. On a table that's mostly insert-ordered by the column you filter on, a clustering key adds cost for no benefit. Always check <code>SYSTEM$CLUSTERING_INFORMATION</code> first, and prefer fixing the load pattern (e.g. loading in key order) over bolting on clustering.</p>
+        </div>
+
+        <h2>Table Types: Where the Bytes Actually Live</h2>
+
+        <p>"A Snowflake table" is not one thing. The storage model above describes the default — but Snowflake now offers several table types that change <em>who owns the bytes</em>, <em>what format they're in</em>, and <em>what workloads they suit</em>. Choosing the wrong one is a common and expensive mistake, so it's worth understanding each.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph TD
+    T{Where do the bytes live?\nWhat workload?}
+    T -->|Snowflake-owned FDN| MAN["Managed (permanent) tables\nfull FDN micro-partitions\nTime Travel + Fail-safe\nthe default"]
+    T -->|Snowflake-owned, short-lived| TRT["Transient / Temporary\nno Fail-safe (cheaper)\nstaging &amp; scratch"]
+    T -->|Your storage, open format| ICE["Apache Iceberg tables\nParquet + Iceberg metadata\nin your S3/GCS/Azure"]
+    T -->|Your storage, read-only| EXT["External tables\nquery files in place\nno DML, slower"]
+    T -->|Row store, OLTP| HYB["Hybrid tables (Unistore)\nrow engine, PK/FK, fast point ops"]
+    ICE -->|Snowflake catalog| ICEM["Snowflake-managed:\nauto compaction,\nnear-native performance"]
+    ICE -->|external catalog| ICEX["Externally-managed:\nread/write via REST catalog"]
+          </pre>
+          <p class="diagram-caption">Snowflake table types decision tree. The default permanent table gives you the full FDN engine plus Time Travel and Fail-safe. Iceberg tables trade some of that for open-format data in storage you own. External tables are read-only query-in-place. Hybrid tables are a different engine entirely — row-oriented, for operational workloads.</p>
+        </div>
+
+        <h3>Managed (permanent) tables — the default</h3>
+        <p>Everything described so far — FDN micro-partitions, automatic pruning, up to 90 days of Time Travel, 7 days of Fail-safe — is a managed permanent table. Snowflake owns and optimizes the storage; you get the best query performance and the full recovery story. This is the right default for almost all warehouse data.</p>
+
+        <h3>Transient and temporary tables</h3>
+        <p>Identical to permanent tables except they carry <strong>no Fail-safe period</strong> (and temporary tables live only for the session). Dropping Fail-safe removes the 7-day post-Time-Travel storage you'd otherwise pay for, so transient tables are the correct choice for <em>reproducible</em> intermediate data — staging tables, ELT scratch, anything you could simply rebuild. Using permanent tables for throwaway staging is a silent, recurring storage cost.</p>
+
+        <h3>Apache Iceberg tables</h3>
+        <p>Iceberg tables store their data as <strong>Parquet files plus Iceberg metadata in cloud storage you own and control</strong> (your S3/GCS/Azure bucket), rather than in Snowflake's internal FDN storage. The draw is open format and interoperability: other engines (Spark, Trino, DuckDB, Flink) can read the same tables without copying. Snowflake supports two flavours, and the distinction matters for performance:</p>
+        <ul>
+          <li><strong>Snowflake-managed Iceberg</strong> — the Snowflake Horizon Catalog owns metadata and transactions, and Snowflake automates maintenance (compaction, snapshot expiry). Performance is close to native FDN tables, and you can still write via Snowflake.</li>
+          <li><strong>Externally-managed Iceberg</strong> — a separate catalog (e.g. AWS Glue, an Iceberg REST catalog) owns the metadata; Snowflake reads (and, increasingly, writes) through it. More interoperable, but you own the maintenance burden, and performance depends on how well the external table is compacted.</li>
+        </ul>
+        <p>Rule of thumb: managed Iceberg gives near-native performance with open-format portability; externally-managed Iceberg maximizes interoperability at some performance and operational cost. Both substantially outperform the older read-only external-table path.</p>
+
+        <h3>External tables (read-only)</h3>
+        <p>External tables let you query files (Parquet, CSV, JSON) <strong>in place</strong> in cloud storage without loading them. They are read-only — no DML — and slower than native or Iceberg tables because Snowflake has less control over layout and statistics. Their niche is querying a data lake's raw landing zone, or one-off access to files you don't want to ingest. For anything queried repeatedly, ingesting to a managed table or using a managed Iceberg table will be faster and usually cheaper overall.</p>
+
+        <h3>Hybrid tables (Unistore)</h3>
+        <p>Hybrid tables are the outlier: a <strong>row-oriented storage engine</strong> with an index, row-level locking, and enforced primary/foreign-key and unique constraints — the opposite of the columnar, constraint-free analytical model. They exist to bring <em>operational</em> (OLTP-style) workloads — fast single-row reads and writes, high concurrency on point lookups — onto Snowflake, the capability marketed as <strong>Unistore</strong>. You'd use a hybrid table for application state or a serving layer that needs millisecond point operations, often joined against analytical columnar tables in the same query. Do not reach for hybrid tables for analytical scans; that's what the columnar engine is for.</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Type</th><th>Storage / format</th><th>DML</th><th>Time Travel + Fail-safe</th><th>Best for</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Permanent (managed)</td><td>Snowflake FDN</td><td>Full</td><td>Yes (≤90d + 7d)</td><td>Core warehouse data</td></tr>
+              <tr><td>Transient / temporary</td><td>Snowflake FDN</td><td>Full</td><td>Time Travel only, no Fail-safe</td><td>Staging, scratch, rebuildable data</td></tr>
+              <tr><td>Iceberg (Snowflake-managed)</td><td>Parquet in your storage</td><td>Full</td><td>Iceberg snapshots</td><td>Open format, near-native perf</td></tr>
+              <tr><td>Iceberg (external catalog)</td><td>Parquet in your storage</td><td>Read/write via catalog</td><td>Iceberg snapshots</td><td>Multi-engine interoperability</td></tr>
+              <tr><td>External</td><td>Files in your storage</td><td>Read-only</td><td>No</td><td>Query-in-place on a lake</td></tr>
+              <tr><td>Hybrid (Unistore)</td><td>Row store + index</td><td>Full, PK/FK enforced</td><td>Limited</td><td>OLTP / serving / point ops</td></tr>
+            </tbody>
+          </table>
         </div>
 
         <h2>Layer 2: Compute — Virtual Warehouses</h2>
@@ -247,7 +350,7 @@ sequenceDiagram
 
         <p>Three of Snowflake's most-loved features are not separate subsystems — they fall directly out of immutable storage plus versioned metadata.</p>
 
-        <h3>Time Travel</h3>
+        <h3>Time Travel — and how it actually works internally</h3>
         <p>Because old micro-partitions aren't deleted immediately, Snowflake can reconstruct any past version of a table within the retention window (default 1 day, up to 90 on higher editions) simply by pointing at the partition set that was current at that time.</p>
 
         <pre><code class="language-sql">-- Query a table as it was 1 hour ago
@@ -258,6 +361,41 @@ SELECT * FROM orders BEFORE(STATEMENT => '01a2b3c4-...');
 
 -- Undrop an accidentally dropped table (metadata still points to its partitions)
 UNDROP TABLE orders;</code></pre>
+
+        <p>The mechanism is worth seeing precisely, because once you understand it the costs and limits become obvious. A table's "version" is just a <strong>set of micro-partitions recorded in the cloud-services metadata store</strong> (FoundationDB), stamped with the transaction that produced it. Every DML statement produces a new version — a new set of partition pointers — without deleting the partitions the previous version referenced. Time Travel is therefore not a snapshot or a log replay: it is the metadata layer handing the optimizer the partition set that was current at the requested timestamp or statement. The historical partitions already exist in object storage; querying the past is the same scan you'd do on the present, just over a different list of files.</p>
+
+        <div class="diagram-wrap">
+          <pre class="mermaid">
+graph LR
+    subgraph MD["Cloud-services metadata (versions)"]
+        V1["v1 @ t0\n{P1, P2}"]
+        V2["v2 @ t1 (UPDATE)\n{P1, P3}"]
+        V3["v3 @ t2 (DELETE)\n{P3}"]
+    end
+    subgraph OBJ["Object storage (immutable partitions)"]
+        P1["P1"]; P2["P2"]; P3["P3"]
+    end
+    V1 --> P1
+    V1 --> P2
+    V2 --> P1
+    V2 --> P3
+    V3 --> P3
+    Q["AT(timestamp = t0)"] -.resolves to.-> V1
+          </pre>
+          <p class="diagram-caption">Time Travel internals. Each DML creates a new version = a new set of partition pointers in metadata; superseded partitions (P2 after the update, P1 after the delete) are retained, not erased. A Time Travel query resolves the timestamp to a version and scans that version's partition set. Storage cost is the union of all partitions still referenced by any live version within the retention window.</p>
+        </div>
+
+        <h3>Retention, Fail-safe, and what they cost</h3>
+        <p>Two windows govern how long old partitions survive:</p>
+        <ul>
+          <li><strong>Time Travel</strong> — controlled per object by <code>DATA_RETENTION_TIME_IN_DAYS</code> (default 1; up to 90 on Enterprise edition and above; 0 disables it). Within this window the data is <em>user-queryable</em> via <code>AT</code>/<code>BEFORE</code>, recoverable via <code>UNDROP</code>, and clonable.</li>
+          <li><strong>Fail-safe</strong> — a fixed, <strong>non-configurable 7-day</strong> period that begins when the Time Travel window ends. Fail-safe is <em>not</em> user-accessible; only Snowflake operations can recover from it, and only as a last-resort disaster mechanism. You cannot query it, and you cannot turn it off on permanent tables.</li>
+        </ul>
+        <p>The storage-cost implication is direct: the bytes a table consumes equal its current partitions <em>plus every superseded partition still inside the Time Travel window plus the Fail-safe tail</em>. A table churned by frequent updates with a 90-day retention can store many multiples of its logical size. This is the precise reason transient tables exist — they skip Fail-safe entirely — and why high-retention settings on high-churn tables are a classic cost surprise.</p>
+
+        <div class="callout warning">
+          <p><strong>Time Travel storage is the silent line item.</strong> A table that looks like 200 GB can bill for far more if it's heavily updated under a long retention window — every rewritten partition lingers for retention + 7 days. Set <code>DATA_RETENTION_TIME_IN_DAYS</code> to what you actually need for recovery (1–7 days is plenty for most tables; reserve 90 for genuinely critical data), and use transient tables for anything rebuildable so you pay neither for long Time Travel nor for Fail-safe.</p>
+        </div>
 
         <h3>Zero-copy cloning</h3>
         <p>Cloning a table, schema, or whole database is a <strong>metadata operation</strong>: the clone points at the same existing micro-partitions. No data is copied, so it's instant and free at creation time. Storage diverges only when one side changes — new writes create new partitions owned by that branch (copy-on-write). This is why teams clone multi-TB production databases for testing without a storage bill spike.</p>

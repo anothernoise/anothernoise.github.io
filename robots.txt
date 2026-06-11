@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://anothernoise.github.io/sitemap.xml
