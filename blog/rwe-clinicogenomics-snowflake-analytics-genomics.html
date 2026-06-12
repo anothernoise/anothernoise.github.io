@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RWE Clinicogenomics on Snowflake, Part 3: Cortex AI, Genomics in Snowpark, Notebooks &amp; Power BI</title>
   <meta name="description" content="Part 3 of a 3-part series: running Cortex AI functions over clinical notes without exporting PHI, processing genomics at scale in Snowpark and Container Services, scoring polygenic risk with the Model Registry, and the analytics surface in Snowflake Notebooks and Power BI — with lessons learned.">
-  <meta name="keywords" content="Snowflake Cortex AI, clinical notes NLP, phenotyping, Snowpark, genomics, polygenic risk score, Snowpark Container Services, Snowpark Model Registry, Snowflake Notebooks, Power BI Snowflake, DirectQuery, real-world evidence, clinicogenomics">
+  <meta name="keywords" content="Snowflake Cortex AI, clinical notes NLP, phenotyping, Snowpark, genomics, polygenic risk score, Snowpark Container Services, Snowpark Model Registry, Snowflake Notebooks, Power BI Snowflake, DirectQuery, real-world evidence, clinicogenomics, FDA RWE guidance, 21 CFR Part 11, ALCOA+, data provenance, reproducibility, fit-for-use">
   <meta name="author" content="Dmitry Shirokov">
   <link rel="canonical" href="https://anothernoise.github.io/blog/rwe-clinicogenomics-snowflake-analytics-genomics.html">
   <meta property="og:type" content="article">
@@ -236,6 +236,18 @@ graph TD
           <p class="diagram-caption">The analytics surface sits entirely on the governed side of the line. Notebooks and Power BI both query as the end user, so the Part 2 policies are enforced per person; Snowpark feeds scored features (like PRS) back into the same governed tables that Notebooks and Power BI read.</p>
         </div>
 
+        <h2>When the evidence has to satisfy a regulator</h2>
+
+        <p>Everything so far assumes internal analytics and partner collaboration. The bar rises when the RWE is meant to support a regulatory decision — a label expansion, a post-marketing commitment, an external control arm that a reviewer will actually scrutinise. The FDA's RWE program — built on the 21st Century Cures Act and extended by the FDORA mandate — is explicit that the data has to be <strong>fit for use</strong> and the analysis <strong>reproducible</strong>, and that turns several things from "nice to have" into requirements. Three shaped the platform directly:</p>
+
+        <ul>
+          <li><strong>Provenance and traceability.</strong> You have to show where every data element came from and how it was transformed, source to result. This is precisely what the data contracts and lineage from <a href="rwe-clinicogenomics-snowflake-governance-collaboration.html">Part 2</a> buy you — they stop being good hygiene and become the thing that lets you answer an inspector. FDA also expects that the underlying source data can be made available for inspection, which is a contractual matter with the data originators, not just a technical one, so those agreements have to exist before you rely on a source.</li>
+          <li><strong>Reproducibility.</strong> FDA wants the submitted data, code, and algorithms annotated and complete enough to re-run the analysis and land on the same answer. That means versioning the data (Time Travel and the Iceberg snapshots help), the transformation code (it's all in git), and the models — which is the real reason the polygenic-risk and phenotyping models live in the Model Registry with versions rather than in someone's notebook. "Which model produced this number, on which data, with which code?" has to have one unambiguous answer.</li>
+          <li><strong>Part 11-grade systems.</strong> If electronic records feed a submission, the systems managing them are expected to meet 21 CFR Part 11 — audit trails, access controls, and the data-integrity properties usually summarised as ALCOA+ (attributable, legible, contemporaneous, original, accurate, and so on). Snowflake's access history plus the policy-enforced access from Part 2 cover much of that, but it's a posture you claim and document deliberately, not one you get for free by being on a good platform.</li>
+        </ul>
+
+        <p>The AI-derived phenotypes deserve a second mention in this light, because the regulatory framing sharpens the earlier caveat. A Cortex-classified cohort flag is an algorithm-derived variable; if it feeds regulatory evidence, it has to be validated and fit-for-purpose — its agreement against chart review measured and documented, its derivation transparent enough to put in front of a reviewer. "The model seemed good" is an internal note, not a submission. We treated any Cortex output that might touch regulatory evidence as a variable requiring its own validation record, the same as any other derived endpoint.</p>
+
         <h2>Lessons learned across the whole programme</h2>
 
         <p>Pulling the three parts together, here's what I'd tell the next team doing this, in rough order of how much grief each one saved or cost us:</p>
@@ -248,6 +260,7 @@ graph TD
           <li><strong>Watch the AI and the consumption bill like the engineering costs they are.</strong> A Cortex function over a giant note corpus is a priced batch job; sample and measure first. Auto-suspend, per-workload warehouses, and resource monitors are not optional under a consumption model.</li>
           <li><strong>Keep something interoperable.</strong> Choosing Iceberg over a closed format kept the bioinformatics Spark jobs alive and meant the migration was never an all-or-nothing bet. I'd make that choice again every time.</li>
           <li><strong>Version your models, not just your data.</strong> Putting the risk models in the Model Registry answered the "which version produced this number?" question before a regulator had to ask it.</li>
+          <li><strong>Treat the regulations as the design spec, not a review gate.</strong> The single biggest mindset shift: for clinicogenomic RWE, "is this defensible under HIPAA Expert Determination and, if it's going to FDA, fit-for-use and reproducible?" is a question you answer while you design, not one you bolt on before submission. A genome can't be Safe-Harbored, so the whole tokenization-and-clean-room posture exists because the compliance frame demanded it — build it in from the first table.</li>
         </ul>
 
         <h2>Was it worth it?</h2>

@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RWE Clinicogenomics on Snowflake, Part 2: PHI Governance, Tokenization, Clean Rooms &amp; Data Contracts</title>
-  <meta name="description" content="Part 2 of a 3-part series: governing PHI on Snowflake with sensitive-data classification, tag-based masking, deterministic tokenization and customer-managed keys; sharing without copying via Secure Data Sharing and Data Clean Rooms; and a data contract management app that keeps it all honest.">
-  <meta name="keywords" content="PHI governance, sensitive data classification, dynamic data masking, external tokenization, Tri-Secret Secure, customer-managed keys, Snowflake Data Clean Rooms, Secure Data Sharing, data contracts, data contract management, dbt contracts, Data Metric Functions, Streamlit in Snowflake, real-world evidence">
+  <meta name="description" content="Part 2 of a 3-part series: the HIPAA/RWE compliance frame (Safe Harbor vs Expert Determination, why genomic data can't be Safe-Harbored, BAAs, minimum necessary, IRB/Common Rule, 42 CFR Part 2, GINA) and the Snowflake controls that satisfy it — classification, tag-based masking, deterministic tokenization, CMK, Secure Data Sharing, Data Clean Rooms, and a data contract management app.">
+  <meta name="keywords" content="RWE compliance, HIPAA de-identification, Safe Harbor, Expert Determination, genomic data re-identification, business associate agreement, minimum necessary, IRB, Common Rule, 42 CFR Part 2, GINA, PHI governance, sensitive data classification, dynamic data masking, external tokenization, Tri-Secret Secure, Snowflake Data Clean Rooms, Secure Data Sharing, data contracts, dbt contracts, Data Metric Functions, Streamlit in Snowflake">
   <meta name="author" content="Dmitry Shirokov">
   <link rel="canonical" href="https://anothernoise.github.io/blog/rwe-clinicogenomics-snowflake-governance-collaboration.html">
   <meta property="og:type" content="article">
@@ -117,6 +117,35 @@
 
         <p>So this part is about three things that turned out to be one thing: how we governed sensitive data so the controls held without anyone remembering to apply them, how we let partners work with the data without ever handing over a row, and the data contract management app we built to stop the whole arrangement from quietly drifting out of compliance. I'll be concrete, because the value is in the mechanics.</p>
 
+        <h2>The compliance frame we designed against</h2>
+
+        <p>Before any of the controls make sense, it's worth being explicit about what we were building for, because in real-world evidence the regulations aren't a footnote — they're the design spec. A clinicogenomic dataset sits under more overlapping regimes than almost anything else in data engineering, and "we encrypted it" satisfies none of them on its own. The load-bearing ones for this platform:</p>
+
+        <ul>
+          <li><strong>HIPAA, obviously</strong> — both the Privacy Rule and the Security Rule. The first architectural consequence is unglamorous: you cannot put PHI on a cloud platform without a <strong>Business Associate Agreement</strong>, so BAAs with both Snowflake and AWS were table stakes before a single row moved. The Privacy Rule's <strong>minimum necessary</strong> principle is what our row-access and masking policies actually implement — an analyst sees the least data their task needs, by default.</li>
+          <li><strong>De-identification has two doors, and genomics only fits through one.</strong> HIPAA gives you Safe Harbor (strip the 18 listed identifiers, §164.514(b)(2)) or Expert Determination (a qualified statistician documents that re-identification risk is "very small," §164.514(b)(1)). Here's the catch people miss: <strong>a genome is inherently identifying and isn't one of Safe Harbor's 18 identifiers</strong>, so you cannot Safe-Harbor a clinicogenomic dataset into being "de-identified." The honest path is Expert Determination plus contractual and technical controls — which is exactly why tokenization, gated re-identification, and clean rooms carry so much weight here. They aren't belt-and-braces; they're how you reach a defensible risk position at all.</li>
+          <li><strong>Secondary-use rules.</strong> Most RWD was collected for care, not research, and consent at the point of care rarely covers future research. So secondary use runs through either de-identification or an IRB — under the Common Rule, an IRB can approve research on identifiable data, or waive consent under specific conditions. That governance lives outside the platform, but the platform has to <em>enforce</em> it, which is why the data contract's allowed-use and the consent categories in our row-access policies aren't decoration.</li>
+          <li><strong>Source-specific overlays.</strong> Some data carries extra law. Substance-use-disorder records under <strong>42 CFR Part 2</strong> are more tightly restricted than ordinary PHI and often need to be segregated or separately consented; genetic information sits under <strong>GINA</strong>, which bars its use in employment and health-insurance decisions. Practically, that meant tagging those categories distinctly so policy could treat them differently, rather than lumping everything "sensitive" together.</li>
+        </ul>
+
+        <p>None of this changes the controls I'm about to describe — it explains why they exist, and why "just mask it" was never going to be enough. Each mechanism below maps to a specific obligation:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Control</th><th>What it satisfies</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>BAAs with Snowflake + AWS</td><td>HIPAA precondition for processing PHI in the cloud</td></tr>
+              <tr><td>Classification + tagging</td><td>Knowing where PHI / genetic / Part 2 data lives — the precondition for every other control</td></tr>
+              <tr><td>Tag-based masking + row access</td><td>HIPAA minimum necessary; consent- and IRB-scoped access</td></tr>
+              <tr><td>Deterministic tokenization + gated re-identification</td><td>Expert Determination risk posture; linkage without exposing identifiers</td></tr>
+              <tr><td>Tri-Secret Secure (CMK) + access history</td><td>HIPAA Security Rule — encryption, audit controls, revocability</td></tr>
+              <tr><td>Clean rooms + minimum cohort threshold</td><td>Keeping shared outputs below a "very small" re-identification risk</td></tr>
+            </tbody>
+          </table>
+        </div>
+
         <h2>Governing PHI as a property of the platform</h2>
 
         <p>In a regulated dataset, governance can't be a convention that people remember to follow. It has to be something the platform enforces whether or not anyone remembers. We leaned on three layers that, taken together, turned "we mask in views, mostly" into an actual control plane.</p>
@@ -128,7 +157,7 @@
         <p>Rather than attach a masking policy to each column by hand, we attached policies to tags. Tag a column as PHI and the masking follows it everywhere — including into any new table built from it. Row access policies handled the other axis: a given analyst only sees rows for the sites and consent categories they're cleared for. Defining it once and letting the tag carry it is the difference between governance that holds and governance that erodes with every new model.</p>
 
         <h3>Tokenization at the boundary, with re-identification gated</h3>
-        <p>For the genuinely identifying fields we used external tokenization — a masking policy that, for most roles, replaces the value with a token from an external vault, and only returns the real value to a tightly held re-identification role. The token is <strong>deterministic</strong>, which matters enormously later for clean-room joins, because two parties can join on the same tokenized patient key without either of them ever seeing the underlying MRN.</p>
+        <p>For the genuinely identifying fields we used external tokenization — a masking policy that, for most roles, replaces the value with a token from an external vault, and only returns the real value to a tightly held re-identification role. The token is <strong>deterministic</strong>, which matters enormously later for clean-room joins, because two parties can join on the same tokenized patient key without either of them ever seeing the underlying MRN. This is also the mechanism that makes an Expert Determination defensible in practice: identifiers are removed from the working data, re-identification is gated behind a role almost nobody holds, and the linkage that research needs still works — privacy-preserving record linkage rather than a shared spreadsheet of MRNs.</p>
 
         <pre><code class="language-sql">-- Tokenize identifiers by default; only a privileged role can re-identify.
 CREATE MASKING POLICY governance.tokenize_mrn AS (val STRING) RETURNS STRING ->
@@ -171,6 +200,8 @@ graph TD
         <p>The canonical case: a sponsor wants to understand how many patients in our cohort overlap with their trial population, or wants an external control arm, and neither side is allowed to see the other's patient-level rows. With a clean room, both parties bring their data, the join happens on the deterministically tokenized patient key, and the only thing that comes out is aggregate — with a minimum cohort-size threshold so you can't reverse a small group back to individuals.</p>
 
         <p>That overlap-and-aggregate pattern is exactly the shape of a lot of RWE collaboration: cohort sizing, feasibility, external controls, safety signal checks across populations. Being able to say "we never move patient data and the partner never sees a row" turned month-long negotiations into something a data team could stand up in days. If I had to name the single feature that justified the whole programme to the business, it's this one. The honest friction: analysts used to poking at row-level data find the minimum-threshold, aggregate-only discipline frustrating, so set that expectation before they hit the wall, not after.</p>
+
+        <p>The minimum cohort-size threshold isn't only a UX nicety — it's the output-side analogue of the de-identification problem. An aggregate small enough to single out an individual is, for practical purposes, identifiable, so the threshold (plus cell suppression on sparse breakdowns) is how you keep what <em>leaves</em> the clean room below the same "very small risk" bar that Expert Determination demands of the inputs. Same standard, applied to the answer instead of the data.</p>
 
         <h2>The data contract management app</h2>
 
@@ -249,7 +280,7 @@ graph TD
           <li><strong>Schema, at build time.</strong> The contract's schema block maps to dbt model contracts, so a producer that changes a type or drops a column fails the build instead of silently shipping a breaking change to a study. Fail fast, upstream, where the producer can see it.</li>
           <li><strong>Governance, from the PHI class.</strong> A reconciliation job reads each contract's classifications and makes the actual Snowflake object tags match — which in turn pulls in the tag-based masking and tokenization from earlier. If someone adds a PHI column to a table without declaring it in the contract, the drift shows up as a violation rather than as an unmasked identifier in production.</li>
           <li><strong>Quality, continuously.</strong> The quality block maps to Snowflake Data Metric Functions scheduled on the table. Null counts, duplicate keys, and freshness are measured against the contract's thresholds, and breaches alert the owner. dbt tests guard the build; DMFs guard the live table between builds.</li>
-          <li><strong>Sharing, from the consumer list.</strong> The <code>consumers</code> block is what actually provisions a Secure Data Share or a clean-room dataset. Because the grant is generated from the contract, the agreement and the access can't diverge — and a consumer marked <code>clean-room-only</code> physically can't be handed a direct share.</li>
+          <li><strong>Sharing, from the consumer list.</strong> The <code>consumers</code> block is what actually provisions a Secure Data Share or a clean-room dataset. Because the grant is generated from the contract, the agreement and the access can't diverge — and a consumer marked <code>clean-room-only</code> physically can't be handed a direct share. Each consumer's entry also records the <em>legal basis</em> for that use — the IRB protocol number or the consent/de-identification determination it relies on — so the contract doubles as the audit answer to "under what authority does this party have this data?"</li>
         </ul>
 
         <pre><code class="language-sql">-- The contract's quality block compiles to DMF associations like this.
