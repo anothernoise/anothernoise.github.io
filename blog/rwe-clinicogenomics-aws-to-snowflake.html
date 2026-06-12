@@ -3,39 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Re-platforming a Real-World Evidence Clinicogenomics Stack from AWS to Snowflake</title>
-  <meta name="description" content="A solution architect's account of moving a real-world evidence (RWE) clinicogenomics platform from Redshift, DataZone and QuickSight to Snowflake — keeping the data on S3 with Iceberg, governing PHI with classification, masking and tokenization, collaborating through Data Clean Rooms, and running Cortex AI, Snowpark and Notebooks on top.">
-  <meta name="keywords" content="real-world evidence, RWE, RWD, clinicogenomics, Snowflake, Iceberg tables, S3, Redshift migration, DataZone, QuickSight, Power BI, Data Clean Rooms, Cortex AI, Snowpark, Snowflake Notebooks, tokenization, PHI, sensitive data classification, data sharing">
+  <title>RWE Clinicogenomics: Migrating from AWS to Snowflake (and the TCO Case)</title>
+  <meta name="description" content="Part 1 of a 3-part series: moving a real-world evidence (RWE) clinicogenomics platform off Redshift, DataZone and QuickSight to Snowflake while leaving the data on S3 with Iceberg — the migration mechanics and an honest total-cost-of-ownership comparison.">
+  <meta name="keywords" content="real-world evidence, RWE, RWD, clinicogenomics, Snowflake migration, Iceberg tables, S3, Redshift migration, DataZone, QuickSight, Power BI, TCO comparison, total cost of ownership, Snowpipe Streaming, Kafka">
   <meta name="author" content="Dmitry Shirokov">
   <link rel="canonical" href="https://anothernoise.github.io/blog/rwe-clinicogenomics-aws-to-snowflake.html">
   <meta property="og:type" content="article">
-  <meta property="og:title" content="Re-platforming a Real-World Evidence Clinicogenomics Stack from AWS to Snowflake">
-  <meta property="og:description" content="Moving an RWE clinicogenomics platform off Redshift/DataZone/QuickSight to Snowflake without moving the data off S3 — governance, clean rooms, Cortex AI, Snowpark and Notebooks.">
+  <meta property="og:title" content="RWE Clinicogenomics: Migrating from AWS to Snowflake (and the TCO Case)">
+  <meta property="og:description" content="Part 1: re-platforming an RWE clinicogenomics stack to Snowflake without moving the data off S3 — migration mechanics and an honest TCO comparison.">
   <meta property="og:url" content="https://anothernoise.github.io/blog/rwe-clinicogenomics-aws-to-snowflake.html">
   <meta property="og:site_name" content="Dmitry Shirokov — Data &amp; AI Engineering">
   <meta property="article:published_time" content="2025-03-30">
   <meta property="article:modified_time" content="2025-03-30">
   <meta property="article:author" content="Dmitry Shirokov">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Re-platforming an RWE Clinicogenomics Stack from AWS to Snowflake">
-  <meta name="twitter:description" content="Redshift/DataZone/QuickSight → Snowflake, data stays on S3. PHI governance, Data Clean Rooms, Cortex AI, Snowpark, Notebooks.">
+  <meta name="twitter:title" content="RWE Clinicogenomics: Migrating from AWS to Snowflake (and the TCO Case)">
+  <meta name="twitter:description" content="Part 1: Redshift/DataZone/QuickSight → Snowflake, data stays on S3 — migration mechanics and an honest TCO comparison.">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "TechArticle",
-    "headline": "Re-platforming a Real-World Evidence Clinicogenomics Stack from AWS to Snowflake",
-    "description": "A solution architect's account of moving an RWE clinicogenomics platform from Redshift, DataZone and QuickSight to Snowflake while keeping data on S3 with Iceberg, governing PHI with classification, masking and tokenization, collaborating through Data Clean Rooms, and running Cortex AI, Snowpark and Notebooks.",
+    "headline": "RWE Clinicogenomics on Snowflake, Part 1: The Migration and the TCO Case",
+    "description": "Part 1 of a 3-part series on moving an RWE clinicogenomics platform from AWS to Snowflake while keeping data on S3 with Iceberg — migration mechanics and an honest total-cost-of-ownership comparison.",
     "datePublished": "2025-03-30",
     "dateModified": "2025-03-30",
     "author": { "@type": "Person", "name": "Dmitry Shirokov" },
     "publisher": { "@type": "Person", "name": "Dmitry Shirokov" },
     "mainEntityOfPage": { "@type": "WebPage", "@id": "https://anothernoise.github.io/blog/rwe-clinicogenomics-aws-to-snowflake.html" },
-    "keywords": "real-world evidence, RWE, clinicogenomics, Snowflake, Iceberg tables, Redshift migration, Data Clean Rooms, Cortex AI, Snowpark, tokenization, PHI",
+    "keywords": "real-world evidence, RWE, clinicogenomics, Snowflake migration, Iceberg tables, Redshift migration, TCO comparison",
     "articleSection": "Data Engineering",
     "about": [
       { "@type": "Thing", "name": "Real-world evidence" },
       { "@type": "Thing", "name": "Snowflake" },
-      { "@type": "Thing", "name": "Healthcare data platforms" }
+      { "@type": "Thing", "name": "Cloud migration" }
     ]
   }
   </script>
@@ -73,6 +73,13 @@
     tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
     .diagram-wrap { background: rgba(9,13,27,0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem 1rem; margin: 1.8rem 0; overflow-x: auto; text-align: center; position: relative; }
     .diagram-caption { font-size: 0.84rem; color: var(--text-muted); margin: 0.75rem 0 0 0; font-style: italic; }
+    .series-nav { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.2rem 1.5rem; margin: 2rem 0; }
+    .series-nav h4 { margin: 0 0 0.6rem 0; font-size: 0.95rem; color: var(--text-primary); }
+    .series-nav ol { margin: 0 0 0 1.2rem; }
+    .series-nav li { font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .series-nav a { color: var(--accent-primary); text-decoration: none; }
+    .series-nav a:hover { text-decoration: underline; }
+    .series-nav .current { color: var(--text-muted); font-style: italic; }
   </style>
 </head>
 <body>
@@ -86,10 +93,10 @@
     <a href="./" class="back-link">← Back to Blog</a>
     <article class="blog-article">
       <header class="article-header">
-        <h1>Re-platforming a Real-World Evidence Clinicogenomics Stack from AWS to Snowflake</h1>
+        <h1>Re-platforming a Real-World Evidence Clinicogenomics Stack from AWS to Snowflake — Part 1: The Migration, and the TCO Case</h1>
         <div class="article-meta">
           <span>📅 March 30, 2025</span>
-          <span>📖 23 min read</span>
+          <span>📖 18 min read</span>
           <span>❄️ Snowflake</span>
           <span>☁️ AWS</span>
           <span>🧬 Life Sciences</span>
@@ -97,9 +104,18 @@
       </header>
       <div class="article-content">
 
+        <div class="series-nav">
+          <h4>🧬 This is Part 1 of a 3-part series: RWE Clinicogenomics on Snowflake</h4>
+          <ol>
+            <li><span class="current">The Migration, and the TCO Case (you are here)</span></li>
+            <li><a href="rwe-clinicogenomics-snowflake-governance-collaboration.html">Governing PHI, Tokenization, Clean Rooms &amp; the Data Contract App</a></li>
+            <li><a href="rwe-clinicogenomics-snowflake-analytics-genomics.html">Cortex AI, Genomics in Snowpark, and the Analytics Surface</a></li>
+          </ol>
+        </div>
+
         <p>Most of the "should we move off AWS?" conversations I sit in don't really start with AWS. They start with a problem the team has been working around for a year, and the cloud is just where the problem happens to live. For the real-world evidence group I spent a good chunk of last year with, the problem was collaboration. They had a genuinely good clinicogenomics dataset — linked clinical records and genomic results across a few hundred thousand patients — and almost no safe way to let a pharma partner touch it without a six-week legal and security exercise per request.</p>
 
-        <p>So this is a re-platforming story, but the interesting part isn't the database swap. It's that we moved the analytics and the collaboration layer onto Snowflake while leaving every byte of patient data exactly where it already was: in S3. No lift-and-shift of the lake, no "migration weekend" for petabytes of genomic output. I want to walk through how that worked, what we kept from AWS, what we replaced, and the things I'd warn the next team about. I'll keep it concrete, because the value is in the details.</p>
+        <p>This is a re-platforming story, but the interesting part isn't the database swap. It's that we moved the analytics and the collaboration layer onto Snowflake while leaving every byte of patient data exactly where it already was: in S3. No lift-and-shift of the lake, no "migration weekend" for petabytes of genomic output. This first part covers why they moved, how the migration actually worked, and — the bit everyone asks me about afterwards — whether it saved money. I'll deal with the governance and collaboration build in <a href="rwe-clinicogenomics-snowflake-governance-collaboration.html">Part 2</a>, and the analytics and genomics in <a href="rwe-clinicogenomics-snowflake-analytics-genomics.html">Part 3</a>.</p>
 
         <h2>What they had, and why it hurt</h2>
 
@@ -163,128 +179,66 @@ graph LR
     QS --> PBI
     MSK --> SFW
           </pre>
-          <p class="diagram-caption">What got replaced by what. The lake on S3 stays put (now read as Iceberg). Redshift and the EMR/SageMaker genomics work consolidate onto Snowflake compute and Snowpark; DataZone's catalog/governance/sharing role splits into Snowflake's classification and policy features plus Secure Data Sharing and Data Clean Rooms; QuickSight gives way to Power BI, which the wider organisation had already standardised on.</p>
+          <p class="diagram-caption">What got replaced by what. The lake on S3 stays put (now read as Iceberg). Redshift and the EMR/SageMaker genomics work consolidate onto Snowflake compute and Snowpark; DataZone's catalog/governance/sharing role splits into Snowflake's classification and policy features plus Secure Data Sharing and Data Clean Rooms (Part 2); QuickSight gives way to Power BI (Part 3), which the wider organisation had already standardised on.</p>
         </div>
 
         <p>The streaming side was the least dramatic part. The Kafka topics carrying lab results and device telemetry repointed at Snowflake through the Kafka connector running Snowpipe Streaming, landing into tables that the same downstream models read. We ran MSK and Snowflake in parallel for a few weeks, compared row counts and late-arrival behaviour, and turned off the old path once the numbers matched.</p>
 
         <p>I won't pretend the SQL was free. Redshift dialect quirks, a few <code>SUPER</code> columns full of semi-structured JSON that needed re-thinking as <code>VARIANT</code>, and the usual storage-integration and IAM dance to let Snowflake's external volume touch the bucket — all of it took longer than the optimistic estimate. The cohort logic itself ported cleanly. The annoying 20% was, as always, the edges.</p>
 
-        <h2>Governing PHI as a property of the platform</h2>
+        <h3>How we actually sequenced it</h3>
 
-        <p>This is the part I cared most about, because it's where the old setup was weakest. In a regulated dataset, governance can't be a convention that people remember to follow. It has to be something the platform enforces whether or not anyone remembers.</p>
+        <p>Nobody flips a regulated platform over a weekend, so we didn't. The order that worked: stand up the external volume and register the existing S3 tables as Iceberg first, so Snowflake could read production data read-only without anything changing for existing consumers. Then port the cohort SQL and validate it against Redshift output query-by-query — same inputs, same row counts, same aggregates — until the epidemiologists trusted it. Then repoint the Kafka streams in parallel. Governance and sharing came next (Part 2), and only then did we move the dashboards and turn Redshift off. Dual-running cost us a couple of months of paying for both, which I'd budget for explicitly rather than pretend away.</p>
 
-        <p>We leaned on three things that, taken together, turned "we mask in views, mostly" into an actual control plane.</p>
+        <h2>So did it save money?</h2>
 
-        <p><strong>Discovery first.</strong> Snowflake's data classification will scan columns and tag what looks sensitive — names, dates of birth, identifiers — assigning system tags for the privacy and semantic category. We ran it across the whole estate as step one, then reviewed and corrected the results (more on the false positives later). The output is the thing the old stack never had: a queryable inventory of where PHI actually lives. Once a column is tagged, everything downstream can key off the tag instead of a hardcoded column list.</p>
+        <p>This is the question that comes up in every steering meeting, and the honest answer is more interesting than a yes. Let me show you the shape of it, then the caveats, because a TCO table with no caveats is a sales deck, not an architecture decision.</p>
 
-        <p><strong>Tag-driven masking and row access.</strong> Rather than attach a masking policy to each column by hand, we attached policies to tags. Tag a column as PHI and the masking follows it everywhere — including into any new table built from it. Row access policies handled the other axis: a given analyst only sees rows for the sites and consent categories they're cleared for. Defining it once and letting the tag carry it is the difference between governance that holds and governance that erodes with every new model.</p>
+        <p>These numbers are illustrative and anonymised — directional figures from a platform in the low-hundreds-of-thousands-of-patients range, annualised. Your mileage will vary by an order of magnitude depending on data volume and how heavily you'd reserved capacity. Treat the <em>relationships</em> as the takeaway, not the absolute dollars.</p>
 
-        <p><strong>Tokenization at the boundary, with re-identification gated.</strong> For the genuinely identifying fields we used external tokenization — a masking policy that, for most roles, replaces the value with a token from an external vault, and only returns the real value to a tightly held re-identification role. The token is deterministic, which matters enormously later for clean-room joins, because two parties can join on the same tokenized patient key without either of them ever seeing the underlying MRN.</p>
-
-        <pre><code class="language-sql">-- Tokenize identifiers by default; only a privileged role can re-identify.
-CREATE MASKING POLICY governance.tokenize_mrn AS (val STRING) RETURNS STRING ->
-  CASE
-    WHEN IS_ROLE_IN_SESSION('PHI_REIDENTIFY') THEN val
-    ELSE tokenization.ext.tokenize(val)        -- external function → token vault
-  END;
-
--- Attach to the tag, not the column. Every PHI-tagged identifier inherits it.
-ALTER TAG governance.phi SET MASKING POLICY governance.tokenize_mrn;</code></pre>
-
-        <p>Underneath all of that, the encryption story was easy to defend to the security team: Snowflake encrypts everything by default, and we wired customer-managed keys through AWS KMS so the organisation held a key in the hierarchy and could cut access if it ever needed to. Combined with access history for the audit trail, the compliance review went from "show me the masking views" to "show me the policy and the tag", which is a much shorter conversation.</p>
-
-        <h2>Collaboration without handing over the data</h2>
-
-        <p>Remember the original sore point — sharing. This is where the move actually paid for itself, and it came in two flavours.</p>
-
-        <p>For distributing curated, de-identified RWD products to partners who just need to query them, Secure Data Sharing replaced the old extract-and-ship ritual entirely. You grant access to a governed object; the consumer queries live data with their own compute; nothing is copied and nothing is emailed. Internally this also killed a surprising amount of duplicate data, because teams stopped making private copies "just to be safe".</p>
-
-        <p>The more interesting flavour was Data Clean Rooms, which is what finally made the scary collaborations boring. The canonical case: a sponsor wants to understand how many patients in our cohort overlap with their trial population, or wants an external control arm, and neither side is allowed to see the other's patient-level rows. With a clean room, both parties bring their data, the join happens on the deterministically tokenized patient key, and the only thing that comes out is aggregate — with a minimum cohort-size threshold so you can't reverse a small group back to individuals.</p>
-
-        <p>That overlap-and-aggregate pattern is exactly the shape of a lot of RWE collaboration: cohort sizing, feasibility, external controls, safety signal checks across populations. Being able to say "we never move patient data and the partner never sees a row" turned month-long negotiations into something a data team could stand up in days. If I had to name the single feature that justified the whole programme to the business, it's this one.</p>
-
-        <h2>Cortex AI on the messy 80%</h2>
-
-        <p>A lot of the value in real-world data is locked in text — clinical notes, pathology reports, the free-text fields nobody structured. The old way of getting at that meant exporting the notes to wherever the model lived, which for PHI is a non-starter. Running Cortex's AI functions changes the geometry: the model call happens inside Snowflake, on data that never leaves the perimeter, billed against the same account.</p>
-
-        <p>The functions had gone GA the previous May, and for this kind of work the useful ones are unglamorous. We used <code>CLASSIFY_TEXT</code> for first-pass phenotyping — flagging notes that mention a condition of interest — <code>EXTRACT_ANSWER</code> to pull specific documented facts like performance status or a biomarker result, and <code>SUMMARIZE</code> to give a reviewer a quick read on a long note. A simplified version of the phenotyping pass:</p>
-
-        <pre><code class="language-sql">SELECT
-    note_id,
-    patient_token,
-    SNOWFLAKE.CORTEX.CLASSIFY_TEXT(
-        note_text,
-        ['type 2 diabetes', 'chronic kidney disease', 'neither']
-    )                                                          AS phenotype_flag,
-    SNOWFLAKE.CORTEX.EXTRACT_ANSWER(
-        note_text,
-        'What is the documented ECOG performance status?'
-    )                                                          AS ecog_extract
-FROM clinical.notes
-WHERE note_date >= '2020-01-01';</code></pre>
-
-        <p>Two caveats I'd put in bold if I could. First, this is a <em>screening</em> tool, not a diagnosis — anything that feeds an actual study definition got human review, and we tracked the model's agreement with chart abstractors before trusting it anywhere near an endpoint. Second, it's easy to run a function over ten million notes and get a bill that makes someone's eyes water. We always sampled a thousand rows, looked at the cost and the quality, then decided. For semantic retrieval over the literature and protocol library we stood up a Cortex Search service, which had just gone GA in October and saved us from running a separate vector database for what was, in the end, document search.</p>
-
-        <h2>Genomics-scale work in Snowpark</h2>
-
-        <p>The bioinformatics team's first reaction to "we're moving to Snowflake" was, reasonably, "are you taking away my Python?" The answer was no. Snowpark let them keep writing Python while the work executed next to the data instead of on a cluster they had to babysit. The variant normalisation and the feature-engineering steps that used to run on EMR became Snowpark transforms; the polygenic risk scoring that joined genomic features back to the clinical cohort ran in-database, which meant the genomic data and the PHI met inside the governed environment rather than on some export.</p>
-
-        <p>For the genuinely custom tooling — the bioinformatics binaries that expect a particular runtime — Snowpark Container Services let us bring the container to the data rather than the other way around. It wasn't all frictionless; some of the heavier genomic joins needed deliberate clustering to prune well, and a couple of legacy scripts assumed a local filesystem in ways that took rework. But the win was structural: there was no longer a step where patient-linked genomic data left the platform to be processed.</p>
-
-        <h2>The analytics surface: Notebooks and Power BI</h2>
-
-        <p>Day-to-day, the epidemiologists and data scientists live in Snowflake Notebooks now, which reached GA in November. Python and SQL in the same place, running on Snowpark, with the Cortex calls available inline — so building a cohort, profiling it, and running a quick model happens in one document against governed data, without the export-to-laptop habit that compliance dreads. It replaced a scattering of local notebooks and the "can you send me the extract" emails that came with them.</p>
-
-        <p>For the dashboards we moved to Power BI, partly because the broader organisation had already standardised on it and partly because the semantic-model layer fit how the reporting team wanted to work. The thing worth flagging for anyone doing the same: the governance you set up in Snowflake follows the data into Power BI. A clinician opening a report sees masked identifiers and only their permitted rows because the masking and row access policies are enforced at query time, regardless of the tool on top. We used DirectQuery where freshness mattered and Import with aggregations where it didn't, which is the usual trade and not specific to healthcare.</p>
-
-        <div class="diagram-wrap">
-          <pre class="mermaid">
-graph TD
-    subgraph Land["Stays on S3 / Kafka"]
-        S3["S3: clinical Parquet + genomic features"]
-        K["Kafka (MSK): lab + device streams"]
-    end
-    ICE["Iceberg tables on S3"]
-    SPS["Snowpipe Streaming\n(Kafka connector)"]
-    GOV["Governance layer\nclassification · tag-based masking\nrow access · tokenization · CMK"]
-    SP["Snowpark + Container Services\ngenomics processing, PRS scoring"]
-    CX["Cortex AI functions + Search\nphenotyping on notes"]
-    NB["Snowflake Notebooks\ncohort + RWE analysis"]
-    DCR["Data Clean Rooms\nprivacy-preserving overlap"]
-    DS["Secure Data Sharing\nde-identified RWD products"]
-    PBI["Power BI dashboards"]
-
-    S3 --> ICE --> GOV
-    K --> SPS --> GOV
-    GOV --> SP
-    GOV --> CX
-    GOV --> NB
-    SP --> DCR
-    GOV --> DS
-    GOV --> PBI
-          </pre>
-          <p class="diagram-caption">The target architecture. Everything sensitive passes through the governance layer first; analytics, AI and collaboration all sit on the governed side of that line, and the raw data never leaves S3.</p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Cost area</th><th>Before (AWS-native)</th><th>After (Snowflake, data on S3)</th><th>Direction</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Object storage (S3)</td><td>~$40k</td><td>~$40k (unchanged — same bucket)</td><td>flat</td></tr>
+              <tr><td>Warehouse / query compute</td><td>~$260k (Redshift RA3, reserved)</td><td>~$300k (Snowflake credits, consumption)</td><td>up</td></tr>
+              <tr><td>Genomics compute</td><td>~$180k (EMR + SageMaker clusters)</td><td>~$120k (Snowpark + Container Services)</td><td>down</td></tr>
+              <tr><td>BI</td><td>~$30k (QuickSight)</td><td>~$30k (Power BI, already org-standard)</td><td>flat</td></tr>
+              <tr><td>Governance / catalog</td><td>DataZone + Glue (low licence, high effort)</td><td>included in Snowflake</td><td>down</td></tr>
+              <tr><td>Data movement / egress</td><td>~$40k (extracts, cross-service)</td><td>~$5k (sharing in place)</td><td>down</td></tr>
+              <tr><td>Platform engineering (FTE)</td><td>~2.5 FTE (~$450k loaded)</td><td>~1 FTE (~$180k loaded)</td><td>way down</td></tr>
+            </tbody>
+          </table>
         </div>
 
-        <h2>What I'd tell the next team</h2>
+        <p>Look at the compute row first, because it's the one that surprises people: <strong>the headline warehouse spend went up.</strong> Reserved Redshift, fully utilised, is genuinely cheap per query-hour, and Snowflake's consumption model means an unattended warehouse or a sloppy clustering choice shows up on the invoice. If you only compare the database line items, Snowflake can look like a worse deal, and I've watched finance teams stop reading right there.</p>
 
-        <p>A few things I learned the slightly hard way, in no particular order of importance:</p>
+        <p>The story is in the other rows. Consolidating the EMR and SageMaker estate onto Snowpark removed a fleet of clusters that sat idle between bioinformatics runs. Sharing in place collapsed the egress and the cottage industry of extract pipelines. And the big one — the line that doesn't appear on any cloud invoice — is people. Running Redshift plus EMR plus DataZone plus Glue plus the extract machinery was roughly two-and-a-half engineers' worth of keep-the-lights-on. On the consolidated platform that dropped to about one. That single row dwarfs the compute delta.</p>
 
-        <ul>
-          <li><strong>Classification gives you a draft, not an answer.</strong> The auto-classifier flagged plenty of things that weren't actually sensitive and missed a couple of oddly-named columns that were. Treat the first pass as a starting inventory you review, not a finished control. Budget a person's time for it.</li>
-          <li><strong>Make tokenization deterministic on day one.</strong> We got this right almost by luck, and it turned out to be the hinge for every clean-room collaboration later. If your tokens aren't stable across parties and time, your privacy-preserving joins simply don't work. Decide it up front.</li>
-          <li><strong>Clean rooms add analyst friction — set expectations.</strong> Minimum cohort thresholds and aggregate-only outputs are the whole point, but they frustrate analysts used to poking at row-level data. Explain why before they hit the wall, not after.</li>
-          <li><strong>Iceberg is not a free lunch on layout.</strong> Near-native performance is real, but the big genomic tables still needed thoughtful clustering to prune, and small-file behaviour from the streaming path needed minding. "It's just S3" doesn't exempt you from physical design.</li>
-          <li><strong>Watch the AI bill like the engineering cost it is.</strong> A Cortex function over a giant note corpus is a batch job with a price tag. Sample, measure, pick the cheapest model that passes your quality bar, and filter rows before you call the model, not after.</li>
-          <li><strong>Keep something interoperable.</strong> Choosing Iceberg over a closed format kept the bioinformatics Spark jobs alive and meant the migration didn't become an all-or-nothing bet. I'd make that choice again every time.</li>
-        </ul>
+        <div class="callout">
+          <p><strong>The line that mattered most wasn't on the cloud bill at all.</strong> The credit spend went up; total cost of ownership went down, and most of the saving was reduced operational toil and the elimination of duplicate data copies and extract pipelines — none of which shows up if you only diff the Redshift and Snowflake invoices. If your TCO case lives or dies on the compute line, you're measuring the wrong thing.</p>
+        </div>
 
-        <h2>Was it worth it?</h2>
+        <p>There's also a value side I won't try to put in the table because it's too situational: partner collaborations that used to take six weeks of legal and security work now take days (Part 2), which for a team whose business <em>is</em> data collaboration is worth more than the infrastructure savings combined. I flag it in steering decks as a benefit, not a number, and let the sponsors weigh it.</p>
 
-        <p>For this team, clearly yes — but I want to be precise about why, because "we moved to Snowflake" is not a reason. They didn't move for raw query speed; Redshift was fine. They moved because the platform made the safe path the easy path: PHI governed by policy instead of by habit, partner collaboration that doesn't move patient data, AI that runs where the data already sits, and all of it on a lake they never had to relocate. The database swap was the least important thing that happened.</p>
+        <p>One last caveat on the consumption model, because it bites the unwary: Snowflake will cheerfully let you spend. Auto-suspend on every warehouse, separate warehouses per workload so a runaway cohort job can't drag the dashboards down, and resource monitors with hard caps were not optional — they were how we kept that ~$300k from quietly becoming $450k in the first quarter. Set them up on day one.</p>
 
-        <p>If you're staring at a similar AWS-native RWE estate and the friction is governance and sharing rather than performance, the thing I'd push you to internalise is that you can change the engine and the collaboration model without touching the data in S3. Once that clicked for this team, the rest of the decision more or less made itself.</p>
+        <h2>Where this leaves Part 1</h2>
+
+        <p>The platform swap itself is almost anticlimactic once you accept the central trick: with Iceberg, you change the engine without moving the data, so the migration is a metadata-and-SQL exercise rather than a petabyte relocation. The TCO came out ahead, but for reasons that have little to do with the database and a lot to do with consolidation and operational toil.</p>
+
+        <p>What actually justified the move — governing PHI as an enforced control, and sharing data with partners without ever handing over a row — is the subject of <a href="rwe-clinicogenomics-snowflake-governance-collaboration.html">Part 2</a>, including the data contract management app we built to keep all of it honest. <a href="rwe-clinicogenomics-snowflake-analytics-genomics.html">Part 3</a> then gets into the genomics work in Snowpark and the analytics surface in Notebooks and Power BI.</p>
+
+        <div class="series-nav">
+          <h4>🧬 Continue the series</h4>
+          <ol>
+            <li><span class="current">The Migration, and the TCO Case (this article)</span></li>
+            <li><a href="rwe-clinicogenomics-snowflake-governance-collaboration.html">Governing PHI, Tokenization, Clean Rooms &amp; the Data Contract App →</a></li>
+            <li><a href="rwe-clinicogenomics-snowflake-analytics-genomics.html">Cortex AI, Genomics in Snowpark, and the Analytics Surface →</a></li>
+          </ol>
+        </div>
 
       </div>
     </article>
